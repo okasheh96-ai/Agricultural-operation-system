@@ -34,4 +34,4 @@ echo "seed: seed.sql"
 "${PSQL[@]}" -f "$ROOT/supabase/seed/seed.sql"
 "${PSQL[@]}" -f "$ROOT/supabase/tests/_helpers.sql"
 
-pg_prove --ext .sql -r "$ROOT/supabase/tests/pgtap" "$@"
+if [ $# -gt 0 ]; then pg_prove --ext .sql "$@"; else pg_prove --ext .sql -r "$ROOT/supabase/tests/pgtap"; fi

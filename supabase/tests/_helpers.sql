@@ -53,3 +53,17 @@ begin
 end $$;
 
 grant execute on all functions in schema tests to authenticated, service_role;
+
+-- Phase 2 helpers
+create function tests.task_type(p_code text) returns uuid language sql stable as $$
+  select id from public.task_types where farm_id = tests.farm() and code = p_code $$;
+create function tests.category(p_code text) returns uuid language sql stable as $$
+  select id from public.problem_categories where farm_id = tests.farm() and code = p_code $$;
+create function tests.location(p_code text, p_dept text default 'agriculture') returns uuid
+language sql as $$
+  insert into public.locations (farm_id, type, code, name_ar, owning_department_id)
+  values (tests.farm(), 'block', p_code, 'موقع ' || p_code, tests.dept(p_dept)) returning id
+$$;
+create function tests.notifications(p_user uuid, p_kind text) returns integer language sql stable as $$
+  select count(*)::int from public.notifications where user_id = p_user and kind = p_kind $$;
+grant execute on all functions in schema tests to authenticated, service_role;

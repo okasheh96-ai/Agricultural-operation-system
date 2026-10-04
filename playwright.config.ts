@@ -10,7 +10,7 @@ export default defineConfig({
   ],
   webServer: {
     // Points at an unreachable backend on purpose: these smoke tests cover the shell, not data.
-    command: 'VITE_SUPABASE_URL=http://127.0.0.1:9 VITE_SUPABASE_ANON_KEY=smoke npm run build && npx vite preview --port 4173 --strictPort',
+    command: 'VITE_SUPABASE_URL=http://127.0.0.1:9 VITE_SUPABASE_ANON_KEY=smoke npm run build && npx vite preview --host 127.0.0.1 --port 4173 --strictPort',
     url: 'http://127.0.0.1:4173',
     timeout: 120_000,
     reuseExistingServer: false,
