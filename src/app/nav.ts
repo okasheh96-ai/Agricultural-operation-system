@@ -1,5 +1,5 @@
 import type { Access } from '@/core/rbac/access';
-import { can } from '@/core/rbac/access';
+import { can, departmentsWith } from '@/core/rbac/access';
 
 /**
  * Office navigation (Master Prompt §4.3). Status is honest: "built" sections are real; the rest
@@ -17,12 +17,26 @@ export interface NavItem {
   children?: NavItem[];
 }
 
+const canDo = (objectType: string, action: string) => (a: Access | null) => {
+  const scope = departmentsWith(a, objectType, action);
+  return scope === 'all' || scope.length > 0;
+};
+
 /** The Verification Queue is shown to anyone who may verify some master data in some scope. */
-const canVerifySomething = (a: Access | null) => !!a?.grants.some((g) => g.permissions.some((p) => p.action === 'verify'));
+const canVerifySomething = (a: Access | null) =>
+  !!a?.grants.some((g) => g.permissions.some((p) => p.action === 'verify' && p.objectType !== 'task'));
 
 export const OFFICE_NAV: NavItem[] = [
-  { key: 'command', path: '/office/command-center', labelKey: 'nav.commandCenter', phase: '2', built: false },
-  { key: 'operations', path: '/office/operations', labelKey: 'nav.operations', phase: '2', built: false },
+  { key: 'command', path: '/office/command-center', labelKey: 'nav.commandCenter', phase: '2', built: true },
+  {
+    key: 'operations', path: '/office/operations', labelKey: 'nav.operations', phase: '2', built: true,
+    children: [
+      { key: 'board', path: '/office/operations', labelKey: 'nav.board', phase: '2', built: true },
+      { key: 'plan', path: '/office/operations/plan', labelKey: 'nav.plan', phase: '2', built: true, visible: canDo('task', 'plan') },
+      { key: 'verifyTasks', path: '/office/operations/verification', labelKey: 'nav.verifyTasks', phase: '2', built: true, visible: canDo('task', 'verify') },
+      { key: 'exceptions', path: '/office/operations/exceptions', labelKey: 'nav.exceptions', phase: '2', built: true },
+    ],
+  },
   { key: 'agriculture', path: '/office/agriculture', labelKey: 'nav.agriculture', phase: '3', built: false },
   { key: 'irrigation', path: '/office/irrigation', labelKey: 'nav.irrigation', phase: '4', built: false },
   { key: 'maintenance', path: '/office/maintenance', labelKey: 'nav.maintenance', phase: '5', built: false },

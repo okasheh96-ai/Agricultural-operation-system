@@ -3,6 +3,7 @@ import { defineConfig, devices } from '@playwright/test';
 // Phone (390×844) and desktop (1440×900), Arabic RTL default (Master Prompt §8.1).
 export default defineConfig({
   testDir: 'tests/e2e',
+  testIgnore: 'stack/**',
   use: { baseURL: 'http://127.0.0.1:4173' },
   projects: [
     { name: 'phone', use: { ...devices['Pixel 7'], viewport: { width: 390, height: 844 } } },

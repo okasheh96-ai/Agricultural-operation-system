@@ -33,3 +33,15 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
+
+  e2e-stack:
+    # Full workflows against a local Supabase-equivalent stack (Postgres + Supabase Auth + PostgREST).
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: sudo apt-get update && sudo apt-get install -y postgresql-16
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: PGBIN=/usr/lib/postgresql/16/bin npm run test:e2e:stack

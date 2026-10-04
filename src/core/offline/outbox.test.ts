@@ -1,4 +1,4 @@
-import { enqueue, FieldDatabase, replay, replayOrder, type OutboxItem, type Sender } from './outbox';
+import { enqueue, FieldDatabase, provisionalStatus, replay, replayOrder, type OutboxItem, type Sender } from './outbox';
 
 let db: FieldDatabase;
 let n = 0;
@@ -36,7 +36,7 @@ describe('outbox', () => {
   it('removes applied items and records last sync', async () => {
     await enqueue(db, { ...base, entityId: 't1', payload: { toStatus: 'in_progress' } });
     const result = await replay(db, async () => ({ outcome: 'applied' }));
-    expect(result).toEqual({ applied: 1, conflicts: 0 });
+    expect(result).toEqual({ applied: 1, conflicts: 0, networkFailed: false });
     expect(await db.outbox.count()).toBe(0);
     expect(await db.meta.get('lastSyncedAt')).toBeDefined();
   });
@@ -44,7 +44,8 @@ describe('outbox', () => {
   it('keeps items pending with the same key when the network fails', async () => {
     const item = await enqueue(db, { ...base, entityId: 't1', payload: { toStatus: 'in_progress' } });
     const failing: Sender = async () => { throw new Error('offline'); };
-    await replay(db, failing);
+    expect((await replay(db, failing)).networkFailed).toBe(true);
+    expect(await db.meta.get('lastSyncedAt')).toBeUndefined();
     const stored = await db.outbox.get(item.idempotencyKey);
     expect(stored?.state).toBe('pending');
     const seen: string[] = [];
@@ -58,13 +59,39 @@ describe('outbox', () => {
     await enqueue(db, { ...base, entityId: 't2', payload: { toStatus: 'in_progress' }, clientRecordedAt: '2026-10-04T06:05:00Z' });
     const sent: string[] = [];
     const result = await replay(db, async (i) => {
-      sent.push(`${i.entityId}:${i.payload.toStatus}`);
+      sent.push(`${i.entityId}:${i.kind === 'transition' ? i.payload.toStatus : i.kind}`);
       return i.entityId === 't1' ? { outcome: 'conflict', reason: 'Transition not allowed' } : { outcome: 'applied' };
     });
-    expect(result).toEqual({ applied: 1, conflicts: 1 });
+    expect(result).toEqual({ applied: 1, conflicts: 1, networkFailed: false });
     expect(sent).toEqual(['t1:completed', 't2:in_progress']);
     const conflicts = await db.outbox.where('state').equals('conflict').toArray();
     expect(conflicts[0]?.conflictReason).toBe('Transition not allowed');
     expect(await db.outbox.where('state').equals('pending').count()).toBe(1);
+  });
+});
+
+describe('outbox — field writes of every kind', () => {
+  it('shows the provisional status of a record from its latest queued transition', async () => {
+    await enqueue(db, { ...base, entityId: 't9', payload: { toStatus: 'in_progress' }, clientRecordedAt: '2026-10-04T06:00:00Z' });
+    await enqueue(db, { ...base, entityId: 't9', payload: { toStatus: 'blocked' }, clientRecordedAt: '2026-10-04T06:05:00Z' });
+    expect(provisionalStatus(await db.outbox.toArray(), 't9')).toBe('blocked');
+    expect(provisionalStatus(await db.outbox.toArray(), 'other')).toBeNull();
+  });
+
+  it('replays a task transition and its labour entry in device-time order', async () => {
+    await enqueue(db, { ...base, entityId: 't1', payload: { toStatus: 'in_progress' }, clientRecordedAt: '2026-10-04T06:00:00Z' });
+    await enqueue(db, { kind: 'insert', table: 'labour_entries', entityId: 't1', deviceId: 'dev-1',
+      row: { id: 'l1', task_id: 't1', hours: 2 }, clientRecordedAt: '2026-10-04T06:30:00Z' });
+    const seen: string[] = [];
+    await replay(db, async (i) => { seen.push(i.kind); return { outcome: 'applied' }; });
+    expect(seen).toEqual(['transition', 'insert']);
+  });
+
+  it('keeps a rejected insert as a conflict with the server reason', async () => {
+    await enqueue(db, { kind: 'insert', table: 'labour_entries', entityId: 't1', deviceId: 'dev-1', row: { id: 'l2', task_id: 't1', hours: 1 } });
+    await replay(db, async () => ({ outcome: 'conflict', reason: 'Execution records can only change while the task is active' }));
+    const [c] = await db.outbox.toArray();
+    expect(c?.state).toBe('conflict');
+    expect(c?.conflictReason).toContain('active');
   });
 });

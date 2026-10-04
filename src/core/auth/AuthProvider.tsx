@@ -59,7 +59,8 @@ async function loadAccess(userId: string): Promise<Access | null> {
       .filter((p) => p.role_id === r.role_id)
       .map((p) => ({ objectType: p.object_type, action: p.action, allowedStates: p.allowed_states })),
   }));
-  return { userId, farmId: first.farm_id, grants };
+  const { data: farm } = await db.from('farms').select('is_demo').eq('id', first.farm_id).maybeSingle<{ is_demo: boolean }>();
+  return { userId, farmId: first.farm_id, isDemo: farm?.is_demo ?? false, grants };
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {

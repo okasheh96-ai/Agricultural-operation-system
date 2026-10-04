@@ -4,7 +4,8 @@ Authoritative instructions: `docs/MASTER_PROMPT.md`. Re-read the relevant Part a
 Working docs: `docs/ARCHITECTURE_PLAN.md`, `docs/VERIFICATION_REGISTER.md`, `docs/phase-reports/`.
 
 ## Current phase
-Phase 1, Foundation. The database layer is built and tested; the frontend has a scaffold only. See `docs/phase-reports/phase-1.md`.
+Phase 2, Operations execution. The core loop works end to end (see `docs/phase-reports/phase-2.md`).
+Still open: photos, PIN user switch with device wipe, and the PWA service worker. Phase 1 admin screens are still owed.
 
 ## Non-negotiable rules
 1. **Evidence tiers:** A Confirmed · B Research-supported · C Working assumption · D Not Yet Verified · E Requires On-Site Discovery.
@@ -25,8 +26,10 @@ Phase 1, Foundation. The database layer is built and tested; the frontend has a 
     Every table gets RLS tests.
 
 ## Commands
-- `npm run db:test` runs every migration on a throwaway local Postgres 16, then the pgTAP suite (`supabase/tests`).
-- `npm run lint && npm run typecheck && npm test && npm run build` runs the frontend checks.
+- `npm run db:test` runs every migration on a throwaway Postgres 16, then the pgTAP suite.
+- `scripts/dev-stack.sh up` starts the local stack (Postgres + Supabase Auth + PostgREST) on :54321 with the demo farm. Demo users are `demo.*@demo.local` / `demo-password-123`.
+- `npm run test:e2e:stack` runs Playwright against that stack. `npm run lint && npm run typecheck && npm test && npm run build`.
+- Every migration that creates tables or views ends with `select app.apply_api_grants();`.
 
-## Open blockers
-- No staging Supabase project or Docker daemon yet, so the UI has not run against a live backend. See VR-S01.
+## Open items
+- A staging Supabase project is needed only for deployment rehearsal, Storage and pg_cron (VR-S01).

@@ -1,6 +1,9 @@
 import { NavLink, Outlet, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useOnline } from '@/core/components/useOnline';
+import { DemoBanner } from '@/core/components/DemoBanner';
+import { NotificationBell } from '@/core/components/NotificationBell';
+import { useOutbox } from '@/core/offline/useOutbox';
 
 const ITEMS = [
   { to: '/field/my-day', labelKey: 'nav.myDay', icon: '☀' },
@@ -14,13 +17,20 @@ const ITEMS = [
 export function FieldShell() {
   const { t } = useTranslation();
   const online = useOnline();
+  const outbox = useOutbox();
+  const pending = (outbox.data ?? []).filter((o) => o.state === 'pending').length;
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="flex items-center justify-between bg-brand px-4 py-2 text-white">
+      <DemoBanner />
+      <header className="flex items-center justify-between gap-2 bg-brand px-4 py-1 text-white">
         <span className="font-semibold">{t('app.title')}</span>
-        <span className="inline-flex items-center gap-1 text-sm">
-          <span aria-hidden="true">{online ? '●' : '○'}</span>
-          {online ? t('field.online') : t('field.offlineShort')}
+        <span className="flex items-center gap-2">
+          <Link to="/field/sync" className="inline-flex min-h-touch items-center gap-1 text-sm" data-testid="connectivity">
+            <span aria-hidden="true">{online ? '●' : '○'}</span>
+            {online ? t('field.online') : t('field.offlineShort')}
+            {pending > 0 && <span className="rounded bg-amber-400 px-1 text-amber-950"><bdi>{pending}</bdi></span>}
+          </Link>
+          <NotificationBell to="/field/notifications" />
         </span>
       </header>
       <main className="flex-1 p-4 pb-24"><Outlet /></main>

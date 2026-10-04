@@ -9,7 +9,7 @@ Owner to ask is "Not Yet Verified" unless the owner names a person.
 
 | id | Question | Tier | Affects | Status | Answer / Date / Source |
 |---|---|---|---|---|---|
-| VR-S01 | Provide a **staging** Supabase project (URL + anon key in env, service key never in the repo), or enable Docker so the Supabase CLI can run locally. Without one, the UI cannot be tested end to end. | E | Phase 1b UI, e2e tests | open | |
+| VR-S01 | Provide a **staging** Supabase project (project URL + anon key only — never the service-role key) for deployment rehearsal. | E | Deployment, hosted-only behaviour (Storage, pg_cron, email) | open — *no longer blocks testing*: `scripts/dev-stack.sh` runs real Supabase Auth + PostgREST + Postgres locally and the e2e suite runs against it | 2026-10-05 |
 | VR-S02 | Does a Lovable prototype / Supabase project with real data exist? It is not in this repo or the owner's other repos. If yes: which project is production? (= E48) | E | Migration plan | open | |
 | VR-S03 | Master Plan §13 says Phase 0 is "2–4 weeks, people not code"; the coding prompt says "proceed directly to Phase 1". Building proceeded per the later coding prompt (§0.6 rule 1). Confirm. | E | Phase order | open | |
 
@@ -31,6 +31,14 @@ Owner to ask is "Not Yet Verified" unless the owner names a person.
 | VR-C12 | Delegation: a person may delegate their own scope without an admin; SoD blocks the delegate from acting on any record where the delegator holds a restricted role. | RLS, `transition_record` | open |
 | VR-C13 | Main Warehouse core moves into Phase 2 (material consumption needs a real ledger). | ARCHITECTURE_PLAN §5 | open |
 | VR-C14 | Arabic department, role and status labels in the seed are a starting glossary until site wording is confirmed (E46). Departments are marked `to_be_confirmed_on_site`. | `seed.sql`, `GLOSSARY.md` | open |
+| VR-C15 | Two generic task types seeded: "General task" (any department) and "Breakdown repair" (Maintenance); both require verification. Real activity types are configured by the farm. | `seed_phase2_structure` | open |
+| VR-C16 | Problem categories and their default owning departments (breakdown→Maintenance, irrigation/water→Irrigation, pest/disease→Plant Protection, quality→QC, material shortage→Main Warehouse, safety/other→Operations). | `problem_categories` | open |
+| VR-C17 | Phase 2 permission matrix: supervisors/technicians/field users create + execute tasks in their department; department & maintenance managers plan, dispatch, verify, close, triage; Operations creates cross-department draft requests and routes reports but does not plan/verify/close inside departments; admin configures types/categories/rules/warehouses/items but does not execute or verify. | `seed_phase2_structure`, docs/PERMISSIONS.md | open |
+| VR-C18 | Task workflow: a task type either requires verification (in progress → pending verification → verified → closed) or not (in progress → completed → closed); self-verification only where the type allows it, always logged. Reopening verified/completed work needs a reason and forces re-verification. | workflow `task` v1 | open |
+| VR-C19 | Stock issue requests need no approval step unless `settings.issue_request_requires_approval` is set (E5). Field consumption is recorded on the task; stock moves only when the warehouse posts a movement. Negative balances are allowed and flagged. | inventory core | open |
+| VR-C20 | Overdue = still open after the end of the task window, else after the end of its planned day in Asia/Amman. | `app.task_due_at` | open |
+| VR-C21 | A problem report without a chosen location takes the location of the equipment it names. | `problem_reports_default_department` | open |
+| VR-C22 | Escalation rules ship **unconfigured**; thresholds and who is notified are entered by the farm. | `escalation_rules` | open |
 
 ## D/E — Discovery backlog (Master Prompt Part E)
 

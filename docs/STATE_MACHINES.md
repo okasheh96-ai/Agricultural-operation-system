@@ -25,9 +25,19 @@ stateDiagram-v2
   under_maintenance --> not_yet_verified
 ```
 
+### Task — `task` v1 (Phase 2, implemented; VR-C18)
+Path depends on the task type (`guard`): with verification → `pending_verification → verified → closed`; without → `completed → closed`.
+`verified/completed → in_progress` (reopen for correction) needs `review` + reason. `pending_verification → in_progress` (send back) needs `verify` + reason and increments `rejection_count`. Block needs a reason (material, equipment, water, labour, weather, access, other); resuming clears it.
+
+### Problem report — `problem_report` v1 (Phase 2, implemented)
+`open → acknowledged → converted` (only through `triage_problem_report()`, which creates the work order/task) · `→ resolved` / `→ rejected` with a reason.
+
+### Stock issue request — `issue_request` v1 (Phase 2, implemented; VR-C19)
+`requested → (approved) → partially_issued → issued → received`; `rejected` (warehouse, reason), `cancelled` (requester, reason).
+
 ## Starting definitions for later phases (from Master Prompt §3.5; seeded as data when the phase starts)
 
-### Task (Phase 2)
+### Task (diagram)
 ```mermaid
 stateDiagram-v2
   [*] --> draft

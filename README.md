@@ -10,15 +10,18 @@ An Arabic-first, mobile-first, offline-capable execution layer for a commercial 
 ## Develop
 ```bash
 npm install
-cp .env.example .env.local      # staging project only — never production
-npm run dev
+scripts/dev-stack.sh up         # local Postgres + Supabase Auth + PostgREST + demo farm; writes .env.local
+npm run dev                     # sign in as demo.supervisor@demo.local / demo-password-123 (demo farm only)
 ```
+Other demo users: `demo.agri.manager`, `demo.maint.manager`, `demo.technician`, `demo.ops`, `demo.warehouse`, `demo.qa`, `demo.exec`, `demo.admin` (`@demo.local`).
+Everything they see is labelled **Demo Data**; it is not farm data. To use a hosted project instead, put its URL and anon key in `.env.local` (never the service-role key).
 
 ## Check
 ```bash
 npm run lint && npm run typecheck && npm test && npm run build
 npm run db:test                  # migrations + seed on a throwaway local Postgres 16, then pgTAP
-npm run test:e2e                 # Playwright, phone + desktop, Arabic RTL
+npm run test:e2e                 # Playwright smoke, phone + desktop, Arabic RTL
+npm run test:e2e:stack           # Playwright workflows against the local stack (offline sync, triage, verification)
 ```
 
 ## Database

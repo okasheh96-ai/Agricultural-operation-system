@@ -167,6 +167,7 @@ demo_users() {
   # Demo farm users only (separate farm flagged is_demo), created through the real Auth admin API.
   node "$ROOT/scripts/demo-users.mjs" "http://127.0.0.1:$GATEWAY_PORT" "$SERVICE_ROLE_KEY" > "$RUN/demo-users.sql"
   psql_admin -d agri -o /dev/null -f "$RUN/demo-users.sql"
+  psql_admin -d agri -o /dev/null -f "$ROOT/supabase/seed/demo_tasks.sql"
 }
 
 write_env() {

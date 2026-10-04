@@ -43,7 +43,7 @@ export default function SyncStatusPage() {
       <p className={card}>{t('field.conflicts', { count: q.data?.conflicts.length ?? 0 })}</p>
       {q.data?.conflicts.map((c) => (
         <p key={c.idempotencyKey} className="rounded border border-red-300 bg-red-50 p-3 text-red-900">
-          <bdi>{c.entityType}</bdi> → <bdi>{c.payload.toStatus}</bdi>: {c.conflictReason}
+          <bdi>{c.kind === 'transition' ? `${c.entityType} → ${c.payload.toStatus}` : c.table}</bdi>: {c.conflictReason}
         </p>
       ))}
       <p className={card}>

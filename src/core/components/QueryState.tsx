@@ -7,6 +7,7 @@ export function QueryState(props: {
   isLoading: boolean;
   error: unknown;
   isEmpty: boolean;
+  emptyText?: string;
   onRetry?: () => void;
   children: ReactNode;
 }) {
@@ -25,7 +26,7 @@ export function QueryState(props: {
           )}
         </div>
       ) : props.isEmpty ? (
-        <p className="p-4 text-stone-600">{t('common.empty')}</p>
+        <p className="p-4 text-stone-600">{props.emptyText ?? t('common.empty')}</p>
       ) : (
         props.children
       )}

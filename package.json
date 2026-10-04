@@ -11,7 +11,8 @@
     "lint": "eslint . && node scripts/check-logical-css.mjs",
     "test": "vitest run",
     "db:test": "bash scripts/db-test.sh",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:e2e:stack": "playwright test -c playwright.stack.config.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.2",

@@ -91,9 +91,9 @@ As §7.2, with two recorded changes:
 ## 6. Environment plan
 | Env | What | Status |
 |---|---|---|
-| local | Postgres 16 + shim (`npm run db:test`); Supabase CLI + Docker when available | Postgres path working |
-| CI | GitHub Actions: lint, typecheck, Vitest, build, migrations on a fresh PG16 + pgTAP | Added in Phase 1 |
-| staging | Separate Supabase project | **Needed from owner** (VR-S01) |
+| local | `npm run db:test` (Postgres 16 + auth shim, pgTAP) and `scripts/dev-stack.sh` (Postgres 16 + real Supabase Auth + PostgREST + gateway, demo farm) | Working; e2e runs against it |
+| CI | GitHub Actions: lint, typecheck, Vitest, build, pgTAP, Playwright smoke, Playwright against the local stack | Working |
+| staging | Separate Supabase project | Needed from the owner only for deployment rehearsal, Storage and pg_cron (VR-S01) |
 | production | Owner's Supabase project | Untouched. Every change needs explicit owner approval |
 Secrets live only in env vars. `.env.example` is committed and `.env` never is. Sentry, PITR and service-worker versioning come with Phase 1b/2 (§3.14).
 

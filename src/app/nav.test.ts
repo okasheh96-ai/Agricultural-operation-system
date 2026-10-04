@@ -23,3 +23,22 @@ describe('office navigation', () => {
     expect(admin?.children?.map((c) => c.key)).toEqual(['departments', 'locations']);
   });
 });
+
+describe('operations navigation', () => {
+  const grant = (roleCode: string, departmentId: string | null, perms: [string, string][]): Access => ({
+    userId: 'u', farmId: 'f',
+    grants: [{ roleCode, departmentId, locationId: null, permissions: perms.map(([objectType, action]) => ({ objectType, action, allowedStates: null })) }],
+  });
+
+  it('shows planning and verification only to people who hold those rights', () => {
+    const ops = visibleNav(OFFICE_NAV, grant('operations_manager', null, [['task', 'create'], ['problem_report', 'review']]));
+    expect(ops.find((i) => i.key === 'operations')?.children?.map((c) => c.key)).toEqual(['board', 'exceptions']);
+    const manager = visibleNav(OFFICE_NAV, grant('department_manager', 'agri', [['task', 'plan'], ['task', 'verify']]));
+    expect(manager.find((i) => i.key === 'operations')?.children?.map((c) => c.key)).toEqual(['board', 'plan', 'verifyTasks', 'exceptions']);
+  });
+
+  it('keeps task verification out of the master-data verification queue', () => {
+    const manager = visibleNav(OFFICE_NAV, grant('department_manager', 'agri', [['task', 'verify']]));
+    expect(manager.find((i) => i.key === 'admin')?.children?.map((c) => c.key)).not.toContain('verification');
+  });
+});

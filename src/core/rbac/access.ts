@@ -13,7 +13,20 @@ export interface Grant {
 export interface Access {
   userId: string;
   farmId: string;
+  /** Demo farm (separate, clearly labelled); never real farm data. */
+  isDemo?: boolean;
   grants: Grant[];
+}
+
+/** Departments in which the user may perform an action on an object (farm-wide grants return 'all'). */
+export function departmentsWith(access: Access | null, objectType: string, action: string): 'all' | string[] {
+  const ids = new Set<string>();
+  for (const g of access?.grants ?? []) {
+    if (!g.permissions.some((p) => p.objectType === objectType && p.action === action)) continue;
+    if (g.departmentId === null) return 'all';
+    ids.add(g.departmentId);
+  }
+  return [...ids];
 }
 
 export function can(

@@ -18,7 +18,9 @@ const cors = {
 http
   .createServer((req, res) => {
     if (req.method === 'OPTIONS') {
-      res.writeHead(204, cors);
+      // Echo whatever headers the client asks for (supabase-js adds e.g. x-retry-count on retries), like hosted Supabase.
+      const asked = req.headers['access-control-request-headers'];
+      res.writeHead(204, { ...cors, ...(asked ? { 'access-control-allow-headers': asked } : {}), 'access-control-max-age': '600' });
       res.end();
       return;
     }

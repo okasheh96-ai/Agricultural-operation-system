@@ -1,7 +1,7 @@
 -- Breakdown scenario (§8.1): problem reported in the field → triaged to Maintenance → work order + task
 -- → assigned → completed → verified by a different user → closed, with a complete history.
 begin;
-select plan(17);
+select plan(18);
 
 select tests.create_user('sup')   as sup \gset
 select tests.create_user('mmgr')  as mmgr \gset
@@ -82,6 +82,12 @@ select tests.logout();
 select is((select status from public.tasks where source_problem_report_id = :'pr2'), 'draft',
   'a task created by Operations in another department stays a draft request for that department to plan');
 select is((select owning_department_id from public.problem_reports where id = :'pr2'), tests.dept('maintenance'), 'report re-routed to Maintenance');
+
+-- A report that names equipment inherits its location (so the repair can be planned and assigned).
+select tests.login(:'sup');
+insert into public.problem_reports (farm_id, category_id, description, asset_id) values (tests.farm(), tests.category('equipment_breakdown'), 'تسرب', :'pump') returning id as pr3 \gset
+select tests.logout();
+select is((select location_id from public.problem_reports where id = :'pr3'), :'loc'::uuid, 'report takes the equipment''s location');
 
 select * from finish();
 rollback;

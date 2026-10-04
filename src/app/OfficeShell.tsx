@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/core/auth/AuthProvider';
 import { requireSupabase } from '@/core/supabase';
 import { LanguageToggle } from '@/core/components/LanguageToggle';
+import { DemoBanner } from '@/core/components/DemoBanner';
+import { NotificationBell } from '@/core/components/NotificationBell';
 import { OFFICE_NAV, visibleNav, type NavItem } from './nav';
 
 function NavEntry({ item }: { item: NavItem }) {
@@ -29,10 +31,13 @@ export function OfficeShell() {
   const { t } = useTranslation();
   const { access } = useAuth();
   return (
-    <div className="flex min-h-screen flex-col md:flex-row">
+    <div className="flex min-h-screen flex-col">
+    <DemoBanner />
+    <div className="flex flex-1 flex-col md:flex-row">
       <aside className="border-b border-stone-200 bg-white p-3 md:w-72 md:border-b-0 md:border-e">
         <div className="mb-3 flex items-center justify-between gap-2">
           <span className="font-bold text-brand-dark">{t('app.title')}</span>
+          <NotificationBell to="/office/notifications" />
         </div>
         <nav aria-label={t('nav.officeView')}>
           <ul className="flex flex-col gap-1">
@@ -49,6 +54,7 @@ export function OfficeShell() {
         <p className="mt-2 text-xs text-stone-500">{t('app.version', { version: __APP_VERSION__ })}</p>
       </aside>
       <main className="flex-1 p-4 md:p-6"><Outlet /></main>
+    </div>
     </div>
   );
 }
