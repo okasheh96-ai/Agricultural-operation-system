@@ -36,7 +36,9 @@ select is((select count(*)::int from public.departments where farm_id = tests.fa
   'seed: 13 departments + Packing House unit');
 select ok((select is_independent from public.departments where id = tests.dept('qa')),
   'seed: QA is marked independent');
-select is((select count(*)::int from public.water_sources), 0, 'seed: no wells invented');
+select is((select count(*)::int from public.water_sources where farm_id = tests.farm() and kind = 'well' and is_temporary_code and name_ar is null
+             and status = 'not_yet_verified' and verification_status = 'not_yet_verified'), 14,
+  'seed: 14 well placeholders (owner-confirmed count) — unnamed, temporary codes, Not Yet Verified, none Active');
 select is((select count(*)::int from public.workers) + (select count(*)::int from public.species)
         + (select count(*)::int from public.assets), 0, 'seed: no workers, crops or fleet invented');
 select is((select count(*)::int from public.departments where verification_status = 'verified'), 0,

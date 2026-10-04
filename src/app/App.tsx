@@ -28,6 +28,7 @@ const DailyPlanPage = lazy(() => import('@/modules/operations/DailyPlanPage'));
 const VerificationPage = lazy(() => import('@/modules/operations/VerificationPage'));
 const ExceptionsPage = lazy(() => import('@/modules/operations/ExceptionsPage'));
 const NotificationsPage = lazy(() => import('@/core/components/NotificationsPage'));
+const WellsPage = lazy(() => import('@/modules/irrigation/WellsPage'));
 
 function Loading() {
   const { t } = useTranslation();
@@ -46,7 +47,8 @@ export function App() {
 
   const fieldFirst = hasRole(access, ...FIELD_ROLES) && !hasRole(access, 'system_admin', 'department_manager', 'operations_manager', 'maintenance_manager');
   const home = fieldFirst ? '/field' : '/office';
-  const unbuilt = OFFICE_NAV.filter((i) => !i.built);
+  // Unbuilt sections (and unbuilt sub-sections of built ones) get an honest "later phase" page.
+  const unbuilt = OFFICE_NAV.flatMap((i) => [i, ...(i.children ?? [])]).filter((i) => !i.built);
 
   return (
     <BrowserRouter>
@@ -62,6 +64,8 @@ export function App() {
             <Route path="operations/exceptions" element={<ExceptionsPage />} />
             <Route path="tasks/:id" element={<TaskExecutePage />} />
             <Route path="notifications" element={<NotificationsPage taskBase="/office/tasks" />} />
+            <Route path="irrigation" element={<Navigate to="wells" replace />} />
+            <Route path="irrigation/wells" element={<WellsPage />} />
             <Route path="admin" element={<Navigate to="departments" replace />} />
             <Route path="admin/departments" element={<DepartmentsPage />} />
             <Route path="admin/locations" element={<LocationsPage />} />

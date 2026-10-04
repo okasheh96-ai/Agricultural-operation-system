@@ -85,7 +85,9 @@
     "plan": "Daily planning",
     "verifyTasks": "Verification",
     "exceptions": "Problems",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "wells": "Wells",
+    "irrigationRuns": "Irrigation plans & runs"
   },
   "admin": {
     "departmentsTitle": "Departments",
@@ -314,5 +316,16 @@
     "create": "Create task",
     "createAndStart": "Create and start",
     "noRights": "You cannot create tasks in your department."
+  },
+  "wells": {
+    "title": "Wells",
+    "intro": "The 14 wells are placeholders until the farm enters each well's real code, name and status. No well is treated as Active until confirmed.",
+    "temporaryCode": "temporary code",
+    "changeStatus": "Change status",
+    "editIdentity": "Enter real code and name",
+    "newStatus": "New status",
+    "reason": "Reason / what was inspected",
+    "realCode": "Real well code",
+    "verifyNeedsIdentity": "Enter the real code and name first"
   }
 }

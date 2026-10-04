@@ -38,7 +38,13 @@ export const OFFICE_NAV: NavItem[] = [
     ],
   },
   { key: 'agriculture', path: '/office/agriculture', labelKey: 'nav.agriculture', phase: '3', built: false },
-  { key: 'irrigation', path: '/office/irrigation', labelKey: 'nav.irrigation', phase: '4', built: false },
+  {
+    key: 'irrigation', path: '/office/irrigation', labelKey: 'nav.irrigation', phase: '4', built: true,
+    children: [
+      { key: 'wells', path: '/office/irrigation/wells', labelKey: 'nav.wells', phase: '4', built: true },
+      { key: 'irrigationRuns', path: '/office/irrigation/runs', labelKey: 'nav.irrigationRuns', phase: '4', built: false },
+    ],
+  },
   { key: 'maintenance', path: '/office/maintenance', labelKey: 'nav.maintenance', phase: '5', built: false },
   { key: 'maintenanceWarehouse', path: '/office/maintenance-warehouse', labelKey: 'nav.maintenanceWarehouse', phase: '6', built: false },
   { key: 'fleet', path: '/office/fleet', labelKey: 'nav.fleet', phase: '7', built: false },

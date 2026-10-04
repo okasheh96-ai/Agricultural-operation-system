@@ -1,4 +1,4 @@
--- The optional placeholder script (VR-C05) creates 14 unnamed, unverified wells, none Active.
+-- The placeholder script is idempotent: the structure already holds the 14 wells (VR-C05, owner instruction 2026-10-05).
 begin;
 select plan(4);
 \ir ../../seed/optional_well_placeholders.sql

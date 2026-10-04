@@ -7,6 +7,7 @@ describe('office navigation', () => {
     expect(top).not.toContain('wells');
     expect(top[0]).toBe('command');
     expect(top).toContain('irrigation');
+    expect(OFFICE_NAV.find((i) => i.key === 'irrigation')?.children?.map((c) => c.key)).toContain('wells');
   });
 
   it('marks QA as a visually distinct section', () => {
