@@ -59,6 +59,10 @@ export const OFFICE_NAV: NavItem[] = [
     children: [
       { key: 'departments', path: '/office/admin/departments', labelKey: 'nav.departments', phase: '1', built: true },
       { key: 'locations', path: '/office/admin/locations', labelKey: 'nav.locations', phase: '1', built: true },
+      { key: 'assets', path: '/office/admin/md/assets', labelKey: 'nav.assets', phase: '1', built: true },
+      { key: 'workers', path: '/office/admin/md/workers', labelKey: 'nav.workers', phase: '1', built: true },
+      { key: 'crews', path: '/office/admin/md/crews', labelKey: 'nav.crews', phase: '1', built: true },
+      { key: 'taskTypes', path: '/office/admin/md/task_types', labelKey: 'nav.taskTypes', phase: '1', built: true },
       { key: 'verification', path: '/office/admin/verification', labelKey: 'nav.verificationQueue', phase: '1', built: true, visible: canVerifySomething },
       { key: 'audit', path: '/office/admin/audit', labelKey: 'nav.auditLog', phase: '1', built: true, visible: (a) => can(a, 'audit_log', 'view') },
     ],

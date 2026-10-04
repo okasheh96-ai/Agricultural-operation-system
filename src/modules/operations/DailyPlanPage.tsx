@@ -11,7 +11,8 @@ import { QueryState } from '@/core/components/QueryState';
 import { StatusBadge } from '@/core/components/StatusBadge';
 import { useCrews, useDepartments, useExecutors, useLocations, useTaskTypes } from './lookups';
 
-const input = 'min-h-touch rounded border border-stone-300 px-3';
+// w-full + min-w-0: long option labels must never push a form wider than a phone screen.
+const input = 'min-h-touch w-full min-w-0 rounded border border-stone-300 px-3';
 
 /** The planner's 6 AM screen: create the day's tasks and hand them to supervisors and crews. */
 export default function DailyPlanPage() {
@@ -77,11 +78,11 @@ export default function DailyPlanPage() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <h1 className="text-xl font-bold">{t('plan.title')}</h1>
         <div className="flex flex-wrap gap-2">
-          <label className="flex flex-col gap-1"><span>{t('work.department')}</span>
+          <label className="flex min-w-0 flex-col gap-1"><span>{t('work.department')}</span>
             <select className={input} value={department} onChange={(e) => setDept(e.target.value)}>
               {plannable.map((d) => <option key={d.id} value={d.id}>{localized(i18n.language, d.name_ar, d.name_en)}</option>)}
             </select></label>
-          <label className="flex flex-col gap-1"><span>{t('board.date')}</span>
+          <label className="flex min-w-0 flex-col gap-1"><span>{t('board.date')}</span>
             <input type="date" dir="ltr" className={input} value={date} onChange={(e) => setDate(e.target.value)} /></label>
         </div>
       </div>
@@ -90,22 +91,22 @@ export default function DailyPlanPage() {
         <h2 className="font-semibold sm:col-span-2 lg:col-span-3">{t('plan.newTask')}</h2>
         <label className="flex flex-col gap-1 sm:col-span-2"><span>{t('work.title')}</span>
           <input required className={input} value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} /></label>
-        <label className="flex flex-col gap-1"><span>{t('work.type')}</span>
+        <label className="flex min-w-0 flex-col gap-1"><span>{t('work.type')}</span>
           <select required className={input} value={draft.task_type_id} onChange={(e) => setDraft({ ...draft, task_type_id: e.target.value })}>
             <option value="">—</option>
             {types.map((tt) => <option key={tt.id} value={tt.id}>{localized(i18n.language, tt.name_ar, tt.name_en)}</option>)}
           </select></label>
-        <label className="flex flex-col gap-1"><span>{t('work.location')}</span>
+        <label className="flex min-w-0 flex-col gap-1"><span>{t('work.location')}</span>
           <select className={input} value={draft.location_id} onChange={(e) => setDraft({ ...draft, location_id: e.target.value })}>
             <option value="">—</option>
             {locations.data?.map((l) => <option key={l.id} value={l.id}>{l.code} · {localized(i18n.language, l.name_ar, l.name_en)}</option>)}
           </select></label>
-        <label className="flex flex-col gap-1"><span>{t('work.crew')}</span>
+        <label className="flex min-w-0 flex-col gap-1"><span>{t('work.crew')}</span>
           <select className={input} value={draft.crew_id} onChange={(e) => setDraft({ ...draft, crew_id: e.target.value })}>
             <option value="">—</option>
             {crews.data?.filter((c) => c.department_id === department).map((c) => <option key={c.id} value={c.id}>{localized(i18n.language, c.name_ar, c.name_en)}</option>)}
           </select></label>
-        <label className="flex flex-col gap-1"><span>{t('work.priority')}</span>
+        <label className="flex min-w-0 flex-col gap-1"><span>{t('work.priority')}</span>
           <select className={input} value={draft.priority} onChange={(e) => setDraft({ ...draft, priority: e.target.value })}>
             {[1, 2, 3, 4].map((p) => <option key={p} value={p}>{t(`work.priorities.${p}`)}</option>)}
           </select></label>

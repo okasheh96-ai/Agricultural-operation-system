@@ -24,7 +24,8 @@ interface WellRow {
   source_note: string | null;
 }
 
-const input = 'min-h-touch rounded border border-stone-300 px-3';
+// w-full + min-w-0: long option labels must never push a form wider than a phone screen.
+const input = 'min-h-touch w-full min-w-0 rounded border border-stone-300 px-3';
 const STATUS_ORDER = ['not_yet_verified', 'active', 'inactive', 'under_maintenance'];
 
 /**
@@ -118,27 +119,27 @@ export default function WellsPage() {
                   }}>
                     {open.mode === 'status' && (
                       <>
-                        <label className="flex flex-col gap-1"><span>{t('wells.newStatus')}</span>
+                        <label className="flex min-w-0 flex-col gap-1"><span>{t('wells.newStatus')}</span>
                           <select required className={input} value={form.to} onChange={(e) => setForm({ ...form, to: e.target.value })}>
                             <option value="">—</option>
                             {options.map((o) => <option key={o.to_status} value={o.to_status}>{statusLabel(wf.data, w.workflow_version_id, o.to_status, i18n.language)}</option>)}
                           </select></label>
-                        <label className="flex flex-col gap-1"><span>{t('wells.reason')}</span>
+                        <label className="flex min-w-0 flex-col gap-1"><span>{t('wells.reason')}</span>
                           <input required className={input} value={form.reason} onChange={(e) => setForm({ ...form, reason: e.target.value })} /></label>
                       </>
                     )}
                     {open.mode === 'identity' && (
                       <>
-                        <label className="flex flex-col gap-1"><span>{t('wells.realCode')}</span>
+                        <label className="flex min-w-0 flex-col gap-1"><span>{t('wells.realCode')}</span>
                           <input required dir="ltr" className={input} value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} /></label>
-                        <label className="flex flex-col gap-1"><span>{t('common.nameAr')}</span>
+                        <label className="flex min-w-0 flex-col gap-1"><span>{t('common.nameAr')}</span>
                           <input required className={input} value={form.name_ar} onChange={(e) => setForm({ ...form, name_ar: e.target.value })} /></label>
-                        <label className="flex flex-col gap-1"><span>{t('common.nameEn')}</span>
+                        <label className="flex min-w-0 flex-col gap-1"><span>{t('common.nameEn')}</span>
                           <input dir="ltr" className={input} value={form.name_en} onChange={(e) => setForm({ ...form, name_en: e.target.value })} /></label>
                       </>
                     )}
                     {open.mode === 'verify' && (
-                      <label className="flex flex-col gap-1"><span>{t('admin.sourceNote')}</span>
+                      <label className="flex min-w-0 flex-col gap-1"><span>{t('admin.sourceNote')}</span>
                         <input required className={input} value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} /></label>
                     )}
                     <div className="flex gap-2">

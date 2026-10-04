@@ -21,7 +21,7 @@ Owner to ask is "Not Yet Verified" unless the owner names a person.
 | VR-C02 | Every farm member may **read** master data (departments, locations, assets, water sources, crop master, units, crews, workers' names). Worker ID numbers/phones are restricted. | default RLS select policies | open |
 | VR-C03 | Audit log readable by System Admin and QA User. | `role_permissions` | open |
 | VR-C04 | A department-scoped role does not cover records with no owning department (e.g. crop master): those need a farm-wide grant. | `app.has_permission` | open |
-| VR-C05 | Wells: **no** well rows are seeded. `supabase/seed/optional_well_placeholders.sql` creates 14 temporary codes W-01…W-14 (unnamed, status Not Yet Verified) only if the owner chooses that option over admin import. | seed policy §5.3 | open |
+| VR-C05 | ~~Wells seeded only by owner choice~~ → **Answered by owner 2026-10-05**: create the 14 wells as configurable placeholders, none Active unless confirmed. Implemented as W-01…W-14, unnamed, temporary codes, Not Yet Verified (migration 0810). | `app.seed_well_placeholders` | answered |
 | VR-C06 | A worker belongs to at most one crew at a time; cross-department work is recorded on the task. | `crew_members_no_overlap` | open |
 | VR-C07 | Device/server clock difference > 300 s is flagged. | `settings.clock_skew_flag_seconds` | open |
 | VR-C08 | Currency JOD by default; Western Arabic numerals; Gregorian calendar display. | `settings` | open |
@@ -39,6 +39,8 @@ Owner to ask is "Not Yet Verified" unless the owner names a person.
 | VR-C20 | Overdue = still open after the end of the task window, else after the end of its planned day in Asia/Amman. | `app.task_due_at` | open |
 | VR-C21 | A problem report without a chosen location takes the location of the equipment it names. | `problem_reports_default_department` | open |
 | VR-C22 | Escalation rules ship **unconfigured**; thresholds and who is notified are entered by the farm. | `escalation_rules` | open |
+| VR-C23 | A supervisor (or other field executor) may create unplanned work in their own department and assign it **only to themselves**. Assigning to anyone else stays a planner's dispatch right. | task workflow v2, `guard_task_assignee_is_actor` | open |
+| VR-C24 | The 14 wells are owned by the Wells department, so its manager (and the admin) may change status and verify. Irrigation users get no well-status authority until E1 is answered. | `seed_well_placeholders` | open |
 
 ## D/E — Discovery backlog (Master Prompt Part E)
 

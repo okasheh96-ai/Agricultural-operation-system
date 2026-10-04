@@ -16,7 +16,8 @@ import { StatusBadge } from '@/core/components/StatusBadge';
 
 const EDITABLE = ['assigned', 'in_progress', 'blocked'];
 const big = 'min-h-[56px] rounded-lg px-4 text-lg font-semibold';
-const input = 'min-h-touch rounded border border-stone-300 px-3';
+// w-full + min-w-0: long option labels must never push a form wider than a phone screen.
+const input = 'min-h-touch w-full min-w-0 rounded border border-stone-300 px-3';
 
 interface Named { id: string; code: string; name_ar: string; name_en: string | null }
 interface LabourRow { id: string; hours: number; headcount: number | null; workers: { full_name: string } | null; crews: { name_ar: string; name_en: string | null } | null }
@@ -165,10 +166,10 @@ export default function TaskExecutePage() {
                 </fieldset>
               )}
               {(form.to_status === 'pending_verification' || form.to_status === 'completed') && tk.quantity_unit_id && (
-                <label className="flex flex-col gap-1"><span>{t('work.actualQuantity')}</span>
+                <label className="flex min-w-0 flex-col gap-1"><span>{t('work.actualQuantity')}</span>
                   <input inputMode="decimal" dir="ltr" className={input} value={qty} onChange={(e) => setQty(e.target.value.replace(/[^0-9.]/g, ''))} /></label>
               )}
-              <label className="flex flex-col gap-1">
+              <label className="flex min-w-0 flex-col gap-1">
                 <span>{form.required_fields.includes('comment') ? t('work.comment') : form.to_status === 'blocked' ? t('work.blockNote') : t('work.completionNote')}</span>
                 <textarea className="rounded border border-stone-300 p-2" rows={2} value={note} onChange={(e) => setNote(e.target.value)} />
               </label>
@@ -264,7 +265,7 @@ function Entries({ task, status }: { task: TaskBoardRow; status: string }) {
         </ul>
         {editable && (
           <div className="flex flex-wrap items-end gap-2">
-            <label className="flex flex-col gap-1"><span>{t('work.worker')}</span>
+            <label className="flex min-w-0 flex-col gap-1"><span>{t('work.worker')}</span>
               <select className={input} value={worker} onChange={(e) => setWorker(e.target.value)}>
                 {task.crew_id && <option value="">{t('work.wholeCrew')} ({crewSize})</option>}
                 {!task.crew_id && <option value="">—</option>}
@@ -288,7 +289,7 @@ function Entries({ task, status }: { task: TaskBoardRow; status: string }) {
         </ul>
         {editable && (
           <div className="flex flex-wrap items-end gap-2">
-            <label className="flex flex-col gap-1"><span>{t('work.machine')}</span>
+            <label className="flex min-w-0 flex-col gap-1"><span>{t('work.machine')}</span>
               <select className={input} value={asset} onChange={(e) => setAsset(e.target.value)}>
                 <option value="">—</option>
                 {assets.data?.map((a) => <option key={a.id} value={a.id}>{a.code} · {localized(i18n.language, a.name_ar, a.name_en)}</option>)}
@@ -316,7 +317,7 @@ function Entries({ task, status }: { task: TaskBoardRow; status: string }) {
           </ul>
           {editable && (
             <div className="flex flex-wrap items-end gap-2">
-              <label className="flex flex-col gap-1"><span>{t('work.item')}</span>
+              <label className="flex min-w-0 flex-col gap-1"><span>{t('work.item')}</span>
                 <select className={input} value={item} onChange={(e) => setItem(e.target.value)}>
                   <option value="">—</option>
                   {items.data?.map((i) => <option key={i.id} value={i.id}>{i.code} · {localized(i18n.language, i.name_ar, i.name_en)}</option>)}

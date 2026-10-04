@@ -21,7 +21,7 @@ describe('office navigation', () => {
   it('hides the audit log and verification queue from viewers', () => {
     const viewer: Access = { userId: 'u', farmId: 'f', grants: [{ roleCode: 'executive_viewer', departmentId: null, locationId: null, permissions: [] }] };
     const admin = visibleNav(OFFICE_NAV, viewer).find((i) => i.key === 'admin');
-    expect(admin?.children?.map((c) => c.key)).toEqual(['departments', 'locations']);
+    expect(admin?.children?.map((c) => c.key)).toEqual(['departments', 'locations', 'assets', 'workers', 'crews', 'taskTypes']);
   });
 });
 

@@ -76,7 +76,8 @@ export default function LocationsPage() {
     create.mutate();
   }
 
-  const input = 'min-h-touch rounded border border-stone-300 px-3';
+  // w-full + min-w-0: long option labels must never push a form wider than a phone screen.
+const input = 'min-h-touch w-full min-w-0 rounded border border-stone-300 px-3';
   return (
     <section>
       <h1 className="mb-4 text-xl font-bold">{t('admin.locationsTitle')}</h1>
@@ -84,17 +85,17 @@ export default function LocationsPage() {
       {mayCreate && (
         <form onSubmit={onSubmit} className="mb-6 grid gap-3 rounded-lg border bg-white p-4 sm:grid-cols-2 lg:grid-cols-3">
           <h2 className="font-semibold sm:col-span-2 lg:col-span-3">{t('admin.addLocation')}</h2>
-          <label className="flex flex-col gap-1"><span>{t('common.code')}</span>
+          <label className="flex min-w-0 flex-col gap-1"><span>{t('common.code')}</span>
             <input dir="ltr" className={input} value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} /></label>
-          <label className="flex flex-col gap-1"><span>{t('common.nameAr')}</span>
+          <label className="flex min-w-0 flex-col gap-1"><span>{t('common.nameAr')}</span>
             <input dir="rtl" className={input} value={form.name_ar} onChange={(e) => setForm({ ...form, name_ar: e.target.value })} /></label>
-          <label className="flex flex-col gap-1"><span>{t('common.nameEn')}</span>
+          <label className="flex min-w-0 flex-col gap-1"><span>{t('common.nameEn')}</span>
             <input dir="ltr" className={input} value={form.name_en} onChange={(e) => setForm({ ...form, name_en: e.target.value })} /></label>
-          <label className="flex flex-col gap-1"><span>{t('common.type')}</span>
+          <label className="flex min-w-0 flex-col gap-1"><span>{t('common.type')}</span>
             <select className={input} value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
               {LOCATION_TYPES.map((lt) => <option key={lt} value={lt}>{t(`admin.locationTypes.${lt}`)}</option>)}
             </select></label>
-          <label className="flex flex-col gap-1"><span>{t('common.parent')}</span>
+          <label className="flex min-w-0 flex-col gap-1"><span>{t('common.parent')}</span>
             <select className={input} value={form.parent_id} onChange={(e) => setForm({ ...form, parent_id: e.target.value })}>
               <option value="">{t('common.none')}</option>
               {(q.data ?? []).map((l) => <option key={l.id} value={l.id}>{l.code} · {label(l)}</option>)}

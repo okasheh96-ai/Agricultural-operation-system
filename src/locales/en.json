@@ -87,7 +87,11 @@
     "exceptions": "Problems",
     "notifications": "Notifications",
     "wells": "Wells",
-    "irrigationRuns": "Irrigation plans & runs"
+    "irrigationRuns": "Irrigation plans & runs",
+    "assets": "Assets & equipment",
+    "workers": "Workers",
+    "crews": "Crews",
+    "taskTypes": "Task types"
   },
   "admin": {
     "departmentsTitle": "Departments",
@@ -150,7 +154,8 @@
     "42501": "You do not have permission for this action.",
     "unknown": "Something went wrong.",
     "required": "This field is required.",
-    "tooLong": "Text is too long."
+    "tooLong": "Text is too long.",
+    "23P01": "Overlaps another record for the same period (e.g. the worker is already in another crew)."
   },
   "work": {
     "myDayTitle": "My Day",
@@ -327,5 +332,32 @@
     "reason": "Reason / what was inspected",
     "realCode": "Real well code",
     "verifyNeedsIdentity": "Enter the real code and name first"
+  },
+  "md": {
+    "assetsTitle": "Assets & equipment",
+    "workersTitle": "Workers",
+    "crewsTitle": "Crews",
+    "taskTypesTitle": "Task types",
+    "department": "Department",
+    "assetClass": "Asset class",
+    "manufacturer": "Manufacturer",
+    "model": "Model",
+    "serial": "Serial number",
+    "fullName": "Full name",
+    "fullNameEn": "Name in English",
+    "active": "Currently employed",
+    "requiresVerification": "Needs verification by another person",
+    "allowSelfVerification": "Allows self-verification (logged as an exception)",
+    "allDepartments": "All departments",
+    "add": "Add",
+    "edit": "Edit",
+    "void": "Void record",
+    "voidReason": "Reason for voiding",
+    "members": "Members",
+    "addMember": "Add to crew",
+    "endMembership": "End membership",
+    "pastMembers": "Past members",
+    "overlap": "This worker is in another crew for the same period.",
+    "honesty": "New records are \"Not Yet Verified\" until an authorised person confirms them with a source. Do not enter unconfirmed specifications."
   }
 }

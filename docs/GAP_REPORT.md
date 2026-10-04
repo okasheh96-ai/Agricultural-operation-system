@@ -1,6 +1,6 @@
 # Implementation gap report
 
-2026-10-05. Measured against the code and tests in this repo, not against the docs.
+2026-10-05, updated at the end of the round. Measured against the code and tests in this repo, not against the docs.
 Legend: **A** UI · **B** Database · **C** Business logic · **D** Permissions (RLS) · **E** Audit · **F** Tested · **G** Production-ready.
 ✅ done · ◐ partial · — not started. No row is **G** yet: nothing has run on a staging Supabase project (VR-S01).
 
@@ -10,16 +10,16 @@ Legend: **A** UI · **B** Database · **C** Business logic · **D** Permissions 
 |---|---|---|---|---|---|---|---|---|
 | Org, roles, six-dimension permissions, delegation | ◐ | ✅ | ✅ | ✅ | ✅ | ✅ | — | No user/role admin screen; inviting users needs an Edge Function |
 | Locations / blocks (tree, area basis) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | |
-| Assets (type-neutral, status workflow) | — | ✅ | ✅ | ✅ | ✅ | ✅ | — | No screen |
-| Workers, crews (time-bounded) | ◐ | ✅ | ✅ | ✅ | ✅ | ✅ | — | My Crew only; no admin screen |
-| Task types / activity types | — | ✅ | ✅ | ✅ | ✅ | ✅ | — | No admin screen |
+| Assets (type-neutral, status workflow) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | Admin screen: create/edit/status with reason/verify/void |
+| Workers, crews (time-bounded) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | Admin screens + crew membership (overlap refused) |
+| Task types / activity types | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | Admin screen; department managers create within their own department |
 | Tasks: plan → assign → execute → verify → close | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | |
 | Problem reports → triage → work order | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | |
 | Escalation + notifications | ◐ | ✅ | ✅ | ✅ | ◐ | ✅ | — | No rule-editing screen |
-| Offline outbox and sync | ✅ | n/a | ✅ | ✅ | ✅ | ✅ | — | **No service worker**: a reload without signal does not start the app |
+| Offline outbox and sync | ✅ | n/a | ✅ | ✅ | ✅ | ✅ | — | Service worker: app starts with no signal; reads come from the device at once when offline |
 | Inventory ledger, issue requests | — | ✅ | ✅ | ✅ | ✅ | ✅ | — | No warehouse screens |
-| Material on tasks | ◐ | ✅ | ✅ | ✅ | ✅ | ✅ | — | **Field can record only pre-planned lines**, not unplanned material |
-| Wells (Irrigation & Water) | — | ✅ | ✅ | ✅ | ✅ | ✅ | — | **14 wells not created by default; no screen** |
+| Material on tasks | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | Planned lines plus unplanned material from the field; locked after completion |
+| Wells (Irrigation & Water) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | 14 unverified placeholders; status change with reason; verification only with a real identity |
 | Irrigation runs, zones, readings | — | — | — | — | — | — | — | Phase 4 |
 | Agriculture: growing cycles, plant protection (REI/PHI), harvest lots | — | — | — | — | — | — | — | Phase 3; crop master exists |
 | Maintenance specifics (downtime, PM schedules) | — | — | — | — | — | — | — | Phase 5; breakdowns run on the generic work engine |
@@ -35,9 +35,9 @@ Legend: **A** UI · **B** Database · **C** Business logic · **D** Permissions 
 | See today's work / who is assigned | ✅ My Day, board |
 | Report a problem, request maintenance | ✅ ≤ 3 taps, offline |
 | Record execution, report a delay | ✅ start / stop with reason / done, crew and machine hours |
-| Record material consumption | ◐ only planned lines → **fix now** |
-| **Create** a common task quickly | ✗ a supervisor can't create work from the phone → **fix now** |
-| Weak connectivity | ◐ writes queue offline, but the app won't start offline → **fix now** |
+| Record material consumption | ✅ planned and unplanned, offline |
+| **Create** a common task quickly | ✅ what → where → start; self-assigned only; offline |
+| Weak connectivity | ✅ app starts offline; writes queue and sync; conflicts visible |
 | Arabic UI | ✅ RTL by default; e2e runs in Arabic |
 | Photo evidence | ✗ blocked on Storage (VR-S01) |
 
@@ -47,9 +47,16 @@ Legend: **A** UI · **B** Database · **C** Business logic · **D** Permissions 
 - **Refactor:** the task workflow needs a self-assign path for unplanned field work. This becomes workflow **v2**; in-flight tasks finish on v1.
 - **Remove:** nothing.
 
-## Order of work (this round)
+## Done this round (all tested; see commit history)
 
-1. Supervisor quick-create (self-assigned) task + unplanned material from the field.
-2. 14 wells as unverified placeholders (owner instruction 2026-10-05), plus an Irrigation & Water → Wells screen with reasoned status changes and verification.
-3. Service worker, so the field app starts with no signal.
-4. Admin screens for assets, workers/crews and task types, so the farm can configure without SQL.
+1. Supervisor quick-create (self-assigned) task + unplanned material from the field. Engine change: several rules per status change; task workflow v2.
+2. 14 wells as unverified placeholders (owner instruction 2026-10-05) + the Irrigation & Water → Wells screen.
+3. Service worker; the field app starts with no signal. Found and fixed: roles and reads waited on the network offline.
+4. Admin screens for assets, workers, crews (membership) and task types. Found and fixed: forms overflowed the phone screen; a test now checks every key screen.
+
+## Next (by operational dependency)
+
+1. **Photo evidence:** needs Storage (staging project, VR-S01). Biggest remaining 6:00 AM gap.
+2. **Shared-device PIN switch + device revoke/wipe** (§3.6a).
+3. **Agriculture (Phase 3):** growing cycles on blocks, activity types per crop stage, plant-protection records with REI/PHI windows, harvest lots with PHI gating.
+4. Warehouse screens (ledger and issue requests already in the DB), escalation-rule and problem-category screens, user/role administration (needs an Edge Function to invite users).

@@ -29,6 +29,7 @@ const VerificationPage = lazy(() => import('@/modules/operations/VerificationPag
 const ExceptionsPage = lazy(() => import('@/modules/operations/ExceptionsPage'));
 const NotificationsPage = lazy(() => import('@/core/components/NotificationsPage'));
 const WellsPage = lazy(() => import('@/modules/irrigation/WellsPage'));
+const MasterDataPage = lazy(() => import('@/modules/admin/MasterDataPage'));
 
 function Loading() {
   const { t } = useTranslation();
@@ -69,6 +70,7 @@ export function App() {
             <Route path="admin" element={<Navigate to="departments" replace />} />
             <Route path="admin/departments" element={<DepartmentsPage />} />
             <Route path="admin/locations" element={<LocationsPage />} />
+            <Route path="admin/md/:entity" element={<MasterDataPage />} />
             <Route path="admin/verification" element={<VerificationQueuePage />} />
             <Route path="admin/audit" element={<AuditLogPage />} />
             {unbuilt.map((i) => (

@@ -29,7 +29,8 @@ interface ReportRow {
   departments: { name_ar: string; name_en: string | null } | null;
 }
 
-const input = 'min-h-touch rounded border border-stone-300 px-3';
+// w-full + min-w-0: long option labels must never push a form wider than a phone screen.
+const input = 'min-h-touch w-full min-w-0 rounded border border-stone-300 px-3';
 
 /** Problem reports: the owning department acknowledges and turns them into work, resolves or rejects them. */
 export default function ExceptionsPage() {
@@ -128,18 +129,18 @@ export default function ExceptionsPage() {
                   <form className="mt-3 grid gap-2 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); void submit(r); }}>
                     {open.mode === 'triage' && (
                       <>
-                        <label className="flex flex-col gap-1"><span>{t('problems.targetDepartment')}</span>
+                        <label className="flex min-w-0 flex-col gap-1"><span>{t('problems.targetDepartment')}</span>
                           <select className={input} value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value, taskType: '' })}>
                             {departments.data?.map((d) => <option key={d.id} value={d.id}>{localized(i18n.language, d.name_ar, d.name_en)}</option>)}
                           </select></label>
-                        <label className="flex flex-col gap-1"><span>{t('problems.taskType')}</span>
+                        <label className="flex min-w-0 flex-col gap-1"><span>{t('problems.taskType')}</span>
                           <select required className={input} value={form.taskType} onChange={(e) => setForm({ ...form, taskType: e.target.value })}>
                             <option value="">—</option>
                             {types.map((tt) => <option key={tt.id} value={tt.id}>{localized(i18n.language, tt.name_ar, tt.name_en)}</option>)}
                           </select></label>
                         <label className="flex flex-col gap-1 sm:col-span-2"><span>{t('problems.taskTitle')}</span>
                           <input required className={input} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></label>
-                        <label className="flex flex-col gap-1"><span>{t('problems.plannedDate')}</span>
+                        <label className="flex min-w-0 flex-col gap-1"><span>{t('problems.plannedDate')}</span>
                           <input type="date" dir="ltr" className={input} value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} /></label>
                         <label className="flex min-h-touch items-center gap-2">
                           <input type="checkbox" className="h-5 w-5" checked={form.wo} onChange={(e) => setForm({ ...form, wo: e.target.checked })} />

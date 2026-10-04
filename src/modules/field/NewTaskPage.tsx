@@ -95,8 +95,8 @@ export default function NewTaskPage() {
     <form className="flex flex-col gap-4" onSubmit={(e) => { e.preventDefault(); void create(); }}>
       <h1 className="text-xl font-bold">{t('quick.title')}</h1>
       {mine.length > 1 && (
-        <label className="flex flex-col gap-1"><span>{t('work.department')}</span>
-          <select className="min-h-touch rounded border border-stone-300 px-3" value={department} onChange={(e) => { setDept(e.target.value); setType(''); }}>
+        <label className="flex min-w-0 flex-col gap-1"><span>{t('work.department')}</span>
+          <select className="min-h-touch w-full min-w-0 rounded border border-stone-300 px-3" value={department} onChange={(e) => { setDept(e.target.value); setType(''); }}>
             {mine.map((d) => <option key={d.id} value={d.id}>{localized(i18n.language, d.name_ar, d.name_en)}</option>)}
           </select></label>
       )}
@@ -109,12 +109,12 @@ export default function NewTaskPage() {
           </button>
         ))}
       </fieldset>
-      <label className="flex flex-col gap-1"><span className="font-semibold">{t('quick.where')}</span>
-        <select required className="min-h-[56px] rounded-lg border-2 border-stone-300 px-3" value={location} onChange={(e) => setLocation(e.target.value)}>
+      <label className="flex min-w-0 flex-col gap-1"><span className="font-semibold">{t('quick.where')}</span>
+        <select required className="min-h-[56px] w-full min-w-0 rounded-lg border-2 border-stone-300 px-3" value={location} onChange={(e) => setLocation(e.target.value)}>
           <option value="">—</option>
           {fieldLocations.map((l) => <option key={l.id} value={l.id}>{l.code} · {localized(i18n.language, l.name_ar, l.name_en)}</option>)}
         </select></label>
-      <label className="flex flex-col gap-1"><span>{t('quick.titleOptional')}</span>
+      <label className="flex min-w-0 flex-col gap-1"><span>{t('quick.titleOptional')}</span>
         <input className="min-h-touch rounded border border-stone-300 px-3" value={title} onChange={(e) => setTitle(e.target.value)} /></label>
       <label className="flex min-h-touch items-center gap-2">
         <input type="checkbox" className="h-6 w-6" checked={startNow} onChange={(e) => setStartNow(e.target.checked)} />

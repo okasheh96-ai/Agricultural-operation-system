@@ -4,8 +4,8 @@ Authoritative instructions: `docs/MASTER_PROMPT.md`. Re-read the relevant Part a
 Working docs: `docs/ARCHITECTURE_PLAN.md`, `docs/VERIFICATION_REGISTER.md`, `docs/phase-reports/`.
 
 ## Current phase
-Phase 2, Operations execution. The core loop works end to end (see `docs/phase-reports/phase-2.md`).
-Still open: photos, PIN user switch with device wipe, and the PWA service worker. Phase 1 admin screens are still owed.
+Phase 2, Operations execution. Status by area (UI/DB/logic/RLS/audit/tested/production) is in `docs/GAP_REPORT.md`; keep it current.
+Still open: photos (needs Storage), PIN user switch + device wipe. Next phase: Agriculture (Phase 3).
 
 ## Non-negotiable rules
 1. **Evidence tiers:** A Confirmed · B Research-supported · C Working assumption · D Not Yet Verified · E Requires On-Site Discovery.

@@ -70,7 +70,8 @@ export default function ReportProblemPage() {
     if (tk) navigate(`/field/tasks/${tk.id}`);
   }
 
-  const input = 'min-h-touch rounded border border-stone-300 px-3';
+  // w-full + min-w-0: long option labels must never push a form wider than a phone screen.
+const input = 'min-h-touch w-full min-w-0 rounded border border-stone-300 px-3';
   if (saved && !tk) {
     return <p role="status" className="rounded bg-green-50 p-4 text-lg text-green-900">✓ {t('problems.submitted')}</p>;
   }
@@ -96,10 +97,10 @@ export default function ReportProblemPage() {
           </button>
         ))}
       </fieldset>
-      <label className="flex flex-col gap-1"><span className="font-semibold">{t('problems.description')}</span>
+      <label className="flex min-w-0 flex-col gap-1"><span className="font-semibold">{t('problems.description')}</span>
         <textarea required rows={3} className="rounded border border-stone-300 p-2" value={description} onChange={(e) => setDescription(e.target.value)} /></label>
       {!tk?.asset_id && (
-        <label className="flex flex-col gap-1"><span>{t('problems.asset')}</span>
+        <label className="flex min-w-0 flex-col gap-1"><span>{t('problems.asset')}</span>
           <select className={input} value={asset} onChange={(e) => setAsset(e.target.value)}>
             <option value="">—</option>
             {assets.data?.map((a) => <option key={a.id} value={a.id}>{a.code} · {localized(i18n.language, a.name_ar, a.name_en)}</option>)}
