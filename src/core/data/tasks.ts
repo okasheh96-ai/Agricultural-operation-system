@@ -96,3 +96,16 @@ export async function loadBoard(date: string): Promise<TaskBoardRow[]> {
 export function localized(locale: string, ar: string | null | undefined, en: string | null | undefined): string {
   return (locale === 'en' && en) || ar || en || '—';
 }
+
+/**
+ * A task created on the device before it reaches the server: kept in the device cache (task detail and
+ * My Day) so the supervisor can open and work it offline. The server copy replaces it on the next fetch.
+ */
+export async function cacheProvisionalTask(userId: string, task: TaskBoardRow): Promise<void> {
+  const at = new Date().toISOString();
+  await fieldDb.meta.put({ key: `cache:task:${task.id}`, value: JSON.stringify({ at, data: task }) });
+  const key = `cache:myday:${userId}`;
+  const existing = await fieldDb.meta.get(key);
+  const list = existing ? (JSON.parse(existing.value) as { data: TaskBoardRow[] }).data : [];
+  await fieldDb.meta.put({ key, value: JSON.stringify({ at, data: [task, ...list.filter((t) => t.id !== task.id)] }) });
+}

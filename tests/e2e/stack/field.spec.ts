@@ -85,3 +85,58 @@ test('blocked task with reason appears on the Operations board and escalates per
   await page.goto('/office/notifications');
   await expect(page.getByText('تصعيد: مهمة متوقفة').first()).toBeVisible();
 });
+
+test('unplanned work offline: supervisor creates and starts a task, records material, then it syncs', async ({ page, context }) => {
+  const manager = await login(MGR);
+  const warm = await assignedTask(manager, SUP, `تحضير ${Date.now()}`);
+  const title = `عمل طارئ ${Date.now()}`;
+
+  await signIn(page, SUP);
+  // Earlier, with signal: the supervisor has opened a task and the new-task screen (device caches are warm).
+  await page.goto(`/field/tasks/${warm.id}`);
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  await page.goto('/field/my-day');
+  await page.getByRole('link', { name: '＋ مهمة جديدة' }).click();
+  await expect(page.getByRole('button', { name: 'مهمة عامة' })).toBeVisible();
+  await page.evaluate(async () => { await navigator.serviceWorker.ready; }); // app code installed on the device
+
+  await context.setOffline(true);
+  await page.getByRole('button', { name: 'مهمة عامة' }).click();
+  await page.getByLabel('أين؟').selectOption({ label: 'DEMO-H2 · بيت تجريبي 2' });
+  await page.getByLabel('وصف مختصر (اختياري)').fill(title);
+  await page.getByRole('button', { name: 'إنشاء وبدء العمل' }).click();
+  await expect(page.getByRole('heading', { name: title })).toBeVisible();
+  await expect(page.getByText('بانتظار المزامنة').first()).toBeVisible();
+  await page.getByLabel('المادة').selectOption({ label: 'DEMO-MAT-1 · مادة تجريبية ١' });
+  await page.getByLabel('الكمية').fill('4');
+  await page.getByRole('button', { name: 'تسجيل مادة مستخدمة' }).click();
+
+  await context.setOffline(false);
+  await expect.poll(async () => (await rest<{ status: string }[]>(manager, `tasks?title=eq.${encodeURIComponent(title)}&select=status`))[0]?.status,
+    { timeout: 20_000 }).toBe('in_progress');
+  const task = await one<{ id: string; supervisor_id: string; assigned_by: string }>(manager, `tasks?title=eq.${encodeURIComponent(title)}&select=id,supervisor_id,assigned_by`);
+  const sup = await login(SUP);
+  expect(task.supervisor_id).toBe(sup.userId);
+  expect(task.assigned_by).toBe(sup.userId);
+  const mats = await rest<{ actual_qty: number; planned_qty: number | null }[]>(manager, `material_consumptions?task_id=eq.${task.id}&select=actual_qty,planned_qty`);
+  expect(mats).toEqual([{ actual_qty: 4, planned_qty: null }]);
+});
+
+test('the field app starts with no signal and shows My Day from the device', async ({ page, context }) => {
+  const manager = await login(MGR);
+  const title = `مهمة بلا شبكة ${Date.now()}`;
+  await assignedTask(manager, SUP, title);
+
+  await signIn(page, SUP);
+  await expect(page.getByRole('link', { name: new RegExp(title) })).toBeVisible();
+  await page.evaluate(async () => { await navigator.serviceWorker.ready; });
+
+  await context.setOffline(true);
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+  await expect(page.getByTestId('connectivity')).toContainText('غير متصل');
+  await expect(page.getByRole('link', { name: new RegExp(title) })).toBeVisible();
+  await page.getByRole('link', { name: new RegExp(title) }).click();
+  await expect(page.getByRole('heading', { name: title })).toBeVisible();
+  await context.setOffline(false);
+});

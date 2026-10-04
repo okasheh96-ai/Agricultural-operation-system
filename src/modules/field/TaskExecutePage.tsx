@@ -55,14 +55,18 @@ export default function TaskExecutePage() {
   const status = pending ?? tk?.status ?? '';
   const conflicts = (outbox.data ?? []).filter((o) => o.entityId === id && o.state === 'conflict');
 
+  // UI mirror of the server's rule choice; several rules may lead to the same status (one button each).
   const actions = tk
-    ? nextTransitions(wf.data, tk.workflow_version_id, status).filter(
-        (tr) =>
-          can(access, 'task', tr.required_action, { departmentId: tk.department_id, locationPath: tk.location_path ?? [], state: status }) &&
-          (tr.guard !== 'task_requires_verification' || tk.requires_verification) &&
-          (tr.guard !== 'task_no_verification' || !tk.requires_verification) &&
-          tr.to_status !== 'cancelled',
-      )
+    ? nextTransitions(wf.data, tk.workflow_version_id, status)
+        .filter(
+          (tr) =>
+            can(access, 'task', tr.required_action, { departmentId: tk.department_id, locationPath: tk.location_path ?? [], state: status }) &&
+            (tr.guard !== 'task_requires_verification' || tk.requires_verification) &&
+            (tr.guard !== 'task_no_verification' || !tk.requires_verification) &&
+            (tr.guard !== 'task_assignee_is_actor' || tk.supervisor_id === access?.userId) &&
+            tr.to_status !== 'cancelled',
+        )
+        .filter((tr, i, all) => all.findIndex((x) => x.to_status === tr.to_status) === i)
     : [];
 
   async function run(tr: WorkflowTransition) {
@@ -208,7 +212,22 @@ function Entries({ task, status }: { task: TaskBoardRow; status: string }) {
     db.from('crew_members').select('workers(id, code, full_name)').eq('crew_id', task.crew_id as string).is('voided_at', null).is('valid_to', null)), !!task.crew_id);
   const assets = useCached(['assets'], () => select<Named[]>((db) => db.from('assets').select('id, code, name_ar, name_en').is('voided_at', null).order('code')));
 
+  const items = useCached(['items'], () => select<(Named & { base_unit_id: string })[]>((db) =>
+    db.from('items').select('id, code, name_ar, name_en, base_unit_id').is('voided_at', null).order('code')));
+  const units = useCached(['units'], () => select<{ id: string; code: string }[]>((db) => db.from('units').select('id, code').is('voided_at', null)));
+  const [item, setItem] = useState('');
+  const [itemQty, setItemQty] = useState('');
   const pendingInserts = (outbox.data ?? []).filter((o): o is InsertItem => o.kind === 'insert' && o.entityId === task.id && o.state === 'pending');
+
+  // Material used but not planned (field reality); recorded in the item's base unit, locked after completion.
+  async function addMaterial() {
+    const it = items.data?.find((i) => i.id === item);
+    if (!access || !it || !itemQty) return;
+    await queueInsert(qc, { table: 'material_consumptions', entityId: task.id,
+      row: { id: crypto.randomUUID(), farm_id: access.farmId, task_id: task.id, item_id: it.id, unit_id: it.base_unit_id, actual_qty: Number(itemQty) } });
+    setItem('');
+    setItemQty('');
+  }
   const crewSize = crew.data?.length ?? 0;
 
   async function addLabour() {
@@ -282,13 +301,33 @@ function Entries({ task, status }: { task: TaskBoardRow; status: string }) {
         )}
       </section>
 
-      {(materials.data?.length ?? 0) > 0 && (
+      {((materials.data?.length ?? 0) > 0 || editable) && (
         <section className="rounded-lg border bg-white p-3">
           <h2 className="mb-2 font-semibold">{t('work.materials')}</h2>
-          <ul className="flex flex-col gap-2">
+          <ul className="mb-2 flex flex-col gap-2">
             {materials.data?.map((m) => <MaterialLine key={m.id} line={m} editable={editable}
               onSave={(v) => queueUpdate(qc, { table: 'material_consumptions', entityId: task.id, rowId: m.id, patch: { actual_qty: v }, expectedVersion: m.version })} />)}
+            {pendingInserts.filter((p) => p.table === 'material_consumptions').map((p) => (
+              <li key={p.idempotencyKey} className="text-amber-800">
+                {localized(i18n.language, items.data?.find((i) => i.id === p.row.item_id)?.name_ar, items.data?.find((i) => i.id === p.row.item_id)?.name_en)}
+                {' '}<bdi>{String(p.row.actual_qty)}</bdi> ({t('work.pendingSync')})
+              </li>
+            ))}
           </ul>
+          {editable && (
+            <div className="flex flex-wrap items-end gap-2">
+              <label className="flex flex-col gap-1"><span>{t('work.item')}</span>
+                <select className={input} value={item} onChange={(e) => setItem(e.target.value)}>
+                  <option value="">—</option>
+                  {items.data?.map((i) => <option key={i.id} value={i.id}>{i.code} · {localized(i18n.language, i.name_ar, i.name_en)}</option>)}
+                </select></label>
+              <label className="flex w-24 flex-col gap-1"><span>{t('work.quantity')}</span>
+                <input inputMode="decimal" dir="ltr" className={input} value={itemQty} onChange={(e) => setItemQty(e.target.value.replace(/[^0-9.]/g, ''))} /></label>
+              <span className="pb-3 text-sm"><bdi>{units.data?.find((u) => u.id === items.data?.find((i) => i.id === item)?.base_unit_id)?.code ?? ''}</bdi></span>
+              <button type="button" disabled={!item || !itemQty} onClick={() => void addMaterial()}
+                className="min-h-touch rounded bg-brand px-4 font-semibold text-white disabled:opacity-60">{t('work.addMaterial')}</button>
+            </div>
+          )}
         </section>
       )}
     </div>

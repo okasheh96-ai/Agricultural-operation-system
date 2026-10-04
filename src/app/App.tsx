@@ -21,6 +21,7 @@ const MyDayPage = lazy(() => import('@/modules/field/MyDayPage'));
 const TaskExecutePage = lazy(() => import('@/modules/field/TaskExecutePage'));
 const ReportProblemPage = lazy(() => import('@/modules/field/ReportProblemPage'));
 const MyCrewPage = lazy(() => import('@/modules/field/MyCrewPage'));
+const NewTaskPage = lazy(() => import('@/modules/field/NewTaskPage'));
 const CommandCenterPage = lazy(() => import('@/modules/operations/CommandCenterPage'));
 const OperationsBoardPage = lazy(() => import('@/modules/operations/OperationsBoardPage'));
 const DailyPlanPage = lazy(() => import('@/modules/operations/DailyPlanPage'));
@@ -74,6 +75,7 @@ export function App() {
           <Route path="/field" element={<FieldShell />}>
             <Route index element={<Navigate to="my-day" replace />} />
             <Route path="my-day" element={<MyDayPage />} />
+            <Route path="tasks/new" element={<NewTaskPage />} />
             <Route path="tasks/:id" element={<TaskExecutePage />} />
             <Route path="report" element={<ReportProblemPage />} />
             <Route path="scan" element={<LaterPhase titleKey="nav.scan" phase="2b" />} />

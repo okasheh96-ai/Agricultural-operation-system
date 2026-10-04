@@ -1,7 +1,11 @@
 {
   "app": {
     "title": "Agricultural Operations Management System",
-    "version": "Version {{version}}"
+    "version": "Version {{version}}",
+    "updateAvailable": "A new version of the app is available.",
+    "reloadNow": "Reload",
+    "screenFailed": "This screen could not open",
+    "screenFailedBody": "Check the connection and reload. Changes saved on this device are not lost."
   },
   "common": {
     "loading": "Loading…",
@@ -218,7 +222,10 @@
     "title": "Task title",
     "queued": "Saved on this device; it will be sent when online.",
     "history": "Status history",
-    "openTask": "Open task"
+    "openTask": "Open task",
+    "addMaterial": "Record material used",
+    "item": "Material",
+    "quantity": "Quantity"
   },
   "board": {
     "title": "Operations board",
@@ -296,5 +303,16 @@
       "escalation_overdue": "Escalation: task overdue",
       "escalation_blocked": "Escalation: task blocked"
     }
+  },
+  "quick": {
+    "title": "New task",
+    "newTask": "＋ New task",
+    "what": "What work?",
+    "where": "Where?",
+    "titleOptional": "Short description (optional)",
+    "startNow": "Start now",
+    "create": "Create task",
+    "createAndStart": "Create and start",
+    "noRights": "You cannot create tasks in your department."
   }
 }

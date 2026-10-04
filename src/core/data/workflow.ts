@@ -19,22 +19,25 @@ export interface WorkflowTransition {
   guard: string | null;
 }
 export interface WorkflowMirror {
+  /** Version new records start on (needed to create records offline). */
+  activeVersionId: string | null;
   statuses: WorkflowStatus[];
   transitions: WorkflowTransition[];
 }
 
 async function fetchWorkflow(code: string): Promise<WorkflowMirror> {
   const db = requireSupabase();
-  const { data: versions, error } = await db.from('workflow_versions').select('id').eq('workflow_code', code).is('voided_at', null);
+  const { data: versions, error } = await db.from('workflow_versions').select('id, is_active').eq('workflow_code', code).is('voided_at', null);
   if (error) throw error;
   const ids = versions.map((v: { id: string }) => v.id);
+  const activeVersionId = (versions as { id: string; is_active: boolean }[]).find((v) => v.is_active)?.id ?? null;
   const [s, t] = await Promise.all([
     db.from('workflow_statuses').select('workflow_version_id, code, name_ar, name_en, is_terminal, sort_order').in('workflow_version_id', ids).is('voided_at', null),
     db.from('allowed_transitions').select('workflow_version_id, from_status, to_status, required_action, required_fields, guard').in('workflow_version_id', ids).is('voided_at', null),
   ]);
   if (s.error) throw s.error;
   if (t.error) throw t.error;
-  return { statuses: s.data as WorkflowStatus[], transitions: t.data as WorkflowTransition[] };
+  return { activeVersionId, statuses: s.data as WorkflowStatus[], transitions: t.data as WorkflowTransition[] };
 }
 
 /**
@@ -47,6 +50,10 @@ export function useWorkflow(code: string) {
     staleTime: 10 * 60 * 1000,
     queryFn: async () => {
       const key = `workflow:${code}`;
+      if (!navigator.onLine) {
+        const offline = await fieldDb.meta.get(key);
+        if (offline) return JSON.parse(offline.value) as WorkflowMirror;
+      }
       try {
         const wf = await fetchWorkflow(code);
         await fieldDb.meta.put({ key, value: JSON.stringify(wf) });

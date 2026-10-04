@@ -3,6 +3,7 @@ import type { Session } from '@supabase/supabase-js';
 import { useQuery } from '@tanstack/react-query';
 import { requireSupabase } from '@/core/supabase';
 import type { Access, Grant } from '@/core/rbac/access';
+import { withDeviceCache } from '@/core/data/cache';
 
 interface AuthState {
   session: Session | null;
@@ -78,11 +79,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const userId = session?.user.id;
+  // Roles are part of the device's working set: the field app must start and show the right controls offline.
+  // The server still enforces every permission at sync.
   const accessQuery = useQuery({
     queryKey: ['access', userId],
-    queryFn: () => loadAccess(userId as string),
+    queryFn: () => withDeviceCache(`access:${userId}`, () => loadAccess(userId as string)),
     enabled: !!userId,
     staleTime: 5 * 60 * 1000,
+    networkMode: 'always',
   });
 
   return (

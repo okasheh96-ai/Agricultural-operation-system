@@ -24,7 +24,10 @@ export default function MyDayPage() {
 
   return (
     <section className="flex flex-col gap-3">
-      <h1 className="text-xl font-bold">{t('work.myDayTitle')}</h1>
+      <div className="flex items-center justify-between gap-2">
+        <h1 className="text-xl font-bold">{t('work.myDayTitle')}</h1>
+        <Link to="/field/tasks/new" className="min-h-touch inline-flex items-center rounded-lg bg-brand px-4 font-semibold text-white">{t('quick.newTask')}</Link>
+      </div>
       <QueryState isLoading={q.isLoading} error={q.error} isEmpty={q.data?.length === 0} emptyText={t('work.myDayEmpty')} onRetry={() => void q.refetch()}>
         <ul className="flex flex-col gap-3">
           {q.data?.map((task) => {

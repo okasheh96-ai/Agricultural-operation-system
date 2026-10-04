@@ -8,6 +8,8 @@ import { supabase } from '@/core/supabase';
 import { AuthProvider } from '@/core/auth/AuthProvider';
 import { LanguageToggle } from '@/core/components/LanguageToggle';
 import { App } from '@/app/App';
+import { ErrorBoundary } from '@/core/components/ErrorBoundary';
+import { UpdatePrompt } from '@/core/components/UpdatePrompt';
 
 const queryClient = new QueryClient({ defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } } });
 
@@ -25,9 +27,12 @@ function NotConfigured() {
 createRoot(document.getElementById('root') as HTMLElement).render(
   <StrictMode>
     {supabase ? (
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider><App /></AuthProvider>
-      </QueryClientProvider>
+      <ErrorBoundary>
+        <QueryClientProvider client={queryClient}>
+          <UpdatePrompt />
+          <AuthProvider><App /></AuthProvider>
+        </QueryClientProvider>
+      </ErrorBoundary>
     ) : (
       <NotConfigured />
     )}
