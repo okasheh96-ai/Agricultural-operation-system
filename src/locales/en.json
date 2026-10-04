@@ -1,0 +1,143 @@
+{
+  "app": {
+    "title": "Agricultural Operations Management System",
+    "version": "Version {{version}}"
+  },
+  "common": {
+    "loading": "Loading…",
+    "empty": "No records yet.",
+    "error": "Could not load data.",
+    "retry": "Retry",
+    "offline": "You are offline. Showing last saved data where available.",
+    "save": "Save",
+    "cancel": "Cancel",
+    "language": "العربية",
+    "signOut": "Sign out",
+    "code": "Code",
+    "nameAr": "Arabic name",
+    "nameEn": "English name",
+    "type": "Type",
+    "status": "Status",
+    "parent": "Parent",
+    "none": "—",
+    "search": "Search",
+    "actions": "Actions",
+    "saved": "Saved."
+  },
+  "verification": {
+    "verified": "Verified",
+    "not_yet_verified": "Not Yet Verified",
+    "to_be_confirmed_on_site": "To Be Confirmed On Site",
+    "conflicting": "Conflicting"
+  },
+  "labels": {
+    "notImplemented": "Not Implemented",
+    "laterPhase": "Coming in a later phase",
+    "laterPhaseBody": "This section is planned for Phase {{phase}} and is not built yet. There is no sample data here.",
+    "notVerifiedModule": "Details of this section are not yet verified and await on-site discovery.",
+    "demoData": "Demo Data"
+  },
+  "config": {
+    "missingTitle": "Backend not configured",
+    "missingBody": "VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are not set. Copy .env.example to .env.local and use the staging project only."
+  },
+  "auth": {
+    "signInTitle": "Sign in",
+    "email": "Email",
+    "password": "Password",
+    "signIn": "Sign in",
+    "signingIn": "Signing in…",
+    "failed": "Sign-in failed. Check your email and password.",
+    "noRoles": "Your account has no active role on this farm. Contact the system administrator."
+  },
+  "nav": {
+    "commandCenter": "Command Center",
+    "operations": "Operations",
+    "agriculture": "Agriculture",
+    "irrigation": "Irrigation & Water",
+    "maintenance": "Maintenance",
+    "maintenanceWarehouse": "Maintenance Warehouse",
+    "fleet": "Movement / Fleet",
+    "mainWarehouse": "Main Warehouse",
+    "packingHouse": "Packing House",
+    "qc": "Quality Control",
+    "qa": "Quality Assurance",
+    "cattle": "Cattle Operation",
+    "reports": "Reports & Analytics",
+    "admin": "Administration",
+    "departments": "Departments",
+    "locations": "Locations",
+    "verificationQueue": "Verification Queue",
+    "auditLog": "Audit Log",
+    "myDay": "My Day",
+    "reportProblem": "Report Problem",
+    "scan": "Scan",
+    "myCrew": "My Crew",
+    "sync": "Sync",
+    "officeView": "Office view",
+    "fieldView": "Field view"
+  },
+  "admin": {
+    "departmentsTitle": "Departments",
+    "independent": "Independent of Operations",
+    "locationsTitle": "Locations",
+    "addLocation": "Add location",
+    "locationTypes": {
+      "farm": "Farm",
+      "production_system": "Production system",
+      "zone": "Zone",
+      "block": "Block",
+      "house": "Greenhouse house",
+      "field": "Field",
+      "sub_unit": "Sub-unit",
+      "packhouse_area": "Packhouse area",
+      "warehouse": "Warehouse",
+      "other": "Other"
+    },
+    "verificationTitle": "Verification Queue",
+    "verificationIntro": "Master records not yet confirmed. Verifying requires a source note.",
+    "entity": "Record type",
+    "verify": "Verify",
+    "sourceNote": "Source (who confirmed it, how)",
+    "auditTitle": "Audit Log",
+    "when": "When",
+    "who": "User",
+    "action": "Action",
+    "comment": "Comment",
+    "auditActions": {
+      "insert": "Created",
+      "update": "Edited",
+      "transition": "Status change",
+      "verify": "Verification",
+      "void": "Voided"
+    },
+    "area": "Area",
+    "areaBasis": {
+      "gross": "gross",
+      "net": "net",
+      "unknown": "basis unknown"
+    }
+  },
+  "field": {
+    "syncTitle": "Sync status",
+    "online": "Online",
+    "offlineShort": "Offline",
+    "pending": "Changes waiting to send: {{count}}",
+    "conflicts": "Changes the server rejected: {{count}}",
+    "lastSynced": "Last synced: {{time}}",
+    "never": "not yet",
+    "syncNow": "Sync now"
+  },
+  "errors": {
+    "P0403": "You do not have permission for this action.",
+    "P0404": "Record not found.",
+    "P0409": "Someone else changed this record. Reload and try again.",
+    "P0422": "Data is incomplete or the action is not allowed in this state.",
+    "P0423": "Segregation of duties: you cannot perform this step on a record where you hold another role.",
+    "23505": "This code is already in use.",
+    "42501": "You do not have permission for this action.",
+    "unknown": "Something went wrong.",
+    "required": "This field is required.",
+    "tooLong": "Text is too long."
+  }
+}

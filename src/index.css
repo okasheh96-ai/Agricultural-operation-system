@@ -1,0 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Codes, numbers with units and mixed Latin text are isolated so they read correctly in RTL (§3.9). */
+bdi, .bidi-isolate { unicode-bidi: isolate; }
+body { font-size: 1rem; }
