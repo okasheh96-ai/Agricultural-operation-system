@@ -47,6 +47,7 @@ The stack scenarios are the §8.1 Phase 2 minimum:
 4. Completion quantities had no unit path.
 5. Breakdown reports without a location produced repair tasks that couldn't be assigned (they now take the equipment's location).
 6. The dev gateway's CORS rejected supabase-js retry headers.
+7. (Found by CI on a fresh runner.) Two parallel `dev-stack.sh up` runs raced and seeded demo data twice. Startup is now sequential, and the script holds an exclusive lock that long-running children (Postgres, Auth, PostgREST, gateway) do not inherit.
 
 ## Known gaps (honest)
 1. **Photos and voice notes:** the `attachments` table exists, but there is no upload UI. The local stack has no Storage service, so this needs staging (VR-S01) or a Storage container.

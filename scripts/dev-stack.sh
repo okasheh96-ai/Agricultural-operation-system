@@ -81,7 +81,7 @@ start_pg() {
     FRESH=1
   fi
   if ! "$PGBIN/pg_isready" -h "$RUN" -p "$PGPORT" -q; then
-    "${RUN_AS[@]}" "$PGBIN/pg_ctl" -D "$DATA" -o "-k $RUN -p $PGPORT -c listen_addresses=127.0.0.1" -l "$RUN/postgres.log" -w start >/dev/null
+    "${RUN_AS[@]}" "$PGBIN/pg_ctl" -D "$DATA" -o "-k $RUN -p $PGPORT -c listen_addresses=127.0.0.1" -l "$RUN/postgres.log" -w start >/dev/null 9>&-
   fi
 }
 
@@ -137,7 +137,8 @@ migrate() {
 up_service() { # name healthcheck-url command...
   local name=$1 url=$2; shift 2
   if ! curl -fs -o /dev/null "$url" -H "apikey: $ANON_KEY"; then
-    nohup "$@" >"$RUN/$name.log" 2>&1 &
+    # 9>&- : long-running services must not inherit (and so hold) the stack lock.
+    nohup "$@" >"$RUN/$name.log" 2>&1 9>&- &
     echo $! > "$RUN/$name.pid"
   fi
 }
@@ -187,6 +188,11 @@ stop() {
     "${RUN_AS[@]}" "$PGBIN/pg_ctl" -D "$DATA" -m fast stop >/dev/null 2>&1 || true
   fi
 }
+
+# One stack operation at a time (parallel callers would race on secrets, initdb and seeds).
+mkdir -p "$LOCAL"
+exec 9>"$LOCAL/.lock"
+flock 9
 
 case "${1:-up}" in
   up) install_binaries; secrets; start_pg; bootstrap_db; migrate; start_services; demo_users; write_env

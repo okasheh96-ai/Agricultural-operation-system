@@ -17,19 +17,13 @@ export default defineConfig({
   workers: 1,
   use: { baseURL: 'http://127.0.0.1:4174', trace: 'retain-on-failure' },
   projects: [{ name: 'phone-rtl', use: { ...devices['Pixel 7'], viewport: { width: 390, height: 844 } } }],
-  webServer: [
-    {
-      command: 'bash scripts/dev-stack.sh up && tail -f /dev/null',
-      url: 'http://127.0.0.1:54321/auth/v1/health',
-      timeout: 240_000,
-      reuseExistingServer: true,
-    },
-    {
-      command: `bash scripts/dev-stack.sh up >/dev/null && VITE_SUPABASE_URL=http://127.0.0.1:54321 VITE_SUPABASE_ANON_KEY=$(bash scripts/dev-stack.sh env | sed -n 's/^VITE_SUPABASE_ANON_KEY=//p') npx vite build --outDir dist-e2e && npx vite preview --outDir dist-e2e --host 127.0.0.1 --port 4174 --strictPort`,
-      url: 'http://127.0.0.1:4174',
-      timeout: 240_000,
-      reuseExistingServer: false,
-    },
-  ],
+  // One server: bring the stack up first, then build and serve the app against it (sequential — two
+  // parallel `dev-stack.sh up` runs on a fresh machine would race on secrets and demo data).
+  webServer: {
+    command: `bash scripts/dev-stack.sh up && VITE_SUPABASE_URL=http://127.0.0.1:54321 VITE_SUPABASE_ANON_KEY=$(bash scripts/dev-stack.sh env | sed -n 's/^VITE_SUPABASE_ANON_KEY=//p') npx vite build --outDir dist-e2e && npx vite preview --outDir dist-e2e --host 127.0.0.1 --port 4174 --strictPort`,
+    url: 'http://127.0.0.1:4174',
+    timeout: 300_000,
+    reuseExistingServer: false,
+  },
   metadata: { anonKey: anonKey() },
 });
