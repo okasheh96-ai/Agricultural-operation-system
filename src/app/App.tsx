@@ -6,7 +6,7 @@ import { useAuth } from '@/core/auth/AuthProvider';
 import { SignInPage } from '@/core/auth/SignInPage';
 import { hasRole } from '@/core/rbac/access';
 import { LaterPhase } from '@/core/components/LaterPhase';
-import { installAutoSync } from '@/core/offline/sync';
+import { installAutoSync, syncNow } from '@/core/offline/sync';
 import { OfficeShell } from './OfficeShell';
 import { FieldShell } from './FieldShell';
 import { FIELD_ROLES, OFFICE_NAV } from './nav';
@@ -40,7 +40,13 @@ export function App() {
   const { t } = useTranslation();
   const qc = useQueryClient();
   const { session, ready, access, accessLoading } = useAuth();
-  useEffect(() => (session ? installAutoSync(qc) : undefined), [session, qc]);
+  const sessionUser = session?.user.id;
+  useEffect(() => {
+    if (!sessionUser) return undefined;
+    // A user's queued work (possibly left on a shared phone earlier) is sent as soon as they are signed in.
+    void syncNow(qc);
+    return installAutoSync(qc);
+  }, [sessionUser, qc]);
 
   if (!ready || (session && accessLoading)) return <Loading />;
   if (!session) return <SignInPage />;

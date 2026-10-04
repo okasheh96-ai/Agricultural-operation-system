@@ -48,7 +48,9 @@ test('an offline change the server rejects lands in the conflict queue with a re
   await rpc(manager, 'transition_record', { p_entity_type: 'tasks', p_id: task.id, p_to_status: 'cancelled', p_comment: 'أُلغيت لسوء الطقس' });
   await context.setOffline(false);
   await expect(page.getByRole('alert')).toContainText('رفضه الخادم', { timeout: 20_000 });
-  await expect(page.getByRole('alert')).toContainText('cancelled');
+  // Explained in Arabic (audit B5); the server's English text is only in the collapsed technical details.
+  await expect(page.getByRole('alert')).toContainText('البيانات غير مكتملة أو الإجراء غير مسموح في هذه الحالة');
+  await expect(page.getByRole('alert').getByText('cancelled')).toBeHidden();
   const conflicts = await rest<{ reason_code: string }[]>(await login(SUP), `sync_conflicts?entity_id=eq.${task.id}&select=reason_code`);
   expect(conflicts).toEqual([{ reason_code: 'P0422' }]);
 });
@@ -95,6 +97,16 @@ test('unplanned work offline: supervisor creates and starts a task, records mate
   // Earlier, with signal: the supervisor has opened a task and the new-task screen (device caches are warm).
   await page.goto(`/field/tasks/${warm.id}`);
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  // The material list is saved on the device only once its read finishes; leaving earlier would leave it empty offline.
+  await expect.poll(() => page.evaluate(() => new Promise<boolean>((resolve) => {
+    const open = indexedDB.open('agri-field');
+    open.onsuccess = () => {
+      const get = open.result.transaction('meta').objectStore('meta').get('cache:items');
+      get.onsuccess = () => { resolve(!!get.result); open.result.close(); };
+      get.onerror = () => resolve(false);
+    };
+    open.onerror = () => resolve(false);
+  }))).toBe(true);
   await page.goto('/field/my-day');
   await page.getByRole('link', { name: '＋ مهمة جديدة' }).click();
   await expect(page.getByRole('button', { name: 'مهمة عامة' })).toBeVisible();

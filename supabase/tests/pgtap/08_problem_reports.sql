@@ -1,7 +1,7 @@
 -- Breakdown scenario (§8.1): problem reported in the field → triaged to Maintenance → work order + task
 -- → assigned → completed → verified by a different user → closed, with a complete history.
 begin;
-select plan(18);
+select plan(19);
 
 select tests.create_user('sup')   as sup \gset
 select tests.create_user('mmgr')  as mmgr \gset
@@ -72,15 +72,16 @@ select is((select count(*)::int from public.record_transitions where entity_id =
   'full status history: planned, assigned, in progress, pending verification, verified, closed');
 select ok((select count(*) from public.audit_events where entity_id = :'job') >= 6, 'audit trail present for every change');
 
--- Operations routes a report but cannot plan inside the department: the task stays a draft request.
+-- Operations routes a report to the department that owns the fix; it does not triage on that department's behalf (audit C2).
 select tests.login(:'sup');
 insert into public.problem_reports (farm_id, category_id, description, location_id) values (tests.farm(), tests.category('other'), 'باب المستودع مكسور', :'loc') returning id as pr2 \gset
 select tests.logout();
 select tests.login(:'ops');
-select public.triage_problem_report(:'pr2', tests.dept('maintenance'), tests.task_type('maintenance_repair'), 'إصلاح الباب', null, current_date) as t2 \gset
+select throws_ok(format($$ select public.triage_problem_report(%L, %L, %L, 'x', null, current_date) $$, :'pr2', tests.dept('maintenance'), tests.task_type('maintenance_repair')),
+  'P0403', null, 'Operations cannot turn a report into work for a department');
+select lives_ok(format($$ select public.route_problem_report(%L, %L, 'عطل باب — اختصاص الصيانة') $$, :'pr2', tests.dept('maintenance')),
+  'Operations routes the report to Maintenance with a reason');
 select tests.logout();
-select is((select status from public.tasks where source_problem_report_id = :'pr2'), 'draft',
-  'a task created by Operations in another department stays a draft request for that department to plan');
 select is((select owning_department_id from public.problem_reports where id = :'pr2'), tests.dept('maintenance'), 'report re-routed to Maintenance');
 
 -- A report that names equipment inherits its location (so the repair can be planned and assigned).

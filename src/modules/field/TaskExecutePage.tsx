@@ -4,7 +4,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/core/auth/AuthProvider';
 import { requireSupabase } from '@/core/supabase';
-import { can } from '@/core/rbac/access';
+import { can, mayExecuteAssigned } from '@/core/rbac/access';
+import { ConflictMessage } from '@/core/offline/ConflictMessage';
 import { BLOCK_REASONS, loadTask, localized, type TaskBoardRow } from '@/core/data/tasks';
 import { withDeviceCache } from '@/core/data/cache';
 import { nextTransitions, useWorkflow, type WorkflowTransition } from '@/core/data/workflow';
@@ -65,6 +66,8 @@ export default function TaskExecutePage() {
             (tr.guard !== 'task_requires_verification' || tk.requires_verification) &&
             (tr.guard !== 'task_no_verification' || !tk.requires_verification) &&
             (tr.guard !== 'task_assignee_is_actor' || tk.supervisor_id === access?.userId) &&
+            (tr.required_action !== 'execute' || tr.guard === 'task_assignee_is_actor'
+              || mayExecuteAssigned(access, tk.supervisor_id, tk.department_id, tk.location_path ?? [])) &&
             tr.to_status !== 'cancelled',
         )
         .filter((tr, i, all) => all.findIndex((x) => x.to_status === tr.to_status) === i)
@@ -134,7 +137,7 @@ export default function TaskExecutePage() {
 
           {conflicts.map((c) => (
             <p key={c.idempotencyKey} role="alert" className="rounded border border-red-300 bg-red-50 p-3 text-red-900">
-              {t('work.conflict')}: {c.conflictReason}
+              <ConflictMessage code={c.conflictCode} reason={c.conflictReason} />
             </p>
           ))}
           {message && <p role="status" className="rounded bg-amber-50 p-3 text-amber-900">{message}</p>}
@@ -197,7 +200,8 @@ function Entries({ task, status }: { task: TaskBoardRow; status: string }) {
   const { access } = useAuth();
   const qc = useQueryClient();
   const outbox = useOutbox();
-  const editable = EDITABLE.includes(status) && can(access, 'task', 'execute', { departmentId: task.department_id, locationPath: task.location_path ?? [] });
+  const editable = EDITABLE.includes(status) && can(access, 'task', 'execute', { departmentId: task.department_id, locationPath: task.location_path ?? [] })
+    && mayExecuteAssigned(access, task.supervisor_id, task.department_id, task.location_path ?? []);
   const [hours, setHours] = useState('');
   const [worker, setWorker] = useState('');
   const [asset, setAsset] = useState('');

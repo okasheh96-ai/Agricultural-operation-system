@@ -41,6 +41,8 @@ Owner to ask is "Not Yet Verified" unless the owner names a person.
 | VR-C22 | Escalation rules ship **unconfigured**; thresholds and who is notified are entered by the farm. | `escalation_rules` | open |
 | VR-C23 | A supervisor (or other field executor) may create unplanned work in their own department and assign it **only to themselves**. Assigning to anyone else stays a planner's dispatch right. | task workflow v2, `guard_task_assignee_is_actor` | open |
 | VR-C24 | The 14 wells are owned by the Wells department, so its manager (and the admin) may change status and verify. Irrigation users get no well-status authority until E1 is answered. | `seed_well_placeholders` | open |
+| VR-C25 | Only the System Administrator role spans independent departments (QA), for configuration; every other farm-wide grant stops at QA. | `roles.spans_independent_departments`, `app.seed_hardening` | open |
+| VR-C26 | Only the assigned supervisor, their active delegate, or a planner with dispatch right may execute a task; other supervisors in the same department may not. | `app.may_execute_assigned` | open |
 
 ## D/E — Discovery backlog (Master Prompt Part E)
 

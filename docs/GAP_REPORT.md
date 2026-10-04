@@ -54,6 +54,15 @@ Legend: **A** UI · **B** Database · **C** Business logic · **D** Permissions 
 3. Service worker; the field app starts with no signal. Found and fixed: roles and reads waited on the network offline.
 4. Admin screens for assets, workers, crews (membership) and task types. Found and fixed: forms overflowed the phone screen; a test now checks every key screen.
 
+## Foundation hardening (audit C1–C3, B3–B5; all tested in `13_foundation_hardening.sql` and `hardening.spec.ts`)
+
+- C1: workflow-owned columns change only through `transition_record()`.
+- C2: Operations routes problem reports but cannot triage, resolve or reject; farm-wide grants stop at QA (admin excepted).
+- C3: a shared phone sends only the signed-in user's queued changes; sign-out warns about unsent work and clears device caches.
+- B3: execution only by the assignee, a delegate or a planner; reassignment via `reassign_task` with a reason.
+- B4: cross-farm references are refused.
+- B5: sync conflicts are shown in the user's language, with the raw reason under "details".
+
 ## Next (by operational dependency)
 
 1. **Photo evidence:** needs Storage (staging project, VR-S01). Biggest remaining 6:00 AM gap.

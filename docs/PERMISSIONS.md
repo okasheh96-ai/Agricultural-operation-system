@@ -36,12 +36,16 @@ Actions: view · create · plan · dispatch · execute · review · verify · ap
 | Supervisor, Maintenance Technician, Irrigation / Fleet / Packing House user (own department) | task: create, execute · issue_request: create, execute (confirm receipt) |
 | Department Manager, Maintenance Manager (own department) | task: create, plan, dispatch, execute, review, verify, close, void · plan & work_order: create, configure, void · problem_report: review (triage) · issue_request: create, execute, approve · task_type: create, configure, verify · stock: execute, approve |
 | Warehouse User (own warehouse department) | stock: execute (receipts, issues, returns) · issue_request: execute (issue/reject) |
-| Operations Manager (farm-wide) | task: create (draft cross-department request) · work_order: create · problem_report: review (route/triage). **No plan/dispatch/verify/close inside departments.** |
+| Operations Manager (farm-wide) | task: create (draft cross-department request) · work_order: create · problem_report: dispatch (**route only**, via `route_problem_report` with a reason; no triage, resolve or reject). **No plan/dispatch/verify/close inside departments.** |
 | System Administrator | task_type, problem_category, escalation_rule, warehouse, item: create, configure, verify, void. **No task execution or verification.** |
 
 Issue requests are checked per step: requester steps (receive, cancel) against the requesting department, warehouse steps (issue, reject) against the warehouse's department (`allowed_transitions.scope_column`).
 
 ## Fixed rules (tier A — tested)
+- **Independent departments (QA):** a farm-wide role grant does not reach an independent department unless the role is flagged `spans_independent_departments` (System Administrator only, for configuration; VR-C25). Enforced in `app.user_has_permission`.
+- **Execution is limited to the assignee:** executing a task (start, stop, done, entries) needs `task.execute` **and** being the assigned supervisor, an active delegate of them, or a planner with `task.dispatch` (VR-C26). Reassignment goes only through `reassign_task` (dispatch, reason required, logged). The new assignee must hold `task.execute` there.
+- **Workflow-owned columns** (actor stamps, counters, transition payload fields) change only through `transition_record()`; a plain update is refused.
+- **Same-farm references:** a row may only reference rows of its own farm (trigger on every farm-scoped foreign key).
 - QA is independent. Operations will get read-only access to QA records, and only QA closes QA findings (enforced from Phase 9; the department is flagged `is_independent` now).
 - Nobody can update or delete `audit_events`. Nobody deletes any operational or master record through the API.
 - Anonymous users have no table access.

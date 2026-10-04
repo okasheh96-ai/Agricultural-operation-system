@@ -4,6 +4,7 @@ import { useOnline } from '@/core/components/useOnline';
 import { DemoBanner } from '@/core/components/DemoBanner';
 import { NotificationBell } from '@/core/components/NotificationBell';
 import { useOutbox } from '@/core/offline/useOutbox';
+import { SignOutButton } from '@/core/auth/SignOutButton';
 
 const ITEMS = [
   { to: '/field/my-day', labelKey: 'nav.myDay', icon: '☀' },
@@ -34,7 +35,10 @@ export function FieldShell() {
         </span>
       </header>
       <main className="flex-1 p-4 pb-24"><Outlet /></main>
-      <Link to="/office" className="mx-4 mb-24 text-sm underline">{t('nav.officeView')}</Link>
+      <div className="mx-4 mb-24 flex flex-wrap items-center gap-2 text-sm">
+        <Link to="/office" className="min-h-touch inline-flex items-center underline">{t('nav.officeView')}</Link>
+        <SignOutButton />
+      </div>
       <nav aria-label={t('nav.fieldView')} className="fixed inset-x-0 bottom-0 grid grid-cols-5 border-t bg-white">
         {ITEMS.map((i) => (
           <NavLink key={i.to} to={i.to}

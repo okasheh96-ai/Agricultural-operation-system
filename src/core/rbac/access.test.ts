@@ -1,4 +1,4 @@
-import { can, hasRole, type Access } from './access';
+import { can, hasRole, mayExecuteAssigned, type Access } from './access';
 
 const MAINT = 'dept-maint';
 const access: Access = {
@@ -38,5 +38,20 @@ describe('can (UI mirror of app.has_permission)', () => {
     expect(can(null, 'asset', 'view')).toBe(false);
     expect(hasRole(access, 'qa_user')).toBe(false);
     expect(hasRole(access, 'supervisor')).toBe(true);
+  });
+});
+
+describe('mayExecuteAssigned (UI mirror of audit B3)', () => {
+  const planner: Access = { userId: 'p', farmId: 'f', grants: [{ roleCode: 'department_manager', departmentId: 'agri', locationId: null,
+    permissions: [{ objectType: 'task', action: 'dispatch', allowedStates: null }] }] };
+  const sup: Access = { userId: 's2', farmId: 'f', delegatorIds: ['s1'], grants: [] };
+  it('allows the assignee, a delegate of the assignee, or a planner of the department', () => {
+    expect(mayExecuteAssigned({ ...sup, userId: 's1', delegatorIds: [] }, 's1', 'agri', [])).toBe(true);
+    expect(mayExecuteAssigned(sup, 's1', 'agri', [])).toBe(true);
+    expect(mayExecuteAssigned(planner, 's1', 'agri', [])).toBe(true);
+  });
+  it('refuses another executor and planners of other departments', () => {
+    expect(mayExecuteAssigned({ ...sup, delegatorIds: [] }, 's1', 'agri', [])).toBe(false);
+    expect(mayExecuteAssigned(planner, 's1', 'maint', [])).toBe(false);
   });
 });

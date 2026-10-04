@@ -40,7 +40,7 @@ export default function ExceptionsPage() {
   const wf = useWorkflow('problem_report');
   const departments = useDepartments();
   const taskTypes = useTaskTypes();
-  const [open, setOpen] = useState<{ id: string; mode: 'triage' | 'resolved' | 'rejected' } | null>(null);
+  const [open, setOpen] = useState<{ id: string; mode: 'triage' | 'resolved' | 'rejected' | 'route' } | null>(null);
   const [form, setForm] = useState({ department: '', taskType: '', title: '', date: todayInAmman(), wo: true, note: '' });
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
@@ -72,7 +72,9 @@ export default function ExceptionsPage() {
 
   async function submit(r: ReportRow) {
     if (!open) return;
-    if (open.mode === 'triage') {
+    if (open.mode === 'route') {
+      await rpc('route_problem_report', { p_report: r.id, p_department: form.department, p_reason: form.note });
+    } else if (open.mode === 'triage') {
       const res = await rpc('triage_problem_report', {
         p_report: r.id, p_department: form.department, p_task_type: form.taskType, p_title: form.title,
         p_planned_date: form.date || null, p_note: form.note || null, p_create_work_order: form.wo,
@@ -96,7 +98,9 @@ export default function ExceptionsPage() {
       <QueryState isLoading={q.isLoading} error={q.error} isEmpty={q.data?.length === 0} onRetry={() => void q.refetch()}>
         <ul className="flex flex-col gap-2">
           {q.data?.map((r) => {
+            // The owning department reviews (triage/resolve/reject); Operations may only route (audit C2).
             const mayReview = can(access, 'problem_report', 'review', { departmentId: r.owning_department_id });
+            const mayRoute = mayReview || can(access, 'problem_report', 'dispatch', { departmentId: r.owning_department_id });
             return (
               <li key={r.id} className={`rounded-lg border bg-white p-3 ${r.priority <= 2 ? 'border-red-300' : ''}`}>
                 <div className="flex flex-wrap items-start justify-between gap-2">
@@ -112,6 +116,14 @@ export default function ExceptionsPage() {
                   </div>
                   <StatusBadge workflow={wf.data} versionId={r.workflow_version_id} status={r.status} />
                 </div>
+                {mayRoute && !mayReview && !open && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <button type="button" className="min-h-touch rounded border px-3"
+                      onClick={() => { setOpen({ id: r.id, mode: 'route' }); setForm({ ...form, department: r.owning_department_id, note: '' }); }}>
+                      {t('problems.route')}
+                    </button>
+                  </div>
+                )}
                 {mayReview && !open && (
                   <div className="mt-2 flex flex-wrap gap-2">
                     {r.status === 'open' && (
@@ -127,6 +139,12 @@ export default function ExceptionsPage() {
                 )}
                 {open?.id === r.id && (
                   <form className="mt-3 grid gap-2 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); void submit(r); }}>
+                    {open.mode === 'route' && (
+                      <label className="flex min-w-0 flex-col gap-1"><span>{t('problems.targetDepartment')}</span>
+                        <select className={input} value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })}>
+                          {departments.data?.map((d) => <option key={d.id} value={d.id}>{localized(i18n.language, d.name_ar, d.name_en)}</option>)}
+                        </select></label>
+                    )}
                     {open.mode === 'triage' && (
                       <>
                         <label className="flex min-w-0 flex-col gap-1"><span>{t('problems.targetDepartment')}</span>
@@ -149,7 +167,8 @@ export default function ExceptionsPage() {
                       </>
                     )}
                     <label className="flex flex-col gap-1 sm:col-span-2"><span>{t('work.comment')}</span>
-                      <input required={open.mode !== 'triage'} className={input} value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} /></label>
+                      <input required={open.mode !== 'triage'} aria-label={open.mode === 'route' ? t('problems.routeReason') : undefined}
+                        className={input} value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} /></label>
                     <div className="flex gap-2 sm:col-span-2">
                       <button type="submit" className="min-h-touch rounded bg-brand px-4 font-semibold text-white">{t('common.save')}</button>
                       <button type="button" className="min-h-touch rounded border px-4" onClick={() => setOpen(null)}>{t('common.cancel')}</button>

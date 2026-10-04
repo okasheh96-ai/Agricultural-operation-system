@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { requireSupabase } from '@/core/supabase';
 import type { Access, Grant } from '@/core/rbac/access';
 import { withDeviceCache } from '@/core/data/cache';
+import { setSyncUser } from '@/core/offline/sync';
 
 interface AuthState {
   session: Session | null;
@@ -61,7 +62,10 @@ async function loadAccess(userId: string): Promise<Access | null> {
       .map((p) => ({ objectType: p.object_type, action: p.action, allowedStates: p.allowed_states })),
   }));
   const { data: farm } = await db.from('farms').select('is_demo').eq('id', first.farm_id).maybeSingle<{ is_demo: boolean }>();
-  return { userId, farmId: first.farm_id, isDemo: farm?.is_demo ?? false, grants };
+  const nowIso = new Date().toISOString();
+  const { data: dels } = await db.from('delegations').select('from_user_id').eq('to_user_id', userId).is('voided_at', null)
+    .lte('valid_from', nowIso).gt('valid_to', nowIso).returns<{ from_user_id: string }[]>();
+  return { userId, farmId: first.farm_id, isDemo: farm?.is_demo ?? false, grants, delegatorIds: (dels ?? []).map((d) => d.from_user_id) };
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -71,10 +75,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const db = requireSupabase();
     void db.auth.getSession().then(({ data }) => {
+      setSyncUser(data.session?.user.id ?? null);
       setSession(data.session);
       setReady(true);
     });
-    const { data } = db.auth.onAuthStateChange((_event, next) => setSession(next));
+    const { data } = db.auth.onAuthStateChange((_event, next) => {
+      setSyncUser(next?.user.id ?? null);
+      setSession(next);
+    });
     return () => data.subscription.unsubscribe();
   }, []);
 

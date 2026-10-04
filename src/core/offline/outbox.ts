@@ -9,6 +9,8 @@ import Dexie, { type Table } from 'dexie';
  */
 interface OutboxBase {
   idempotencyKey: string;
+  /** Who made the change. On a shared crew phone, only this user's session may send it (audit C3). */
+  userId: string;
   /** The record this change belongs to (a task for its transitions and its entries), for ordering. */
   entityId: string;
   /** Records that must be synced first (e.g. a new task before its labour entry). */
@@ -17,6 +19,8 @@ interface OutboxBase {
   deviceId: string;
   state: 'pending' | 'conflict';
   conflictReason?: string;
+  /** Error code of the rejection, shown to the user in their language (audit B5). */
+  conflictCode?: string;
   attempts: number;
 }
 
@@ -65,15 +69,26 @@ export class FieldDatabase extends Dexie {
   }
 }
 
-export type SendResult = { outcome: 'applied' } | { outcome: 'conflict'; reason: string };
+export type SendResult = { outcome: 'applied' } | { outcome: 'conflict'; reason: string; code?: string };
 export type Sender = (item: OutboxItem) => Promise<SendResult>;
+
+let lastStamp = 0;
+
+/**
+ * Device time for a queued change, strictly increasing: changes made in the same millisecond (create, assign,
+ * start in one tap) must replay in the order they were made, not in random key order.
+ */
+export function nextDeviceTime(): string {
+  lastStamp = Math.max(Date.now(), lastStamp + 1);
+  return new Date(lastStamp).toISOString();
+}
 
 export async function enqueue<T extends OutboxItem>(db: FieldDatabase, item: NewItem<T>): Promise<T> {
   const full = {
     ...item,
     dependsOn: item.dependsOn ?? [],
     idempotencyKey: crypto.randomUUID(),
-    clientRecordedAt: item.clientRecordedAt ?? new Date().toISOString(),
+    clientRecordedAt: item.clientRecordedAt ?? nextDeviceTime(),
     state: 'pending',
     attempts: 0,
   } as unknown as T;
@@ -104,12 +119,14 @@ export function replayOrder(items: OutboxItem[]): OutboxItem[] {
 export async function replay(
   db: FieldDatabase,
   send: Sender,
+  userId: string,
 ): Promise<{ applied: number; conflicts: number; networkFailed: boolean }> {
-  const items = replayOrder(await db.outbox.where('state').equals('pending').toArray());
+  // Only the signed-in user's own changes are sent; another user's queued work waits for that user.
+  const items = replayOrder((await db.outbox.where('state').equals('pending').toArray()).filter((i) => i.userId === userId));
   let applied = 0;
   let conflicts = 0;
   let networkFailed = false;
-  const blocked = new Set((await db.outbox.where('state').equals('conflict').toArray()).map((i) => i.entityId));
+  const blocked = new Set((await db.outbox.where('state').equals('conflict').toArray()).filter((i) => i.userId === userId).map((i) => i.entityId));
 
   for (const item of items) {
     if (blocked.has(item.entityId) || item.dependsOn.some((d) => blocked.has(d))) continue;
@@ -125,7 +142,7 @@ export async function replay(
       await db.outbox.delete(item.idempotencyKey);
       applied += 1;
     } else {
-      await db.outbox.update(item.idempotencyKey, { state: 'conflict', conflictReason: result.reason });
+      await db.outbox.update(item.idempotencyKey, { state: 'conflict', conflictReason: result.reason, conflictCode: result.code });
       blocked.add(item.entityId);
       conflicts += 1;
     }

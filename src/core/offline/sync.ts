@@ -20,6 +20,13 @@ export function deviceId(): string {
   }
 }
 
+let currentUser: string | null = null;
+
+/** Set by the auth layer on every session change: queued changes are attributed to, and sent by, this user. */
+export function setSyncUser(userId: string | null): void {
+  currentUser = userId;
+}
+
 let running: Promise<void> | null = null;
 let again = false;
 let retryTimer: number | undefined;
@@ -45,7 +52,9 @@ export function syncNow(queryClient: QueryClient, opts: { assumeOnline?: boolean
   const loop = async () => {
     do {
       again = false;
-      if (assumeOnline || navigator.onLine) networkFailed = (await replay(fieldDb, supabaseSender(requireSupabase()))).networkFailed;
+      // Only the signed-in user's own changes are sent (shared crew phone, audit C3); nobody signed in → nothing.
+      const user = currentUser;
+      if (user && (assumeOnline || navigator.onLine)) networkFailed = (await replay(fieldDb, supabaseSender(requireSupabase()), user)).networkFailed;
       assumeOnline = false;
     } while (again);
   };
@@ -77,23 +86,28 @@ export function installAutoSync(queryClient: QueryClient): () => void {
   };
 }
 
-type Queued<T> = Omit<T, 'idempotencyKey' | 'state' | 'attempts' | 'clientRecordedAt' | 'dependsOn' | 'deviceId' | 'kind'> & { dependsOn?: string[] };
+type Queued<T> = Omit<T, 'idempotencyKey' | 'state' | 'attempts' | 'clientRecordedAt' | 'dependsOn' | 'deviceId' | 'kind' | 'userId'> & { dependsOn?: string[] };
+
+function signedInUser(): string {
+  if (!currentUser) throw new Error('No signed-in user for queued change');
+  return currentUser;
+}
 
 /** All field writes go through the outbox first, then sync immediately when online. */
 export async function queueTransition(qc: QueryClient, item: Queued<TransitionItem>): Promise<void> {
-  await enqueue<TransitionItem>(fieldDb, { ...item, kind: 'transition', deviceId: deviceId() });
+  await enqueue<TransitionItem>(fieldDb, { ...item, kind: 'transition', deviceId: deviceId(), userId: signedInUser() });
   await qc.invalidateQueries({ queryKey: ['outbox'] });
   await syncNow(qc);
 }
 
 export async function queueInsert(qc: QueryClient, item: Queued<InsertItem>): Promise<void> {
-  await enqueue<InsertItem>(fieldDb, { ...item, kind: 'insert', deviceId: deviceId() });
+  await enqueue<InsertItem>(fieldDb, { ...item, kind: 'insert', deviceId: deviceId(), userId: signedInUser() });
   await qc.invalidateQueries({ queryKey: ['outbox'] });
   await syncNow(qc);
 }
 
 export async function queueUpdate(qc: QueryClient, item: Queued<UpdateItem>): Promise<void> {
-  await enqueue<UpdateItem>(fieldDb, { ...item, kind: 'update', deviceId: deviceId() });
+  await enqueue<UpdateItem>(fieldDb, { ...item, kind: 'update', deviceId: deviceId(), userId: signedInUser() });
   await qc.invalidateQueries({ queryKey: ['outbox'] });
   await syncNow(qc);
 }

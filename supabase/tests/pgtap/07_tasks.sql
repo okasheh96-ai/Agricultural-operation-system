@@ -124,9 +124,9 @@ insert into public.tasks (farm_id, task_type_id, department_id, location_id, tit
 values (tests.farm(), tests.task_type('general'), tests.dept('agriculture'), :'loc', 'مهمة الأمس', current_date - 1) returning id as t3 \gset
 select public.transition_record('tasks', :'t3', 'assigned', jsonb_build_object('supervisor_id', :'sup'));
 select ok((select is_overdue from public.task_board where id = :'t3'), 'yesterday''s unfinished task shows as overdue');
-update public.tasks set supervisor_id = :'mgr', version = 2 where id = :'t3';
+select public.reassign_task(:'t3', :'mgr', null, 'المشرف غائب اليوم');
 select tests.logout();
-select is((select supervisor_id from public.tasks where id = :'t3'), :'mgr'::uuid, 'planner reassigns an absent supervisor''s task (audited update)');
+select is((select supervisor_id from public.tasks where id = :'t3'), :'mgr'::uuid, 'planner reassigns an absent supervisor''s task (recorded step with reason)');
 
 select * from finish();
 rollback;

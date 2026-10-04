@@ -1,10 +1,10 @@
 import { NavLink, Outlet, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/core/auth/AuthProvider';
-import { requireSupabase } from '@/core/supabase';
 import { LanguageToggle } from '@/core/components/LanguageToggle';
 import { DemoBanner } from '@/core/components/DemoBanner';
 import { NotificationBell } from '@/core/components/NotificationBell';
+import { SignOutButton } from '@/core/auth/SignOutButton';
 import { OFFICE_NAV, visibleNav, type NavItem } from './nav';
 
 function NavEntry({ item }: { item: NavItem }) {
@@ -47,9 +47,7 @@ export function OfficeShell() {
         <div className="mt-4 flex flex-wrap items-center gap-2 border-t pt-3 text-sm">
           <Link to="/field" className="min-h-touch inline-flex items-center rounded px-3 underline">{t('nav.fieldView')}</Link>
           <LanguageToggle />
-          <button type="button" onClick={() => void requireSupabase().auth.signOut()} className="min-h-touch rounded px-3 underline">
-            {t('common.signOut')}
-          </button>
+          <SignOutButton />
         </div>
         <p className="mt-2 text-xs text-stone-500">{t('app.version', { version: __APP_VERSION__ })}</p>
       </aside>

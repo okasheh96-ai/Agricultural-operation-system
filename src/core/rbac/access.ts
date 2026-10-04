@@ -16,6 +16,18 @@ export interface Access {
   /** Demo farm (separate, clearly labelled); never real farm data. */
   isDemo?: boolean;
   grants: Grant[];
+  /** People whose scope this user currently holds through a delegation. */
+  delegatorIds?: string[];
+}
+
+/**
+ * UI mirror of app.may_execute_assigned (audit B3): execution on an assigned record belongs to the assignee,
+ * the assignee's delegate, or a planner of the department.
+ */
+export function mayExecuteAssigned(access: Access | null, assigneeId: string | null, departmentId: string, locationPath: string[]): boolean {
+  if (!access) return false;
+  if (!assigneeId || assigneeId === access.userId || (access.delegatorIds ?? []).includes(assigneeId)) return true;
+  return can(access, 'task', 'dispatch', { departmentId, locationPath });
 }
 
 /** Departments in which the user may perform an action on an object (farm-wide grants return 'all'). */

@@ -60,7 +60,8 @@ select tests.logout();
 
 select tests.login(:'msup');
 select throws_ok(format($$ insert into public.tasks (farm_id, task_type_id, department_id, location_id, title, supervisor_id) values (tests.farm(), %L, %L, %L, 'x', %L) $$,
-  tests.task_type('general'), tests.dept('agriculture'), :'loc', :'msup'), '42501', null, 'self-service stays inside the supervisor''s own department');
+  tests.task_type('general'), tests.dept('agriculture'), :'loc', :'msup'), 'P0422', null,
+  'self-service stays inside the supervisor''s own department (no execution authority there)');
 select tests.logout();
 
 select * from finish();

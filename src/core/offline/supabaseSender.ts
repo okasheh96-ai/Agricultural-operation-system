@@ -4,7 +4,7 @@ import type { Sender, SendResult } from './outbox';
 /** A database/API rejection (SQLSTATE or PostgREST code) vs a transport failure that should be retried. */
 function classify(error: PostgrestError): SendResult | 'retry' {
   if (/^[0-9A-Z]{5}$/.test(error.code) || error.code.startsWith('PGRST')) {
-    return { outcome: 'conflict', reason: error.message };
+    return { outcome: 'conflict', reason: error.message, code: error.code };
   }
   return 'retry';
 }
@@ -24,8 +24,10 @@ export function supabaseSender(client: SupabaseClient): Sender {
         p_device_id: item.deviceId,
       });
       if (error) throw error; // transport/auth problem: stays pending
-      const result = data as { outcome: 'applied' | 'conflict'; reason_message?: string };
-      return result.outcome === 'applied' ? { outcome: 'applied' } : { outcome: 'conflict', reason: result.reason_message ?? '' };
+      const result = data as { outcome: 'applied' | 'conflict'; reason_message?: string; reason_code?: string };
+      return result.outcome === 'applied'
+        ? { outcome: 'applied' }
+        : { outcome: 'conflict', reason: result.reason_message ?? '', code: result.reason_code };
     }
 
     if (item.kind === 'insert') {

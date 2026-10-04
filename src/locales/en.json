@@ -26,7 +26,8 @@
     "none": "—",
     "search": "Search",
     "actions": "Actions",
-    "saved": "Saved."
+    "saved": "Saved.",
+    "details": "Technical details"
   },
   "verification": {
     "verified": "Verified",
@@ -292,7 +293,9 @@
     "plannedDate": "Planned date",
     "reportedBy": "Reported by",
     "owner": "Owning department",
-    "converted": "Converted to task {{code}}"
+    "converted": "Converted to task {{code}}",
+    "route": "Route to another department",
+    "routeReason": "Reason for routing"
   },
   "crew": {
     "title": "My crew",
@@ -359,5 +362,10 @@
     "pastMembers": "Past members",
     "overlap": "This worker is in another crew for the same period.",
     "honesty": "New records are \"Not Yet Verified\" until an authorised person confirms them with a source. Do not enter unconfirmed specifications."
+  },
+  "signout": {
+    "pendingWarning": "You have {{count}} unsent change(s). They stay on this device under your name and are sent only when you sign in again.",
+    "anyway": "Sign out anyway",
+    "othersPending": "This device holds {{count}} change(s) by another user; they are sent when that person signs in."
   }
 }
