@@ -16,6 +16,15 @@ npm run dev                     # sign in as demo.supervisor@demo.local / demo-p
 Other demo users: `demo.agri.manager`, `demo.maint.manager`, `demo.technician`, `demo.ops`, `demo.warehouse`, `demo.qa`, `demo.exec`, `demo.admin` (`@demo.local`).
 Everything they see is labelled **Demo Data**; it is not farm data. To use a hosted project instead, put its URL and anon key in `.env.local` (never the service-role key).
 
+### Try it in GitHub Codespaces
+```bash
+npm install
+npm run codespaces              # starts the local stack if needed, builds, serves on 4173, checks sign-in, prints the address
+```
+Open the address it prints (`https://<codespace>-4173.app.github.dev`) and sign in as above. The app server passes
+`/auth/v1` and `/rest/v1` to the local stack, so only port 4173 is used and every port can stay **Private**.
+Close tabs on other ports first: an older dev server there has no such pass-through, and its sign-in fails.
+
 ## Check
 ```bash
 npm run lint && npm run typecheck && npm test && npm run build

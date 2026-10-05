@@ -28,6 +28,7 @@ Still open: photos (needs Storage), PIN user switch + device wipe. Next phase: A
 ## Commands
 - `npm run db:test` runs every migration on a throwaway Postgres 16, then the pgTAP suite.
 - `scripts/dev-stack.sh up` starts the local stack (Postgres + Supabase Auth + PostgREST) on :54321 with the demo farm. Demo users are `demo.*@demo.local` / `demo-password-123`.
+- `npm run codespaces` serves the current build on :4173 for hands-on testing in GitHub Codespaces (one port; the app server proxies the API).
 - `npm run test:e2e:stack` runs Playwright against that stack. `npm run lint && npm run typecheck && npm test && npm run build`.
 - Every migration that creates tables or views ends with `select app.apply_api_grants();`.
 

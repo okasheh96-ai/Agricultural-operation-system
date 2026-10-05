@@ -7,6 +7,12 @@ import { readFileSync } from 'node:fs';
 
 const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version: string };
 
+// Local stack only (scripts/dev-stack.sh): the dev and preview servers also pass API calls to the local gateway, so a
+// browser that reaches only the app's own address (GitHub Codespaces, scripts/codespaces.sh) signs in without a second,
+// cross-origin port. A production build talks to the hosted project directly; these server settings do not apply to it.
+const localApi = { '/auth/v1': 'http://127.0.0.1:54321', '/rest/v1': 'http://127.0.0.1:54321' };
+const codespacesHosts = ['.app.github.dev'];
+
 export default defineConfig({
   plugins: [
     react(),
@@ -38,6 +44,8 @@ export default defineConfig({
   // Visible app version (§3.14).
   define: { __APP_VERSION__: JSON.stringify(pkg.version) },
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
+  server: { proxy: localApi, allowedHosts: codespacesHosts },
+  preview: { proxy: localApi, allowedHosts: codespacesHosts },
   build: {
     // Field shell must load on throttled 3G (§3.14): keep vendor code in its own long-cached chunk.
     rollupOptions: { output: { manualChunks: { vendor: ['react', 'react-dom', 'react-router-dom'], data: ['@supabase/supabase-js', '@tanstack/react-query', 'dexie'] } } },
