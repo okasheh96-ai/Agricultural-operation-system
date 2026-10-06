@@ -8,6 +8,7 @@ An Arabic-first, mobile-first, offline-capable execution layer for a commercial 
 - Open questions: [`docs/VERIFICATION_REGISTER.md`](docs/VERIFICATION_REGISTER.md)
 
 ## Develop
+Needs Node 20+ and the PostgreSQL 16 server binaries (Ubuntu 24.04: `sudo apt-get install postgresql-16`).
 ```bash
 npm install
 scripts/dev-stack.sh up         # local Postgres + Supabase Auth + PostgREST + demo farm; writes .env.local
@@ -19,11 +20,15 @@ Everything they see is labelled **Demo Data**; it is not farm data. To use a hos
 ### Try it in GitHub Codespaces
 ```bash
 npm install
-npm run codespaces              # starts the local stack if needed, builds, serves on 4173, checks sign-in, prints the address
+npm run codespaces              # brings the local stack up to date, builds, serves on 4173, checks sign-in, prints the address
 ```
-Open the address it prints (`https://<codespace>-4173.app.github.dev`) and sign in as above. The app server passes
-`/auth/v1` and `/rest/v1` to the local stack, so only port 4173 is used and every port can stay **Private**.
-Close tabs on other ports first: an older dev server there has no such pass-through, and its sign-in fails.
+Open the address it prints (`https://<codespace>-4173.app.github.dev`) and sign in as above; sign in as `demo.admin` or a
+manager for the office screens. Only port 4173 is used (the app server passes `/auth/v1` and `/rest/v1` to the local stack),
+so every port can stay **Private**. Use this rather than `npm run dev` in a Codespace: a dev server calls the API address in
+`.env.local`, which the browser cannot reach there.
+- After a break, reload the page once: Codespaces asks you to log in again every 3 hours.
+- When the Codespace has stopped (it stops when idle), open it again and run `npm run codespaces`.
+- `npm run codespaces -- stop` stops the server; do that before `npm run test:e2e`, which uses the same port.
 
 ## Check
 ```bash

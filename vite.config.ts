@@ -7,11 +7,15 @@ import { readFileSync } from 'node:fs';
 
 const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version: string };
 
-// Local stack only (scripts/dev-stack.sh): the dev and preview servers also pass API calls to the local gateway, so a
-// browser that reaches only the app's own address (GitHub Codespaces, scripts/codespaces.sh) signs in without a second,
-// cross-origin port. A production build talks to the hosted project directly; these server settings do not apply to it.
+// Local stack only (scripts/dev-stack.sh): the dev and preview servers also pass API calls to the local gateway. An app
+// built with its own address as VITE_SUPABASE_URL (scripts/codespaces.sh) then signs in through that one address, which is
+// all a browser reaches in GitHub Codespaces. A production build talks to the hosted project; these settings do not apply.
 const localApi = { '/auth/v1': 'http://127.0.0.1:54321', '/rest/v1': 'http://127.0.0.1:54321' };
 const codespacesHosts = ['.app.github.dev'];
+// scripts/codespaces.sh only (PWA_NETWORK_SHELL=1): open pages over the network while online and fall back to the device
+// copy only when the network fails. Codespaces' private-port login expires after 3 hours and an idle Codespace stops; a
+// cache-first shell would hide both behind a failed sign-in. Production keeps the cache-first shell (fast start on weak links).
+const networkShell = process.env.PWA_NETWORK_SHELL === '1';
 
 export default defineConfig({
   plugins: [
@@ -35,7 +39,10 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,woff2}'],
-        navigateFallback: 'index.html',
+        navigateFallback: networkShell ? null : 'index.html',
+        runtimeCaching: networkShell
+          ? [{ urlPattern: ({ request }) => request.mode === 'navigate', handler: 'NetworkOnly', options: { precacheFallback: { fallbackURL: 'index.html' } } }]
+          : [],
         clientsClaim: true,
         cleanupOutdatedCaches: true,
       },

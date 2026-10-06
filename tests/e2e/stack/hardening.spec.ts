@@ -35,6 +35,7 @@ test('shared crew phone: queued work is sent only under its author; another supe
   await expect(page.getByRole('button', { name: 'ابدأ' })).toHaveCount(0);
   await page.goto('/field/sync');
   await page.getByRole('button', { name: 'تسجيل الخروج' }).last().click();
+  await expect(page.getByRole('heading', { name: 'تسجيل الدخول' })).toBeVisible(); // sign-out finishes before the next sign-in
 
   // Supervisor 1 signs back in: their change is sent, attributed to them.
   await signIn(page, SUP);
