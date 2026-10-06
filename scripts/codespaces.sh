@@ -3,6 +3,7 @@
 # Local stack and demo farm only — NEVER staging or production.
 # Usage: npm run codespaces            start (or restart) and print the address
 #        npm run codespaces -- stop    stop the app server (e.g. before `npm run test:e2e`, which also uses port 4173)
+#        npm run codespaces -- check   if sign-in fails: test the browser's path step by step and print each result
 #   1. brings the local stack up to date: starts what is not running, applies new migrations (local data is kept)
 #   2. stops earlier dev servers and the previous run of this script in this checkout, so no stale server answers
 #   3. builds the app (demo build: one-tap sign-in for the demo farm) with its own forwarded address as the API URL; the preview server passes /auth/v1 and /rest/v1
@@ -62,6 +63,30 @@ free_app_port() {
     fi
   done
 }
+
+if [ "${1:-}" = check ]; then
+  # Diagnosis for "sign-in does not work": tests the same path the browser uses, step by step, and prints each result.
+  KEY="$(scripts/dev-stack.sh env | sed -n 's/^VITE_SUPABASE_ANON_KEY=//p')"
+  BODY='{"email":"demo.admin@demo.local","password":"demo-password-123"}'
+  try() { # label url [extra curl args]
+    local label=$1 url=$2; shift 2
+    local out; out="$(curl -s --max-time 15 -o /tmp/cs-check.$$ -w '%{http_code} %{redirect_url}' -X POST "$url/auth/v1/token?grant_type=password" \
+      -H "apikey: $KEY" -H 'content-type: application/json' -d "$BODY" "$@" || true)"
+    echo "   $label: HTTP $out $(head -c 160 /tmp/cs-check.$$ 2>/dev/null | tr -d '\n')"; rm -f /tmp/cs-check.$$
+  }
+  echo "== code: $(git log -1 --format='%h %s' | cut -c1-70)"
+  echo "== backend (54321): $(status http://127.0.0.1:54321/auth/v1/health)"
+  echo "== app server on $PORT: $(for pid in $(pids_on_port "$PORT"); do tr '\0' ' ' < "/proc/$pid/cmdline" | cut -c1-120; done)"
+  echo "== app build served has one-tap sign-in: $(grep -rlq 'demo.admin@demo.local' "$OUT/assets" 2>/dev/null && echo yes || echo no)"
+  echo "== sign-in as demo.admin@demo.local:"
+  try "directly to the backend      " "http://127.0.0.1:54321"
+  try "through the app port $PORT     " "http://localhost:$PORT"
+  if [ -n "${CODESPACE_NAME:-}" ]; then
+    try "through the Codespaces address" "https://$CODESPACE_NAME-$PORT.${GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN:-app.github.dev}" \
+      -H "X-Github-Token: ${GITHUB_TOKEN:-}"
+  fi
+  exit 0
+fi
 
 if [ "${1:-}" = stop ]; then
   echo "== stopping the app server"; stop_app_servers; free_app_port; exit 0
