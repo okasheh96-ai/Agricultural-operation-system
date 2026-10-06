@@ -57,7 +57,9 @@ export function OfficeShell() {
   return (
     <div className="flex min-h-screen flex-col">
       <DemoBanner />
-      <header className="sticky top-0 z-20 border-b border-stone-200 bg-white shadow-sm">
+      {/* Not sticky: with every department visible the bar can take several rows, which would cover content on small or
+          zoomed screens and hide the focused element. */}
+      <header className="border-b border-stone-200 bg-white shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-3 py-1 md:px-6">
           <Link to="/office/command-center" className="flex min-h-touch items-center gap-2 font-bold text-brand-dark">
             <span aria-hidden="true" className="text-xl">🌾</span>

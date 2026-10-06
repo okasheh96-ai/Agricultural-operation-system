@@ -10,21 +10,24 @@ export function SignInPage() {
   const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [errorKey, setErrorKey] = useState<string | null>(null);
+  // Which control started the attempt ('form' or a demo email), so progress and errors show where the user is looking.
+  const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState<{ key: string; from: string } | null>(null);
 
-  async function signIn(credentials: { email: string; password: string }) {
-    setBusy(true);
-    setErrorKey(null);
-    const { error } = await requireSupabase().auth.signInWithPassword(credentials);
-    setBusy(false);
-    if (error) setErrorKey(signInErrorKey(error));
+  async function signIn(credentials: { email: string; password: string }, from: string) {
+    setBusy(from);
+    setError(null);
+    const { error: failure } = await requireSupabase().auth.signInWithPassword(credentials);
+    setBusy(null);
+    if (failure) setError({ key: signInErrorKey(failure), from });
   }
 
   function onSubmit(e: FormEvent) {
     e.preventDefault();
-    void signIn({ email, password });
+    void signIn({ email, password }, 'form');
   }
+
+  const alert = (shown: boolean) => shown && error && <p role="alert" className="text-red-700">{t(error.key)}</p>;
 
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-6 p-6">
@@ -41,11 +44,12 @@ export function SignInPage() {
             <h2 id="demo-signin" className="text-lg font-semibold text-brand-dark">{t('auth.demoTitle')}</h2>
             <p className="text-sm text-stone-700">{t('auth.demoHint')}</p>
           </div>
-          <div className="flex flex-col gap-2">
+          {alert(error?.from !== 'form')}
+          <div className="flex flex-col gap-2" aria-busy={busy !== null && busy !== 'form'}>
             {DEMO_ACCOUNTS.map((a) => (
-              <button key={a.email} type="button" disabled={busy} onClick={() => void signIn({ email: a.email, password: DEMO_PASSWORD })}
+              <button key={a.email} type="button" disabled={busy !== null} onClick={() => void signIn({ email: a.email, password: DEMO_PASSWORD }, a.email)}
                 className="flex min-h-touch flex-col items-start justify-center rounded bg-white px-4 py-2 text-start shadow-sm hover:bg-stone-50 disabled:opacity-60">
-                <span className="font-semibold">{t(a.labelKey)}</span>
+                <span className="font-semibold">{busy === a.email ? t('auth.signingIn') : t(a.labelKey)}</span>
                 <bdi className="text-xs text-stone-500">{a.email}</bdi>
               </button>
             ))}
@@ -64,9 +68,9 @@ export function SignInPage() {
           <input type="password" required dir="ltr" autoComplete="current-password" value={password}
             onChange={(e) => setPassword(e.target.value)} className="min-h-touch rounded border border-stone-300 px-3" />
         </label>
-        {errorKey && <p role="alert" className="text-red-700">{t(errorKey)}</p>}
-        <button type="submit" disabled={busy} className="min-h-touch rounded bg-brand px-4 font-semibold text-white disabled:opacity-60">
-          {busy ? t('auth.signingIn') : t('auth.signIn')}
+        {alert(!__DEMO_SIGNIN__ || error?.from === 'form')}
+        <button type="submit" disabled={busy !== null} className="min-h-touch rounded bg-brand px-4 font-semibold text-white disabled:opacity-60">
+          {busy === 'form' ? t('auth.signingIn') : t('auth.signIn')}
         </button>
       </form>
     </main>

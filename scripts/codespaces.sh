@@ -72,6 +72,7 @@ fail() { echo "FAILED: $1" >&2; tail -20 "$LOG" >&2; exit 1; }
 [ "$(status "http://localhost:$PORT/")" = 200 ] || fail "the app did not start on port $PORT"
 [ "$(status -H "Host: $APP_HOST" "http://localhost:$PORT/")" = 200 ] || fail "the app refuses requests addressed to $APP_HOST"
 grep -rqF "$APP_URL" "$OUT/assets" || fail "the build does not use $APP_URL"
+grep -q 'directoryIndex:null' "$OUT/sw.js" || fail "the offline cache would answer the main address and hide the Codespaces login"
 [ "$(status -X POST "http://localhost:$PORT/auth/v1/token?grant_type=password" -H "apikey: $KEY" -H 'content-type: application/json' \
   -d '{"email":"demo.supervisor@demo.local","password":"demo-password-123"}')" = 200 ] || fail "sign-in through port $PORT"
 [ "$(status "http://localhost:$PORT/rest/v1/" -H "apikey: $KEY")" = 200 ] || fail "data API through port $PORT"

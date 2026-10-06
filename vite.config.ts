@@ -43,6 +43,9 @@ export default defineConfig({
         runtimeCaching: networkShell
           ? [{ urlPattern: ({ request }) => request.mode === 'navigate', handler: 'NetworkOnly', options: { precacheFallback: { fallbackURL: 'index.html' } } }]
           : [],
+        // The network-shell build must also send `/` (the address people open) to the network: by default the precache
+        // answers `/` as index.html before any other route. A new version there takes over at once instead of waiting.
+        ...(networkShell ? { directoryIndex: null, skipWaiting: true } : {}),
         clientsClaim: true,
         cleanupOutdatedCaches: true,
       },
