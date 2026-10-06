@@ -63,6 +63,13 @@ Legend: **A** UI · **B** Database · **C** Business logic · **D** Permissions 
 - B4: cross-farm references are refused.
 - B5: sync conflicts are shown in the user's language, with the raw reason under "details".
 
+## Office layout (owner request, 2026-10-06)
+
+- The office uses a top bar instead of a side menu: departments and sections in one horizontal row (sideways scroll on a
+  phone), the open section's pages as a second row of tabs. The Command Center shows departments as side-by-side cards.
+- Sign-in errors now say whether the server was unreachable or refused the password. Demo builds (`npm run codespaces`)
+  add one-tap sign-in for the demo farm's users; other builds do not contain it.
+
 ## Next (by operational dependency)
 
 1. **Photo evidence:** needs Storage (staging project, VR-S01). Biggest remaining 6:00 AM gap.

@@ -1,4 +1,4 @@
-import { OFFICE_NAV, visibleNav } from './nav';
+import { OFFICE_NAV, activeSection, visibleNav } from './nav';
 import type { Access } from '@/core/rbac/access';
 
 describe('office navigation', () => {
@@ -41,5 +41,21 @@ describe('operations navigation', () => {
   it('keeps task verification out of the master-data verification queue', () => {
     const manager = visibleNav(OFFICE_NAV, grant('department_manager', 'agri', [['task', 'verify']]));
     expect(manager.find((i) => i.key === 'admin')?.children?.map((c) => c.key)).not.toContain('verification');
+  });
+});
+
+describe('horizontal office bar', () => {
+  it('finds the section a page belongs to, so its sub-tabs show', () => {
+    expect(activeSection(OFFICE_NAV, '/office/command-center')?.key).toBe('command');
+    expect(activeSection(OFFICE_NAV, '/office/operations')?.key).toBe('operations');
+    expect(activeSection(OFFICE_NAV, '/office/operations/plan')?.key).toBe('operations');
+    expect(activeSection(OFFICE_NAV, '/office/irrigation/wells')?.key).toBe('irrigation');
+    expect(activeSection(OFFICE_NAV, '/office/admin/md/assets')?.key).toBe('admin');
+    expect(activeSection(OFFICE_NAV, '/office/tasks/123')).toBeUndefined();
+    expect(activeSection(OFFICE_NAV, '/office/operationsX')).toBeUndefined();
+  });
+
+  it('gives every top-level section an icon', () => {
+    for (const i of OFFICE_NAV) expect(i.icon, i.key).toBeTruthy();
   });
 });

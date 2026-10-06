@@ -20,7 +20,7 @@ export default defineConfig({
   // One server: bring the stack up first, then build and serve the app against it (sequential — two
   // parallel `dev-stack.sh up` runs on a fresh machine would race on secrets and demo data).
   webServer: {
-    command: `bash scripts/dev-stack.sh up && VITE_SUPABASE_URL=http://127.0.0.1:54321 VITE_SUPABASE_ANON_KEY=$(bash scripts/dev-stack.sh env | sed -n 's/^VITE_SUPABASE_ANON_KEY=//p') npx vite build --outDir dist-e2e && npx vite preview --outDir dist-e2e --host 127.0.0.1 --port 4174 --strictPort`,
+    command: `bash scripts/dev-stack.sh up && VITE_DEMO_SIGNIN=1 VITE_SUPABASE_URL=http://127.0.0.1:54321 VITE_SUPABASE_ANON_KEY=$(bash scripts/dev-stack.sh env | sed -n 's/^VITE_SUPABASE_ANON_KEY=//p') npx vite build --outDir dist-e2e && npx vite preview --outDir dist-e2e --host 127.0.0.1 --port 4174 --strictPort`,
     url: 'http://127.0.0.1:4174',
     timeout: 300_000,
     reuseExistingServer: false,

@@ -49,7 +49,9 @@ export default defineConfig({
     }),
   ],
   // Visible app version (§3.14).
-  define: { __APP_VERSION__: JSON.stringify(pkg.version) },
+  // Demo-stack builds only (scripts/codespaces.sh sets VITE_DEMO_SIGNIN=1): one-tap sign-in for the demo farm's users. A
+  // compile-time constant, so every other build drops that code and the demo password entirely.
+  define: { __APP_VERSION__: JSON.stringify(pkg.version), __DEMO_SIGNIN__: JSON.stringify(process.env.VITE_DEMO_SIGNIN === '1') },
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
   server: { proxy: localApi, allowedHosts: codespacesHosts },
   preview: { proxy: localApi, allowedHosts: codespacesHosts },

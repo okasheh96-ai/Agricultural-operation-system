@@ -22,8 +22,8 @@ Everything they see is labelled **Demo Data**; it is not farm data. To use a hos
 npm install
 npm run codespaces              # brings the local stack up to date, builds, serves on 4173, checks sign-in, prints the address
 ```
-Open the address it prints (`https://<codespace>-4173.app.github.dev`) and sign in as above; sign in as `demo.admin` or a
-manager for the office screens. Only port 4173 is used (the app server passes `/auth/v1` and `/rest/v1` to the local stack),
+Open the address it prints (`https://<codespace>-4173.app.github.dev`) and tap a role under **Quick sign-in** (System admin
+sees every department; managers plan and verify). Quick sign-in exists only in this demo build and uses the real sign-in. Only port 4173 is used (the app server passes `/auth/v1` and `/rest/v1` to the local stack),
 so every port can stay **Private**. Use this rather than `npm run dev` in a Codespace: a dev server calls the API address in
 `.env.local`, which the browser cannot reach there.
 - After a break, reload the page once: Codespaces asks you to log in again every 3 hours.

@@ -37,44 +37,45 @@ export default function CommandCenterPage() {
           <input type="date" dir="ltr" className="min-h-touch rounded border px-2" value={date} onChange={(e) => setDate(e.target.value)} /></label>
       </div>
       <QueryState isLoading={board.isLoading} error={board.error} isEmpty={false} onRetry={() => void board.refetch()}>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-7">
+        <div className="flex gap-2 overflow-x-auto pb-1 sm:grid sm:grid-cols-3 sm:overflow-visible lg:grid-cols-7">
           {BUCKETS.map((b) => (
             <Link key={b} to={`/office/operations?date=${date}&bucket=${b}`}
-              className={`rounded-lg border bg-white p-3 ${b === 'blocked' || b === 'overdue' ? 'border-red-300' : ''}`}>
+              className={`w-36 shrink-0 rounded-lg border bg-white p-3 sm:w-auto ${b === 'blocked' || b === 'overdue' ? 'border-red-300' : ''}`}>
               <div className="text-sm text-stone-600">{t(`board.${b}`)}</div>
               <div className="text-2xl font-bold"><bdi>{count(b)}</bdi></div>
             </Link>
           ))}
-          <Link to="/office/operations/exceptions" className="rounded-lg border border-amber-300 bg-white p-3">
+          <Link to="/office/operations/exceptions" className="w-36 shrink-0 rounded-lg border border-amber-300 bg-white p-3 sm:w-auto">
             <div className="text-sm text-stone-600">{t('board.openProblems')}</div>
             <div className="text-2xl font-bold"><bdi>{problems.data ?? '…'}</bdi></div>
           </Link>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[720px] border-collapse bg-white">
-            <thead><tr className="border-b bg-stone-100">
-              <th className="p-2 text-start">{t('board.department')}</th>
-              {BUCKETS.map((b) => <th key={b} className="p-2 text-end">{t(`board.${b}`)}</th>)}
-            </tr></thead>
-            <tbody>
-              {departments.map((d) => {
-                const list = rows.filter((r) => r.department_id === d.department_id);
-                return (
-                  <tr key={d.department_id} className="border-b">
-                    <td className="p-2">{localized(i18n.language, d.department_name_ar, d.department_name_en)}</td>
-                    {BUCKETS.map((b) => (
-                      <td key={b} className={`p-2 text-end ${(b === 'blocked' || b === 'overdue') && count(b, list) > 0 ? 'font-bold text-red-700' : ''}`}>
-                        <Link className="underline-offset-2 hover:underline" to={`/office/operations?date=${date}&bucket=${b}&department=${d.department_id}`}>
-                          <bdi>{count(b, list)}</bdi>
-                        </Link>
-                      </td>
-                    ))}
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <h2 className="text-lg font-semibold">{t('board.byDepartment')}</h2>
+        {departments.length === 0 && <p className="text-stone-600">{t('board.noTasksDay')}</p>}
+        {/* Departments side by side: a sideways strip on a phone, a wrapping row of cards on wider screens. */}
+        <ul className="flex snap-x gap-3 overflow-x-auto pb-2 md:grid md:grid-cols-[repeat(auto-fill,minmax(18rem,1fr))] md:overflow-visible">
+          {departments.map((d) => {
+            const list = rows.filter((r) => r.department_id === d.department_id);
+            return (
+              <li key={d.department_id} className="w-72 shrink-0 snap-start rounded-lg border bg-white p-3 md:w-auto">
+                <h3 className="font-semibold">{localized(i18n.language, d.department_name_ar, d.department_name_en)}</h3>
+                <div className="mt-2 grid grid-cols-3 gap-2">
+                  {BUCKETS.map((b) => {
+                    const n = count(b, list);
+                    const alarm = (b === 'blocked' || b === 'overdue') && n > 0;
+                    return (
+                      <Link key={b} to={`/office/operations?date=${date}&bucket=${b}&department=${d.department_id}`}
+                        className={`flex min-h-touch flex-col justify-center rounded px-2 py-1 ${alarm ? 'bg-red-50 text-red-800' : 'bg-stone-50'}`}>
+                        <span className="text-xs leading-tight text-stone-600 [overflow-wrap:anywhere]">{t(`board.${b}`)}</span>
+                        <span className={`text-lg font-bold ${alarm ? 'text-red-700' : ''}`}><bdi>{n}</bdi></span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </li>
+            );
+          })}
+        </ul>
       </QueryState>
     </section>
   );

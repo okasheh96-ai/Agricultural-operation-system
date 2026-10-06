@@ -5,7 +5,7 @@
 #        npm run codespaces -- stop    stop the app server (e.g. before `npm run test:e2e`, which also uses port 4173)
 #   1. brings the local stack up to date: starts what is not running, applies new migrations (local data is kept)
 #   2. stops earlier dev servers and the previous run of this script in this checkout, so no stale server answers
-#   3. builds the app with its own forwarded address as the API URL; the preview server passes /auth/v1 and /rest/v1
+#   3. builds the app (demo build: one-tap sign-in for the demo farm) with its own forwarded address as the API URL; the preview server passes /auth/v1 and /rest/v1
 #      to the local gateway (vite.config.ts), so the browser makes no cross-origin call and every port can stay private
 #   4. serves it on 4173 and signs in once through that address to prove it works
 set -euo pipefail
@@ -59,7 +59,7 @@ if [ "$(status "http://localhost:$PORT/")" != 000 ]; then
 fi
 
 echo "== building the app for $APP_URL"
-PWA_NETWORK_SHELL=1 VITE_SUPABASE_URL="$APP_URL" VITE_SUPABASE_ANON_KEY="$KEY" \
+PWA_NETWORK_SHELL=1 VITE_DEMO_SIGNIN=1 VITE_SUPABASE_URL="$APP_URL" VITE_SUPABASE_ANON_KEY="$KEY" \
   npx vite build --outDir "$OUT" --emptyOutDir > "$ROOT/.local/codespaces-build.log" 2>&1 \
   || { tail -30 "$ROOT/.local/codespaces-build.log" >&2; echo "FAILED: build (log: .local/codespaces-build.log)" >&2; exit 1; }
 
@@ -81,7 +81,7 @@ cat <<MSG
 
 Ready. Open this address:
    $APP_URL
-Sign in: demo.supervisor@demo.local / demo-password-123   (managers and admin: README.md)
+Sign in: tap a role under "Quick sign-in" (System admin = every department), or demo.*@demo.local / demo-password-123
 - If a page or sign-in fails after a break, reload the page once (Codespaces asks you to log in again every 3 hours).
 - The server keeps running after this script ends, until the Codespace stops (it stops when idle). Then open the
   Codespace again and run: npm run codespaces

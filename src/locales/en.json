@@ -54,7 +54,17 @@
     "signIn": "Sign in",
     "signingIn": "Signing in…",
     "failed": "Sign-in failed. Check your email and password.",
-    "noRoles": "Your account has no active role on this farm. Contact the system administrator."
+    "noRoles": "Your account has no active role on this farm. Contact the system administrator.",
+    "unreachable": "Can't reach the server. Check the connection, then reload the page.",
+    "demoTitle": "Quick sign-in to the demo farm",
+    "demoHint": "Pick a role with one tap. Demo accounts only, not real farm data.",
+    "demo": {
+      "admin": "System admin — all departments",
+      "agriManager": "Agriculture manager",
+      "ops": "Operations manager",
+      "maintManager": "Maintenance manager",
+      "supervisor": "Field supervisor"
+    }
   },
   "nav": {
     "commandCenter": "Command Center",
@@ -252,7 +262,9 @@
     "openProblems": "Open problem reports",
     "all": "All",
     "showing": "Filter: {{filter}}",
-    "clear": "Clear filter"
+    "clear": "Clear filter",
+    "byDepartment": "By department",
+    "noTasksDay": "No tasks on this day."
   },
   "plan": {
     "title": "Daily planning",

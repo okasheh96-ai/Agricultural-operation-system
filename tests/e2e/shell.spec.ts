@@ -19,11 +19,18 @@ test('sign-in renders Arabic RTL by default and switches to English LTR', async 
   await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
 });
 
-test('a failed sign-in shows a translated error, never a fake session', async ({ page }) => {
+test('an unreachable server says so (not "check your password"), never a fake session', async ({ page }) => {
+  // This build points at a closed port: the request never gets an answer.
   await page.goto('/');
   await page.getByLabel('البريد الإلكتروني').fill('someone@example.com');
   await page.getByLabel('كلمة المرور').fill('wrong-password');
   await page.getByRole('button', { name: 'دخول' }).click();
-  await expect(page.getByRole('alert')).toHaveText('تعذّر تسجيل الدخول. تحقق من البريد وكلمة المرور.');
+  await expect(page.getByRole('alert')).toHaveText('تعذّر الاتصال بالخادم. تحقق من الاتصال ثم أعد تحميل الصفحة.');
   await expect(page.getByRole('heading', { name: 'تسجيل الدخول' })).toBeVisible();
+});
+
+test('a normal build has no one-tap demo sign-in', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'تسجيل الدخول' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'دخول سريع إلى المزرعة التجريبية' })).toHaveCount(0);
 });
