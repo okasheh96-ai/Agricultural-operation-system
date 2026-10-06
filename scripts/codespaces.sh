@@ -34,8 +34,37 @@ stop_app_servers() {
   [ "$stopped" = 1 ] || echo "   none running"
 }
 
+# Processes listening on a TCP port, from /proc (no lsof/ss needed). Only this user's processes are visible.
+pids_on_port() {
+  local hex inodes pid fd link ino
+  hex="$(printf '%04X' "$1")"
+  inodes="$(awk -v p=":$hex" '$4 == "0A" && substr($2, length($2) - 4) == p { print $10 }' /proc/net/tcp /proc/net/tcp6 2>/dev/null)"
+  [ -n "$inodes" ] || return 0
+  for pid in /proc/[0-9]*; do
+    for fd in "$pid"/fd/*; do
+      link="$(readlink "$fd" 2>/dev/null)" || continue
+      for ino in $inodes; do [ "$link" = "socket:[$ino]" ] && echo "${pid#/proc/}"; done
+    done
+  done | sort -u
+}
+
+# Whatever still holds the app port: an earlier app server (any Vite process, however it was started) is stopped;
+# anything else is named, never killed.
+free_app_port() {
+  local pid cmd
+  for pid in $(pids_on_port "$PORT"); do
+    cmd="$(tr '\0' ' ' < "/proc/$pid/cmdline" 2>/dev/null)"
+    if [[ "$cmd" == *vite* ]]; then
+      echo "   stopping (port $PORT): ${cmd:0:160}"
+      kill -TERM "$pid" 2>/dev/null && kill -CONT "$pid" 2>/dev/null
+    else
+      echo "   port $PORT is used by another program (pid $pid): ${cmd:0:160}" >&2
+    fi
+  done
+}
+
 if [ "${1:-}" = stop ]; then
-  echo "== stopping the app server"; stop_app_servers; exit 0
+  echo "== stopping the app server"; stop_app_servers; free_app_port; exit 0
 fi
 
 if [ -z "${APP_URL:-}" ]; then
@@ -53,9 +82,11 @@ KEY="$(scripts/dev-stack.sh env | sed -n 's/^VITE_SUPABASE_ANON_KEY=//p')"
 
 echo "== stopping earlier app servers of this checkout"
 stop_app_servers
-for _ in $(seq 1 20); do [ "$(status "http://localhost:$PORT/")" = 000 ] && break; sleep 0.5; done
-if [ "$(status "http://localhost:$PORT/")" != 000 ]; then
-  echo "port $PORT is still in use (a Playwright test run or another program); stop it and run this again" >&2; exit 1
+free_app_port
+port_busy() { [ -n "$(pids_on_port "$PORT")" ] || [ "$(status "http://localhost:$PORT/")" != 000 ]; }
+for _ in $(seq 1 20); do port_busy || break; sleep 0.5; done
+if port_busy; then
+  echo "port $PORT is still in use (see above); stop that program and run this again" >&2; exit 1
 fi
 
 echo "== building the app for $APP_URL"
