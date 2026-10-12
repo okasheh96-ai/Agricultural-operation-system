@@ -44,6 +44,19 @@ Owner to ask is "Not Yet Verified" unless the owner names a person.
 | VR-C25 | Only the System Administrator role spans independent departments (QA), for configuration; every other farm-wide grant stops at QA. | `roles.spans_independent_departments`, `app.seed_hardening` | open |
 | VR-C26 | Only the assigned supervisor, their active delegate, or a planner with dispatch right may execute a task; other supervisors in the same department may not. | `app.may_execute_assigned` | open |
 
+## P — Management-demo prototype only (`prototypes/`, not the app)
+
+Demo values in `prototypes/agricultural_operations_prototype.html`. They do not drive the schema; confirm before any of them is built for real.
+
+| id | Assumption | Where | Status |
+|---|---|---|---|
+| VR-P01 | 8 sections per block and 16 greenhouses per section; 4 blocks in the demo (changeable in the prototype). | prototype `DEFAULT_CFG` | open |
+| VR-P02 | About 25 workers per crew, one supervisor per two crews, one engineer per block. | prototype `seedData` | open |
+| VR-P03 | Field box loop: warehouse issues a batch to a crew, field sends filled boxes to the packing house and returns unused boxes, packing house counts and returns empties, the box custodian reconciles. | prototype `batchAct` | open |
+| VR-P04 | A packing-house count lower than the dispatched count is recorded as a transit difference; closing a batch with boxes not returned needs a reason. | prototype `batchAct` | open |
+| VR-P05 | Work quantities are recorded per crew (with worker count and hours), not per worker. | prototype `addRecord` | open |
+| VR-P06 | Work units per task type: box, plant, line, seedling, greenhouse, dunum. | prototype `TASK_TYPES` | open |
+
 ## D/E — Discovery backlog (Master Prompt Part E)
 
 | id | Area | Item to confirm | Tier | Affects | Status |
