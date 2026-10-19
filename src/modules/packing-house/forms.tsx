@@ -5,7 +5,7 @@ import {
   type ArrivalRow, type PalletRow,
 } from './api';
 import { phErrorMessage, phReason, type PhReason } from './phErrors';
-import { ErrorBox, Labelled, WarningList, btnCls, inputCls, primaryBtnCls } from './ui';
+import { ErrorBox, Labelled, WarningList, btnCls, canPrint, inputCls, primaryBtnCls } from './ui';
 
 interface Lookup { id: string; code: string; name_ar: string; name_en: string | null; verification_status: string }
 interface SourceRow extends Lookup { kind: 'own_farm' | 'supplier' }
@@ -610,7 +610,7 @@ export function LabelForm({ pallet, onDone, onCancel }: { pallet: PalletRow; onD
   const [label, setLabel] = useState<LabelContent | null>(null);
   const s = useSubmit(() => rpc<LabelContent>('ph_print_label', { p_pallet: pallet.id, p_reprint_reason: reason || null }), (r) => {
     setLabel(r);
-    setTimeout(() => window.print(), 50);
+    if (canPrint()) setTimeout(() => window.print(), 50);
   });
   if (label) {
     return (
@@ -628,7 +628,9 @@ export function LabelForm({ pallet, onDone, onCancel }: { pallet: PalletRow; onD
           <div className="mt-2 border-t pt-1 text-xs">{t('ph.label.noBarcode')}</div>
         </div>
         <div className="flex gap-2">
-          <button type="button" className={primaryBtnCls} onClick={() => window.print()}>🖨 {t('ph.label.printAgain')}</button>
+          {canPrint()
+            ? <button type="button" className={primaryBtnCls} onClick={() => window.print()}>🖨 {t('ph.label.printAgain')}</button>
+            : <p className="text-sm text-stone-600">{t('ph.label.noPrintHere')}</p>}
           <button type="button" className={btnCls} onClick={onDone}>{t('ph.forms.done')}</button>
         </div>
       </div>

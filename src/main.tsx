@@ -24,17 +24,21 @@ function NotConfigured() {
   );
 }
 
-createRoot(document.getElementById('root') as HTMLElement).render(
-  <StrictMode>
-    {supabase ? (
-      <ErrorBoundary>
-        <QueryClientProvider client={queryClient}>
-          <UpdatePrompt />
-          <AuthProvider><App /></AuthProvider>
-        </QueryClientProvider>
-      </ErrorBoundary>
-    ) : (
-      <NotConfigured />
-    )}
-  </StrictMode>,
+const root = createRoot(document.getElementById('root') as HTMLElement);
+const app = supabase ? (
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <UpdatePrompt />
+      <AuthProvider><App /></AuthProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
+) : (
+  <NotConfigured />
 );
+
+if (__BROWSER_DB__) {
+  // In-browser demo: start the demo database first (other builds drop this branch and its code).
+  void import('@/browser-db/BootGate').then(({ BootGate }) => root.render(<StrictMode><BootGate>{app}</BootGate></StrictMode>));
+} else {
+  root.render(<StrictMode>{app}</StrictMode>);
+}

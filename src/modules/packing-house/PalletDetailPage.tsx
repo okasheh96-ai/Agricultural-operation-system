@@ -14,7 +14,7 @@ import {
 import { phErrorMessage } from './phErrors';
 import { palletStrips } from './panels';
 import { PALLET_PATH, formatDuration, minutesBetween, pathIndex } from './stages';
-import { ActionPanel, ErrorBox, Field, ReasonNote, StatusPill, When, auditValue, btnCls, inputCls, plausibilityText, primaryBtnCls } from './ui';
+import { ActionPanel, ErrorBox, Field, ReasonNote, StatusPill, When, auditValue, btnCls, canPrint, inputCls, plausibilityText, primaryBtnCls } from './ui';
 
 interface HistoryRow { at: string; kind: string; from_status: string | null; to_status: string | null; actor: string | null; comment: string | null;
   permission_basis: string | null; decision_basis: string | null; changes: Record<string, { from: unknown; to: unknown }> | null }
@@ -113,7 +113,7 @@ export default function PalletDetailPage() {
             <Link to={`/office/packing-house?stage=${p.stage}`} className={btnCls}>← {t('ph.backToBoard')}</Link>
             <h1 className="font-mono text-2xl font-bold"># <bdi>{p.code}</bdi></h1>
             <StatusPill status={p.status} workflow="ph_incoming_pallet" />
-            <button type="button" className={`${btnCls} ms-auto`} onClick={() => window.print()}>🖨 {t('ph.printRecord')}</button>
+            {canPrint() && <button type="button" className={`${btnCls} ms-auto`} onClick={() => window.print()}>🖨 {t('ph.printRecord')}</button>}
           </div>
 
           <ol className="flex flex-wrap items-center gap-1 rounded-lg border bg-white p-2" aria-label={t('ph.stepper')}>

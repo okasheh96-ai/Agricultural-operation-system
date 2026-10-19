@@ -17,13 +17,19 @@ const codespacesHosts = ['.app.github.dev'];
 // cache-first shell would hide both behind a failed sign-in. Production keeps the cache-first shell (fast start on weak links).
 const networkShell = process.env.PWA_NETWORK_SHELL === '1';
 
-export default defineConfig({
+export default defineConfig(({ mode }) => {
+// In-browser demo (`vite build --mode browserdb`, run by scripts/build-browser-demo.mjs): the app plus its demo database in
+// the browser, served as plain files from any address. One bundle (the page inlines it), relative paths, no service worker.
+const browserDb = mode === 'browserdb';
+return {
+  base: browserDb ? './' : '/',
   plugins: [
     react(),
     // Field app must start with no signal (§3.7): precache the shell and every route chunk. API data is not
     // cached here — it lives in IndexedDB (device cache + outbox). New versions wait for the user (prompt),
     // so an update never interrupts queued work; the outbox format is versioned with the sync API.
     VitePWA({
+      disable: browserDb,
       registerType: 'prompt',
       injectRegister: false,
       manifest: {
@@ -54,18 +60,27 @@ export default defineConfig({
   // Visible app version (§3.14).
   // Demo-stack builds only (scripts/codespaces.sh sets VITE_DEMO_SIGNIN=1): one-tap sign-in for the demo farm's users. A
   // compile-time constant, so every other build drops that code and the demo password entirely.
-  define: { __APP_VERSION__: JSON.stringify(pkg.version), __DEMO_SIGNIN__: JSON.stringify(process.env.VITE_DEMO_SIGNIN === '1') },
+  define: {
+    __APP_VERSION__: JSON.stringify(pkg.version),
+    __DEMO_SIGNIN__: JSON.stringify(browserDb || process.env.VITE_DEMO_SIGNIN === '1'),
+    __BROWSER_DB__: JSON.stringify(browserDb),
+    __BROWSER_DB_BUILD__: JSON.stringify(process.env.BROWSER_DB_BUILD ?? 'dev'),
+  },
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
   server: { proxy: localApi, allowedHosts: codespacesHosts },
   preview: { proxy: localApi, allowedHosts: codespacesHosts },
-  build: {
-    // Field shell must load on throttled 3G (§3.14): keep vendor code in its own long-cached chunk.
-    rollupOptions: { output: { manualChunks: { vendor: ['react', 'react-dom', 'react-router-dom'], data: ['@supabase/supabase-js', '@tanstack/react-query', 'dexie'] } } },
-  },
+  optimizeDeps: { exclude: ['@electric-sql/pglite'] },
+  build: browserDb
+    ? { rollupOptions: { output: { inlineDynamicImports: true } }, assetsInlineLimit: 0, chunkSizeWarningLimit: 4000 }
+    : {
+        // Field shell must load on throttled 3G (§3.14): keep vendor code in its own long-cached chunk.
+        rollupOptions: { output: { manualChunks: { vendor: ['react', 'react-dom', 'react-router-dom'], data: ['@supabase/supabase-js', '@tanstack/react-query', 'dexie'] } } },
+      },
   test: {
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/test/setup.ts'],
     include: ['src/**/*.test.{ts,tsx}'],
   },
+};
 });

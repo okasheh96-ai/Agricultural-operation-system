@@ -164,3 +164,8 @@ export function plausibilityText(t: TFunction, note: string | null): string {
   const key = PLAUSIBILITY[note];
   return key ? t(key) : note;
 }
+
+/** Printing works everywhere except the in-browser demo shown inside a host page, whose frame blocks the print dialog. */
+export function canPrint(): boolean {
+  return !(__BROWSER_DB__ && window.self !== window.top);
+}

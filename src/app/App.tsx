@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect } from 'react';
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, HashRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/core/auth/AuthProvider';
@@ -39,6 +39,9 @@ const PhMasterPage = lazy(() => import('@/modules/packing-house/MasterPage'));
 const PhExceptionsPage = lazy(() => import('@/modules/packing-house/ExceptionsPage'));
 const PhTracePage = lazy(() => import('@/modules/packing-house/TracePage'));
 
+// The in-browser demo runs inside a hosted page (or a local file), where only the part after # is the app's own.
+const Router = __BROWSER_DB__ ? HashRouter : BrowserRouter;
+
 function Loading() {
   const { t } = useTranslation();
   return <p role="status" className="p-6">{t('common.loading')}</p>;
@@ -66,7 +69,7 @@ export function App() {
   const unbuilt = OFFICE_NAV.flatMap((i) => [i, ...(i.children ?? [])]).filter((i) => !i.built);
 
   return (
-    <BrowserRouter>
+    <Router>
       <Suspense fallback={<Loading />}>
         <Routes>
           <Route path="/" element={<Navigate to={home} replace />} />
@@ -114,6 +117,6 @@ export function App() {
           <Route path="*" element={<Navigate to={home} replace />} />
         </Routes>
       </Suspense>
-    </BrowserRouter>
+    </Router>
   );
 }

@@ -83,6 +83,9 @@ Legend: **A** UI · **B** Database · **C** Business logic · **D** Permissions 
 - Open decisions, permission matrix (with owner approval of proposed cells), rule parameters and master data (maker ≠ checker)
   are screens over the same data the server enforces.
 - Still open for M1: PIN switch on shared devices; Storage for photos; a packing-house audit search screen. Next milestone: M2.
+- **Open from a link (2026-10-19):** an in-browser demo runs the same app and the same SQL in the viewer's browser (PGlite),
+  published as a claude.ai artifact plus a single-file `index.html`; see `docs/BROWSER_DEMO.md`. It is per-device demo data with
+  a demo sign-in, not a deployment. A shared, hosted deployment still needs a Supabase project and a static host (VR-S01).
 
 ## Next (by operational dependency)
 

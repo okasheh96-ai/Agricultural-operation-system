@@ -972,7 +972,8 @@
       "weight": "Net kg",
       "printNo": "Print no. {{n}}",
       "printAgain": "Reprint",
-      "noBarcode": "Barcode format pending OD-20; the code above is the identifier."
+      "noBarcode": "Barcode format pending OD-20; the code above is the identifier.",
+      "noPrintHere": "This demo page cannot open the print dialog. The label print is recorded; print from the standalone file or the server version."
     },
     "forms": {
       "checklist": "Checklist",
@@ -1275,6 +1276,23 @@
       "pallet": "Pallet",
       "inspections": "Inspections",
       "moves": "Moves"
+    }
+  },
+  "browserDb": {
+    "title": "Packing House Operations — demo",
+    "what": "This demo runs the system's own database (PostgreSQL) inside your browser: the same rules, role permissions, workflow steps and audit trail as the server version, with the demo farm only. Data stays on this device.",
+    "kept": "Your changes are kept in this browser until you reset the demo.",
+    "notKept": "This browser does not keep data here: changes are lost when the page reloads.",
+    "chip": "Demo database",
+    "reset": "Reset demo data",
+    "confirmReset": "Delete all changes on this device and start the demo again?",
+    "resetNow": "Reset and reload",
+    "failedTitle": "The demo database could not start",
+    "failedBody": "This browser stopped the database engine from loading. Try reloading, or open the page in a current Safari, Chrome or Edge.",
+    "steps": {
+      "download": "Downloading the database engine (about 21 MB on the first visit)",
+      "start": "Starting PostgreSQL in your browser",
+      "seed": "Preparing today's demo records"
     }
   }
 }

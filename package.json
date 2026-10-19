@@ -16,6 +16,7 @@
     "test:e2e:stack": "playwright test -c playwright.stack.config.ts"
   },
   "dependencies": {
+    "@electric-sql/pglite": "^0.3.16",
     "@supabase/supabase-js": "^2.117.2",
     "@tanstack/react-query": "^5.104.1",
     "dexie": "^4.4.6",

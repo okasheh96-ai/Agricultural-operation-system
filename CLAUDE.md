@@ -38,6 +38,8 @@ parameter; never turn P or NYV into a rule without an approval or a recorded dec
 - `scripts/dev-stack.sh up` starts the local stack (Postgres + Supabase Auth + PostgREST) on :54321 with the demo farm. Demo users are `demo.*@demo.local` / `demo-password-123`.
 - `npm run codespaces` serves the current build on :4173 for hands-on testing in GitHub Codespaces (one port; the app server proxies the API).
 - `npm run test:e2e:stack` runs Playwright against that stack. `npm run lint && npm run typecheck && npm test && npm run build`.
+- `node scripts/build-browser-demo.mjs` builds the in-browser demo (app + PostgreSQL in the browser, demo farm only) and
+  `npx playwright test -c playwright.browserdb.config.ts` tests it; see `docs/BROWSER_DEMO.md`. It is a demo, not a deployment.
 - Every migration that creates tables or views ends with `select app.apply_api_grants();`.
 
 ## Open items
