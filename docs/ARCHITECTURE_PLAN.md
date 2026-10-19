@@ -40,6 +40,13 @@ Foundation (P1): org, roles/permissions, locations, assets, water sources, crop 
    Analytics / KPIs / costing (P10) depend on verified rates and targets.
 ```
 
+**Order change (owner instruction, 2026-10-19; confirm under VR-PH-S03):** the packing house is built ahead of Agriculture, from
+PH-OAS-SPEC-001 v0.1, in milestones M1 receiving → QC-1, M2 production / QC-2 / FG / waste, M3 FG storage / dispatch, M4 complaints /
+recall / KPIs / e-signature. It reuses the shared engines (transitions, audit, notifications, RLS) and adds its own permission
+matrix (`ph_permission_cells`), open decisions (`ph_open_decisions`) and rule parameters as data. Its link to harvest lots in
+Agriculture comes later; until then a pallet's source is a block/section or supplier recorded at receiving. Plan:
+`docs/BUILD_ASSESSMENT.md`; status: `docs/packing-house/TRACEABILITY.md`.
+
 ### Integration boundaries
 FarmERP stays the system of record for accounting, valuation and (for now) financial harvest data (§1.2). The split per data type is E38 and is configurable (`settings.record_of_truth`).
 Phases 1–9 use CSV export/import with stable codes. There is no live integration until E37/E38 are answered.

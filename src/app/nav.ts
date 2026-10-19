@@ -28,6 +28,12 @@ const canDo = (objectType: string, action: string) => (a: Access | null) => {
 const canVerifySomething = (a: Access | null) =>
   !!a?.grants.some((g) => g.permissions.some((p) => p.action === 'verify' && p.objectType !== 'task'));
 
+/** Packing-house roles (PH-OAS-SPEC-001 §6.1) are role codes prefixed ph_; the database decides each action. */
+export const hasPhRole = (a: Access | null) => !!a?.grants.some((g) => g.roleCode.startsWith('ph_'));
+
+/** Someone who holds only packing-house roles starts in the packing house. */
+export const phOnly = (a: Access | null) => !!a && a.grants.length > 0 && a.grants.every((g) => g.roleCode.startsWith('ph_'));
+
 export const OFFICE_NAV: NavItem[] = [
   { key: 'command', path: '/office/command-center', labelKey: 'nav.commandCenter', icon: '🧭', phase: '2', built: true },
   {
@@ -51,7 +57,19 @@ export const OFFICE_NAV: NavItem[] = [
   { key: 'maintenanceWarehouse', path: '/office/maintenance-warehouse', labelKey: 'nav.maintenanceWarehouse', icon: '🧰', phase: '6', built: false },
   { key: 'fleet', path: '/office/fleet', labelKey: 'nav.fleet', icon: '🚜', phase: '7', built: false },
   { key: 'mainWarehouse', path: '/office/main-warehouse', labelKey: 'nav.mainWarehouse', icon: '📦', phase: '2–3', built: false },
-  { key: 'packingHouse', path: '/office/packing-house', labelKey: 'nav.packingHouse', icon: '🏭', phase: '8', built: false },
+  {
+    key: 'packingHouse', path: '/office/packing-house', labelKey: 'nav.packingHouse', icon: '🏭', phase: 'PH-M1', built: true,
+    visible: hasPhRole,
+    children: [
+      { key: 'phWorkflow', path: '/office/packing-house', labelKey: 'nav.ph.workflow', phase: 'PH-M1', built: true },
+      { key: 'phExceptions', path: '/office/packing-house/exceptions', labelKey: 'nav.ph.exceptions', phase: 'PH-M1', built: true },
+      { key: 'phTrace', path: '/office/packing-house/trace', labelKey: 'nav.ph.trace', phase: 'PH-M1', built: true },
+      { key: 'phDecisions', path: '/office/packing-house/decisions', labelKey: 'nav.ph.decisions', phase: 'PH-M1', built: true },
+      { key: 'phMatrix', path: '/office/packing-house/matrix', labelKey: 'nav.ph.matrix', phase: 'PH-M1', built: true },
+      { key: 'phConfig', path: '/office/packing-house/config', labelKey: 'nav.ph.config', phase: 'PH-M1', built: true },
+      { key: 'phMaster', path: '/office/packing-house/master', labelKey: 'nav.ph.master', phase: 'PH-M1', built: true },
+    ],
+  },
   { key: 'qc', path: '/office/qc', labelKey: 'nav.qc', icon: '🔬', phase: '9', built: false },
   { key: 'qa', path: '/office/qa', labelKey: 'nav.qa', icon: '✅', phase: '9', built: false, tone: 'qa' },
   { key: 'cattle', path: '/office/cattle', labelKey: 'nav.cattle', icon: '🐄', phase: '—', built: false, notVerified: true },

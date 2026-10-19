@@ -5,3 +5,12 @@
 /* Codes, numbers with units and mixed Latin text are isolated so they read correctly in RTL (§3.9). */
 bdi, .bidi-isolate { unicode-bidi: isolate; }
 body { font-size: 1rem; }
+
+/* Packing-house label printing: when a label is on screen, only the label prints (FR-RC-06). */
+@media print {
+  body:has(.ph-print-area) * { visibility: hidden; }
+  body:has(.ph-print-area) .ph-print-area,
+  body:has(.ph-print-area) .ph-print-area * { visibility: visible; }
+  body:has(.ph-print-area) .ph-print-area { position: absolute; inset-block-start: 0; inset-inline-start: 0; }
+  .no-print { display: none !important; }
+}

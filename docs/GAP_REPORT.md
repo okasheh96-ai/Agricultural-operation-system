@@ -1,6 +1,6 @@
 # Implementation gap report
 
-2026-10-05, updated at the end of the round. Measured against the code and tests in this repo, not against the docs.
+2026-10-05, updated at the end of the round; packing-house rows 2026-10-19. Measured against the code and tests in this repo, not against the docs.
 Legend: **A** UI · **B** Database · **C** Business logic · **D** Permissions (RLS) · **E** Audit · **F** Tested · **G** Production-ready.
 ✅ done · ◐ partial · — not started. No row is **G** yet: nothing has run on a staging Supabase project (VR-S01).
 
@@ -24,9 +24,12 @@ Legend: **A** UI · **B** Database · **C** Business logic · **D** Permissions 
 | Agriculture: growing cycles, plant protection (REI/PHI), harvest lots | — | — | — | — | — | — | — | Phase 3; crop master exists |
 | Maintenance specifics (downtime, PM schedules) | — | — | — | — | — | — | — | Phase 5; breakdowns run on the generic work engine |
 | Fleet usage | — | ◐ | — | — | — | — | — | Machine hours are recorded on tasks only |
-| Packing house, lots, QC, QA | — | — | — | — | — | — | — | Phases 8–9; QA is flagged independent |
+| Packing house M1: master data, open decisions, permission matrix, rule parameters | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | PH-OAS-SPEC-001; real farm blocked on critical ODs (01, 02, 03, 05, 24, 25); demo uses labelled assumptions |
+| Packing house M1: receiving → pre-cooling → QA acceptance → storage → QC-1, holds | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | Registration gated by OD-01/03, lots by OD-02, QC-1 by OD-17; see `docs/packing-house/TRACEABILITY.md` |
+| Packing house M2–M4: orders, production, QC-2, FG, waste, dispatch, complaints, recall, KPIs | — | ◐ | — | ◐ | — | ◐ | — | Waste records exist (created at receiving); permission cells for M2–M4 are loaded and tested |
+| QC / QA modules outside the packing house | — | — | — | — | — | — | — | Phase 9; QA is flagged independent |
 | Cost records | — | ◐ | — | — | — | — | — | Quantities are stored; rates table not built (Phase 10) |
-| Attachments / photos / documents | — | ◐ | — | ✅ | ✅ | — | — | Table only; no Storage in the local stack |
+| Attachments / photos / documents | ◐ | ◐ | ◐ | ✅ | ✅ | ◐ | — | Packing house: photos in the database (≤ 5 MB, SHA-256) until Storage; elsewhere table only |
 
 ## 6:00 AM test (supervisor)
 
@@ -70,9 +73,21 @@ Legend: **A** UI · **B** Database · **C** Business logic · **D** Permissions 
 - Sign-in errors now say whether the server was unreachable or refused the password. Demo builds (`npm run codespaces`)
   add one-tap sign-in for the demo farm's users; other builds do not contain it.
 
+## Packing house M1 (2026-10-19, PH-OAS-SPEC-001)
+
+- Built on the existing engine: every packing-house write is a SECURITY DEFINER function that checks the role × action cell and
+  the open decision behind it; API users cannot insert or update any `ph_*` table or view (tested). Statuses change only through
+  `transition_record()`.
+- AutoScore-style board: stage tabs with live counts and attention counts, wide record panels with dark responsibility strips,
+  record view with stepper, sections, photos, history, and every unavailable action with its reason.
+- Open decisions, permission matrix (with owner approval of proposed cells), rule parameters and master data (maker ≠ checker)
+  are screens over the same data the server enforces.
+- Still open for M1: PIN switch on shared devices; Storage for photos; a packing-house audit search screen. Next milestone: M2.
+
 ## Next (by operational dependency)
 
-1. **Photo evidence:** needs Storage (staging project, VR-S01). Biggest remaining 6:00 AM gap.
+1. **Photo evidence:** needs Storage (staging project, VR-S01). Biggest remaining 6:00 AM gap (packing-house photos use the database meanwhile).
+1. **Packing house M2** (owner priority): orders/production plan, job cards and line checks, QC-2, FG pallets, waste workflow. Needs OD-13, OD-14, OD-15, OD-21.
 2. **Shared-device PIN switch + device revoke/wipe** (§3.6a).
 3. **Agriculture (Phase 3):** growing cycles on blocks, activity types per crop stage, plant-protection records with REI/PHI windows, harvest lots with PHI gating.
 4. Warehouse screens (ledger and issue requests already in the DB), escalation-rule and problem-category screens, user/role administration (needs an Edge Function to invite users).

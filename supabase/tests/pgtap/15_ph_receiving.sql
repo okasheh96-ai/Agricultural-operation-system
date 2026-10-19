@@ -536,5 +536,23 @@ select throws_ok(format($$ update public.ph_holds set reason = 'x' where id = %L
   'a hold cannot be edited through the API, not even by QAM (changes go through its workflow)');
 select tests.logout();
 
+-- Read models for the record view (migration 001300): readable through RLS of the underlying tables, never writable.
+select tests.login(:'qci');
+select ok((select count(*) from public.ph_stock_move_log where to_code is not null and by_name is not null) > 0,
+  'move log shows location codes and who moved the pallet (FR-ST-01)');
+select is((select by_name is not null and sha256 is not null from public.ph_attachment_list where id = :'photo1'), true,
+  'attachment list names the uploader and keeps the hash (AT-05)');
+select tests.logout();
+select tests.login(:'outsider');
+select is((select count(*)::int from public.ph_stock_move_log), 0, 'RLS through the view: no moves for a user without a packing-house role');
+select is((select count(*)::int from public.ph_attachment_list), 0, '… and no attachments');
+select tests.logout();
+select is((select count(*)::int from pg_class c join pg_namespace n on n.oid = c.relnamespace
+            where n.nspname = 'public' and c.relkind in ('r', 'v') and c.relname like 'ph\_%'
+              and (has_table_privilege('authenticated', c.oid, 'insert') or has_table_privilege('authenticated', c.oid, 'update'))), 0,
+  'no packing-house table or read model accepts direct inserts or updates from API users');
+select ok((select bool_and(reloptions::text like '%security_invoker=true%') from pg_class
+            where relname in ('ph_stock_move_log', 'ph_attachment_list')), 'read models run with the caller''s rights');
+
 select * from finish();
 rollback;

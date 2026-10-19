@@ -9,7 +9,7 @@ import { LaterPhase } from '@/core/components/LaterPhase';
 import { installAutoSync, syncNow } from '@/core/offline/sync';
 import { OfficeShell } from './OfficeShell';
 import { FieldShell } from './FieldShell';
-import { FIELD_ROLES, OFFICE_NAV } from './nav';
+import { FIELD_ROLES, OFFICE_NAV, phOnly } from './nav';
 
 // Route-level code splitting keeps the field shell's initial JS small (§3.14).
 const DepartmentsPage = lazy(() => import('@/modules/admin/DepartmentsPage'));
@@ -30,6 +30,14 @@ const ExceptionsPage = lazy(() => import('@/modules/operations/ExceptionsPage'))
 const NotificationsPage = lazy(() => import('@/core/components/NotificationsPage'));
 const WellsPage = lazy(() => import('@/modules/irrigation/WellsPage'));
 const MasterDataPage = lazy(() => import('@/modules/admin/MasterDataPage'));
+const PhWorkflowPage = lazy(() => import('@/modules/packing-house/WorkflowPage'));
+const PhPalletDetailPage = lazy(() => import('@/modules/packing-house/PalletDetailPage'));
+const PhDecisionsPage = lazy(() => import('@/modules/packing-house/DecisionsPage'));
+const PhMatrixPage = lazy(() => import('@/modules/packing-house/MatrixPage'));
+const PhConfigPage = lazy(() => import('@/modules/packing-house/ConfigPage'));
+const PhMasterPage = lazy(() => import('@/modules/packing-house/MasterPage'));
+const PhExceptionsPage = lazy(() => import('@/modules/packing-house/ExceptionsPage'));
+const PhTracePage = lazy(() => import('@/modules/packing-house/TracePage'));
 
 function Loading() {
   const { t } = useTranslation();
@@ -53,7 +61,7 @@ export function App() {
   if (!access) return <p role="alert" className="p-6">{t('auth.noRoles')}</p>;
 
   const fieldFirst = hasRole(access, ...FIELD_ROLES) && !hasRole(access, 'system_admin', 'department_manager', 'operations_manager', 'maintenance_manager');
-  const home = fieldFirst ? '/field' : '/office';
+  const home = phOnly(access) ? '/office/packing-house' : fieldFirst ? '/field' : '/office';
   // Unbuilt sections (and unbuilt sub-sections of built ones) get an honest "later phase" page.
   const unbuilt = OFFICE_NAV.flatMap((i) => [i, ...(i.children ?? [])]).filter((i) => !i.built);
 
@@ -79,6 +87,14 @@ export function App() {
             <Route path="admin/md/:entity" element={<MasterDataPage />} />
             <Route path="admin/verification" element={<VerificationQueuePage />} />
             <Route path="admin/audit" element={<AuditLogPage />} />
+            <Route path="packing-house" element={<PhWorkflowPage />} />
+            <Route path="packing-house/pallets/:id" element={<PhPalletDetailPage />} />
+            <Route path="packing-house/decisions" element={<PhDecisionsPage />} />
+            <Route path="packing-house/matrix" element={<PhMatrixPage />} />
+            <Route path="packing-house/config" element={<PhConfigPage />} />
+            <Route path="packing-house/master" element={<PhMasterPage />} />
+            <Route path="packing-house/exceptions" element={<PhExceptionsPage />} />
+            <Route path="packing-house/trace" element={<PhTracePage />} />
             {unbuilt.map((i) => (
               <Route key={i.key} path={i.path.replace('/office/', '')}
                 element={<LaterPhase titleKey={i.labelKey} phase={i.phase} notVerified={i.notVerified} />} />

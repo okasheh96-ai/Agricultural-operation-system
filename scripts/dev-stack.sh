@@ -169,6 +169,7 @@ demo_users() {
   node "$ROOT/scripts/demo-users.mjs" "http://127.0.0.1:$GATEWAY_PORT" "$SERVICE_ROLE_KEY" > "$RUN/demo-users.sql"
   psql_admin -d agri -o /dev/null -f "$RUN/demo-users.sql"
   psql_admin -d agri -o /dev/null -f "$ROOT/supabase/seed/demo_tasks.sql"
+  psql_admin -d agri -o /dev/null -f "$ROOT/supabase/seed/demo_packing_house.sql"
 }
 
 write_env() {

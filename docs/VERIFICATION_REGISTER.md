@@ -96,3 +96,45 @@ Owner to ask is "Not Yet Verified" unless the owner names a person.
 | E46 | Terminology | Arabic terms actually used on site for departments, tasks, statuses, locations | E | Glossary, UI labels | open |
 | E47 | Pain points | Top 10 problems ranked separately by managers, supervisors and workers | E | Phase priorities | open |
 | E48 | Data | Any real data already entered in an existing prototype that must be preserved | E | Migration plan | open — see VR-S02 |
+
+## PH — Packing house (PH-OAS-SPEC-001 v0.1)
+
+Source labels from the spec are kept per record: **C** documented (≈ tier A once walked through), **P** proposed (≈ tier C), **NYV** not yet verified (≈ tier D/E).
+Open decisions OD-01…OD-41 are stored as data and decided in the app (Packing House → Open decisions), not here.
+
+### System / scope questions (owner)
+
+| id | Question | Tier | Affects | Status | Answer / Date / Source |
+|---|---|---|---|---|---|
+| VR-PH-S01 | The spec is marked "Draft 0.1 — Not for build"; the owner's build instruction (2026-10-19) was followed (§0.6). The real farm stays blocked wherever a critical OD is open; the demo farm uses **labelled demo assumptions** (OD-01 B, OD-02 C, OD-03 A, OD-17 A, OD-38 DEC), refused on any non-demo farm by a trigger. Confirm. | E | Whole module | open | |
+| VR-PH-S02 | The companion workbook (permission matrix, data dictionary) is not in the repo; §6.3 was transcribed from the PDF tables. Check `ph_permission_cells` against the workbook when provided. | E | Permissions | open | |
+| VR-PH-S03 | Packing house was planned as Phase 8; the owner instruction puts it before Agriculture (Phase 3). Confirm the order. | E | Phase plan | open | |
+
+### Working assumptions made in code (each configurable)
+
+| id | Assumption | Where | Status |
+|---|---|---|---|
+| VR-PH-C01 | Proposed (P) permission cells work on a real farm only after the record-type owner approves them (`ph_proposals_in_effect` = false); the demo farm has proposals in effect. | `ph_permission_cells`, `app.ph_permission_basis` | open |
+| VR-PH-C02 | Any packing-house role may **read** packing-house records of its farm; actions are limited by the matrix. | `app.ph_is_member` select policies | open |
+| VR-PH-C03 | G9 releases a held pallet back to the status it had before the hold; the SM-IP diagram shows OnHold → Stored only. | `ph_hold_step`, `held_from_status` | open |
+| VR-PH-C04 | G1 before registration: pallets of an arrival held for its vehicle cannot be registered (ST-02 text says "passed or held"). | guard on `ph_register_pallet` | open |
+| VR-PH-C05 | Vehicle exception needs PHM, QAM and TOP (SOP-TR: "PHM, QA team and top management"); exact QA and top-management signers are OD-38. One refusal ends the arrival. | `ph_vehicle_exception_decide` | open |
+| VR-PH-C06 | Food-safety holds are decided and closed by QAM only; quality holds by QCM or QAM (SoD-05). | `ph_hold_step` | open |
+| VR-PH-C07 | M1 hold dispositions are release and waste only; regrade, rework, return (M2) and concession (M4) are refused with a "later milestone" reason. | `ph_hold_step` | open |
+| VR-PH-C08 | Without a product tolerance (OD-05/OD-15), a QA acceptance is recorded as a judgement, flagged `no_tolerance_set` and listed for QAM review. | `ph_submit_rma`, exception rule OD-05 | open |
+| VR-PH-C09 | Record numbering: `ARR/VIN/ARC/RMA/RCK/QC1-YYMMDD-NNNN`, `NC-YYMMDD-NNN`, `WR-YYMMDD-NNNN`; pallet print number `<crop label code>-YYMMDD-<source>-NNN` (§7.1 example); lot `L-<crop>-<YYMMDD>-<source>` only under OD-02 option C. Crop label codes are not documented for real crops. | `app.ph_code`, `ph_crops.label_code` | open |
+| VR-PH-C10 | Photos (≤ 5 MB, JPEG/PNG/WebP, compressed on the device) are stored in the database with SHA-256 until Storage exists (VR-S01). | `ph_attachment_blobs` | open |
+| VR-PH-C11 | Local rules (17:00 cut-off, 24 h grading, dates) use Asia/Amman. | `app.ph_local_date` | open |
+| VR-PH-C12 | A person signs a vehicle exception once, even when holding two of the signing roles. | `ph_vehicle_exception_decide` | open |
+
+### Known gaps in the source (cannot be invented)
+
+| id | Item | Tier | Affects | Status |
+|---|---|---|---|---|
+| VR-PH-E01 | SOP-TR incoming-vehicle checklist items are not in the spec; the template has one placeholder item marked NYV. | E | FR-RC-02 | open |
+| VR-PH-E02 | Storage temperatures for Sweetbite pepper and watermelon are missing. | D | Crop master, storage groups | open |
+| VR-PH-E03 | OD-03, OD-17 and OD-38 carry no recommendation in the spec. | E | Registration, QC-1, vehicle inspection | open |
+| VR-PH-E04 | Calibration due dates for SCALE-R1, SCALE-R2, SCALE-R3 are unknown, so every receiving weight is flagged (FR-MD-06) and counts as "needs attention" on the board. | E | Weights, board attention counts | open |
+| VR-PH-E05 | NYV permission cells with no named decision (packaging.request PE/LL, waste.create PHO, load.finalise DEC, deviation.create SAL) cannot be activated until an owner names the decision. | E | M2–M4 permissions | open |
+| VR-PH-E06 | Barcode / label format (OD-20) and label printer model (OD-24): labels print the code as text only. | E | Labels | open |
+| VR-PH-E07 | Location capacities, fridge-to-storage-group mapping and line rates beyond the SOP list. | E | Location board, placement | open |

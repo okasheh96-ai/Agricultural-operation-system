@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { requireSupabase } from '@/core/supabase';
 import { LanguageToggle } from '@/core/components/LanguageToggle';
-import { DEMO_ACCOUNTS, DEMO_PASSWORD } from './demoSignIn';
+import { DEMO_ACCOUNTS, DEMO_PASSWORD, DEMO_PH_ACCOUNTS } from './demoSignIn';
 import { signInErrorKey } from './signInError';
 
 /** Real Supabase Auth sign-in (email + password, VR-C09); demo-stack builds add one-tap sign-in for the demo farm. */
@@ -29,6 +29,14 @@ export function SignInPage() {
 
   const alert = (shown: boolean) => shown && error && <p role="alert" className="text-red-700">{t(error.key)}</p>;
 
+  const demoButton = (a: { email: string; labelKey: string }) => (
+    <button key={a.email} type="button" disabled={busy !== null} onClick={() => void signIn({ email: a.email, password: DEMO_PASSWORD }, a.email)}
+      className="flex min-h-touch flex-col items-start justify-center rounded bg-white px-4 py-2 text-start shadow-sm hover:bg-stone-50 disabled:opacity-60">
+      <span className="font-semibold">{busy === a.email ? t('auth.signingIn') : t(a.labelKey)}</span>
+      <bdi className="text-xs text-stone-500">{a.email}</bdi>
+    </button>
+  );
+
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-6 p-6">
       <div className="flex items-center justify-between">
@@ -46,13 +54,11 @@ export function SignInPage() {
           </div>
           {alert(error?.from !== 'form')}
           <div className="flex flex-col gap-2" aria-busy={busy !== null && busy !== 'form'}>
-            {DEMO_ACCOUNTS.map((a) => (
-              <button key={a.email} type="button" disabled={busy !== null} onClick={() => void signIn({ email: a.email, password: DEMO_PASSWORD }, a.email)}
-                className="flex min-h-touch flex-col items-start justify-center rounded bg-white px-4 py-2 text-start shadow-sm hover:bg-stone-50 disabled:opacity-60">
-                <span className="font-semibold">{busy === a.email ? t('auth.signingIn') : t(a.labelKey)}</span>
-                <bdi className="text-xs text-stone-500">{a.email}</bdi>
-              </button>
-            ))}
+            {DEMO_ACCOUNTS.map((a) => demoButton(a))}
+          </div>
+          <h3 className="font-semibold text-brand-dark">{t('auth.demoPhTitle')}</h3>
+          <div className="grid grid-cols-2 gap-2" aria-busy={busy !== null && busy !== 'form'}>
+            {DEMO_PH_ACCOUNTS.map((a) => demoButton(a))}
           </div>
         </section>
       )}

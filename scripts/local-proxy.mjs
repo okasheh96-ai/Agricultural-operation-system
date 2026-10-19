@@ -36,7 +36,9 @@ http
         port: route.port,
         method: req.method,
         path: req.url.slice(route.prefix.length) || '/',
-        headers: { ...req.headers, host: `127.0.0.1:${route.port}` },
+        headers: { ...req.headers, host: `127.0.0.1:${route.port}`, connection: 'close' },
+        // No pooled upstream sockets: reusing one the service has just closed as idle fails with "socket hang up" (502).
+        agent: false,
       },
       (up) => {
         res.writeHead(up.statusCode ?? 502, { ...up.headers, ...cors });

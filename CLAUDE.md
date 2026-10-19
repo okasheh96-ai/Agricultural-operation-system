@@ -4,8 +4,16 @@ Authoritative instructions: `docs/MASTER_PROMPT.md`. Re-read the relevant Part a
 Working docs: `docs/ARCHITECTURE_PLAN.md`, `docs/VERIFICATION_REGISTER.md`, `docs/phase-reports/`.
 
 ## Current phase
-Phase 2, Operations execution. Status by area (UI/DB/logic/RLS/audit/tested/production) is in `docs/GAP_REPORT.md`; keep it current.
-Still open: photos (needs Storage), PIN user switch + device wipe. Next phase: Agriculture (Phase 3).
+Packing house (owner instruction 2026-10-19, spec `docs/packing-house/PH-OAS-SPEC-001_v0.1.pdf`): milestone M1 (receiving → QC-1)
+is built; next is M2 (production, QC-2, FG pallets, waste). Plan: `docs/BUILD_ASSESSMENT.md`; per-ID status:
+`docs/packing-house/TRACEABILITY.md`. Open decisions live in `ph_open_decisions` (critical: OD-01, 02, 03, 05, 24, 25). On a real farm,
+steps that depend on an open decision stay blocked; demo assumptions are allowed only on the demo farm and are labelled.
+Status by area is in `docs/GAP_REPORT.md`; keep it current. Still open from Phase 2: photos via Storage, PIN user switch + device wipe.
+Agriculture (Phase 3) follows the packing house unless the owner reorders (VR-PH-S03).
+
+Packing-house rules: every write is a `ph_*` SECURITY DEFINER function that calls `app.ph_authorize()` (role × action cell) and, where
+needed, `app.ph_decision_gate()`; API users get no insert/update on `ph_*` tables or views. Keep the C/P/NYV label of every cell and
+parameter; never turn P or NYV into a rule without an approval or a recorded decision.
 
 ## Non-negotiable rules
 1. **Evidence tiers:** A Confirmed · B Research-supported · C Working assumption · D Not Yet Verified · E Requires On-Site Discovery.
