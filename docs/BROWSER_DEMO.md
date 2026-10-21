@@ -38,7 +38,7 @@ placeholders.
 
 ```bash
 node scripts/build-browser-demo.mjs                        # .local/browser-demo/{site,standalone,preview}
-npx playwright test -c playwright.browserdb.config.ts     # 5 tests, iPhone size, CSP like the artifact host's
+npx playwright test -c playwright.browserdb.config.ts     # 7 tests, iPhone size, CSP like the artifact host's
 node scripts/serve-browser-demo.mjs 4175                   # http://127.0.0.1:4175 (BROWSER_DEMO_CSP=artifact-wasm to mimic the host)
 ```
 
@@ -57,3 +57,5 @@ not start", with the browser's reason (tested).
   corrected line start, QC-2 final pass, FG label, QC stamp, completion) and traces it back; checks no sideways scroll at phone width.
 - Checks the board, English and a read-only auditor.
 - Runs the app inside a cross-origin sandboxed frame.
+- A sign-in kept from an earlier demo version is dropped when the new version replaces the database (`session.spec.ts`);
+  anyone signed in without an active role can sign out from that screen.

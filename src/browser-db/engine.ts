@@ -9,6 +9,7 @@ import { PGlite, type Extension } from '@electric-sql/pglite';
 import demoTasksSql from '../../supabase/seed/demo_tasks.sql?raw';
 import demoPackingHouseSql from '../../supabase/seed/demo_packing_house.sql?raw';
 import demoProductionSql from '../../supabase/seed/demo_packing_house_production.sql?raw';
+import { supabase } from '@/core/supabase';
 import { BROWSER_DB_ANON_KEY, setBrowserDbHandler } from './bridge';
 import { claimsOf, handleAuth } from './gotrue';
 import { handleRest, loadMeta, type SchemaMeta } from './postgrest';
@@ -130,7 +131,13 @@ async function boot(onStep: (s: BootStep) => void, build: string): Promise<BootI
   const btree: Extension = { name: 'btree_gist', setup: () => Promise.resolve({ bundlePath: btreeUrl }) };
   const persistent = await indexedDbUsable();
   const firstRun = !persistent || readFlag() !== build;
-  if (persistent && firstRun) await deleteDemoDatabase();
+  const replaced = persistent && firstRun;
+  if (replaced) {
+    await deleteDemoDatabase();
+    // A new demo version brings new demo people (new ids): a sign-in kept from the previous version belongs to nobody in
+    // the new database and would open as "no active role". It goes with the database it belonged to.
+    try { localStorage.removeItem(AUTH_KEY); } catch { /* storage blocked */ }
+  }
   const snapshot = firstRun ? await asset('demo-db.tar.gz') : undefined;
 
   onStep('start');
@@ -150,6 +157,8 @@ async function boot(onStep: (s: BootStep) => void, build: string): Promise<BootI
   }
   const meta = await loadMeta(db);
   setBrowserDbHandler((url, init) => route(meta, url, init));
+  // The client may have read the old sign-in before the database started; drop it there too (local only, no request).
+  if (replaced) await supabase?.auth.signOut({ scope: 'local' }).catch(() => undefined);
   onStep('ready');
   return { persistent, firstRun };
 }

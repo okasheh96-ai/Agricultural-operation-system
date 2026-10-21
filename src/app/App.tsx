@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/core/auth/AuthProvider';
 import { SignInPage } from '@/core/auth/SignInPage';
+import { SignOutButton } from '@/core/auth/SignOutButton';
 import { hasRole } from '@/core/rbac/access';
 import { LaterPhase } from '@/core/components/LaterPhase';
 import { installAutoSync, syncNow } from '@/core/offline/sync';
@@ -63,7 +64,16 @@ export function App() {
 
   if (!ready || (session && accessLoading)) return <Loading />;
   if (!session) return <SignInPage />;
-  if (!access) return <p role="alert" className="p-6">{t('auth.noRoles')}</p>;
+  // Never a dead end: whoever is signed in without an active role can sign out and choose another account. No role is
+  // granted here; the database decides who has one.
+  if (!access) {
+    return (
+      <main className="mx-auto flex max-w-lg flex-col items-start gap-3 p-6">
+        <p role="alert">{t('auth.noRoles')}</p>
+        <SignOutButton className="border border-stone-300 no-underline" />
+      </main>
+    );
+  }
 
   const fieldFirst = hasRole(access, ...FIELD_ROLES) && !hasRole(access, 'system_admin', 'department_manager', 'operations_manager', 'maintenance_manager');
   const home = phOnly(access) ? '/office/packing-house' : fieldFirst ? '/field' : '/office';
