@@ -16,7 +16,7 @@ export interface StageDef {
   owner: string;
   built: boolean;
   milestone?: string;
-  kind: 'arrivals' | 'pallets' | 'waste' | 'later';
+  kind: 'arrivals' | 'pallets' | 'jobcards' | 'fg' | 'waste' | 'later';
 }
 
 export const STAGES: StageDef[] = [
@@ -27,11 +27,11 @@ export const STAGES: StageDef[] = [
   { key: 'qa_acceptance', spec: 'ST-05', gate: 'G3', owner: 'QAO · ENG · DEC', built: true, kind: 'pallets' },
   { key: 'storage', spec: 'ST-06', owner: 'PHO', built: true, kind: 'pallets' },
   { key: 'qc1_released', spec: 'ST-07', gate: 'G4', owner: 'QCI', built: true, kind: 'pallets' },
-  { key: 'production', spec: 'ST-08', gate: 'G5', owner: 'PE · LL · QCI', built: false, milestone: 'M2', kind: 'later' },
-  { key: 'qc2', spec: 'ST-09', gate: 'G6', owner: 'QCI', built: false, milestone: 'M2', kind: 'later' },
-  { key: 'fg_pallets', spec: 'ST-10', owner: 'PHO · DEC', built: false, milestone: 'M2', kind: 'later' },
+  { key: 'production', spec: 'ST-08', gate: 'G5', owner: 'PE · PHM · LL · STK · QCI', built: true, kind: 'jobcards' },
+  { key: 'qc2', spec: 'ST-09', gate: 'G6', owner: 'QCI', built: true, kind: 'jobcards' },
+  { key: 'fg_pallets', spec: 'ST-10', owner: 'PHO · QCI', built: true, kind: 'fg' },
   { key: 'waste', spec: 'ST-11', gate: 'G7', owner: 'PHO · QCI · PHM', built: true, milestone: 'M2', kind: 'waste' },
-  { key: 'fg_storage', spec: 'ST-12', owner: 'PHO', built: false, milestone: 'M3', kind: 'later' },
+  { key: 'fg_storage', spec: 'ST-12', owner: 'PHO', built: true, kind: 'fg' },
   { key: 'dispatch', spec: 'ST-13 · ST-14', gate: 'G8', owner: 'PHM · QCI · QAO', built: false, milestone: 'M3', kind: 'later' },
   { key: 'exceptions', spec: 'X-01 · E-03', gate: 'G9', owner: 'QCI · QAO · QCM · QAM', built: true, kind: 'pallets' },
   { key: 'closed', spec: '—', owner: '—', built: true, kind: 'pallets' },
@@ -45,7 +45,7 @@ export const PALLET_PATH: { key: string; spec: string; statuses: string[]; miles
   { key: 'qa_acceptance', spec: 'ST-05', statuses: ['awaiting_qa', 'qa_rejected', 'in_regrade', 'awaiting_recheck'] },
   { key: 'storage', spec: 'ST-06', statuses: ['accepted', 'stored'] },
   { key: 'qc1_released', spec: 'ST-07', statuses: ['released'] },
-  { key: 'production', spec: 'ST-08', statuses: ['issued', 'consumed'], milestone: 'M2' },
+  { key: 'production', spec: 'ST-08', statuses: ['issued', 'consumed'] },
 ];
 
 /** Index of the furthest path step a pallet has reached (for the stepper), from its status and recorded facts. */
@@ -88,7 +88,35 @@ export const STATUS_STYLE: Record<string, { icon: string; tone: 'blue' | 'green'
   disposition_executed: { icon: '✓', tone: 'blue' },
   verified: { icon: '✔', tone: 'green' },
   cancelled: { icon: '✕', tone: 'grey' },
+  planned: { icon: '📋', tone: 'blue' },
+  ready: { icon: '✓', tone: 'blue' },
+  line_check_failed: { icon: '✕', tone: 'red' },
+  in_progress: { icon: '▶', tone: 'green' },
+  paused: { icon: '⏸', tone: 'amber' },
+  completed: { icon: '■', tone: 'green' },
+  reconciled: { icon: '⚖', tone: 'green' },
+  created: { icon: '▦', tone: 'blue' },
+  qc_approved: { icon: '✔', tone: 'green' },
+  in_storage: { icon: '▣', tone: 'green' },
 };
+
+/** Job Card path (SM-JC) for the record view; reconciliation and closing come with M2.2. */
+export const JOB_CARD_PATH: { key: string; statuses: string[]; milestone?: string }[] = [
+  { key: 'draft', statuses: ['draft'] },
+  { key: 'planned', statuses: ['planned'] },
+  { key: 'ready', statuses: ['ready', 'line_check_failed'] },
+  { key: 'in_progress', statuses: ['in_progress', 'paused'] },
+  { key: 'completed', statuses: ['completed'] },
+  { key: 'reconciled', statuses: ['reconciled', 'closed'], milestone: 'M2.2' },
+];
+
+/** Finished-goods pallet path (SM-FGP) up to storage; allocation, loading and dispatch come with M3. */
+export const FG_PATH: { key: string; statuses: string[]; milestone?: string }[] = [
+  { key: 'created', statuses: ['created'] },
+  { key: 'qc_approved', statuses: ['qc_approved'] },
+  { key: 'in_storage', statuses: ['in_storage'] },
+  { key: 'dispatch', statuses: ['allocated', 'picked', 'loaded', 'dispatched'], milestone: 'M3' },
+];
 
 export const TONE_CLASS: Record<string, string> = {
   blue: 'bg-sky-50 text-sky-900 border-sky-300',

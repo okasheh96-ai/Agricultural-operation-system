@@ -8,6 +8,7 @@
 import { PGlite, type Extension } from '@electric-sql/pglite';
 import demoTasksSql from '../../supabase/seed/demo_tasks.sql?raw';
 import demoPackingHouseSql from '../../supabase/seed/demo_packing_house.sql?raw';
+import demoProductionSql from '../../supabase/seed/demo_packing_house_production.sql?raw';
 import { BROWSER_DB_ANON_KEY, setBrowserDbHandler } from './bridge';
 import { claimsOf, handleAuth } from './gotrue';
 import { handleRest, loadMeta, type SchemaMeta } from './postgrest';
@@ -143,6 +144,7 @@ async function boot(onStep: (s: BootStep) => void, build: string): Promise<BootI
     onStep('seed');
     await db.exec(demoTasksSql);
     await db.exec(demoPackingHouseSql);
+    await db.exec(demoProductionSql);
     await db.syncToFs();
     if (persistent) writeFlag(build);
   }

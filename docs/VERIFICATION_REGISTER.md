@@ -126,15 +126,28 @@ Open decisions OD-01…OD-41 are stored as data and decided in the app (Packing 
 | VR-PH-C10 | Photos (≤ 5 MB, JPEG/PNG/WebP, compressed on the device) are stored in the database with SHA-256 until Storage exists (VR-S01). | `ph_attachment_blobs` | open |
 | VR-PH-C11 | Local rules (17:00 cut-off, 24 h grading, dates) use Asia/Amman. | `app.ph_local_date` | open |
 | VR-PH-C12 | A person signs a vehicle exception once, even when holding two of the signing roles. | `ph_vehicle_exception_decide` | open |
+| VR-PH-C13 | Inputs may be issued to a **Planned** Job Card (not only Ready / In progress): SM-JC needs ≥ 1 released input to reach Ready, while V-05 / the SM-IP table say "JC is Ready or InProgress". Issue is refused on draft, completed or cancelled Job Cards. | `ph_issue_to_job_card` | open |
+| VR-PH-C14 | Line-start check (G5, SOP-PL "Quality controller and line leader"): one of QCI / LL records the checklist, a **different person holding the other role** confirms; one person holding both roles cannot sign twice. A fail blocks the Job Card until the Line Leader records the correction. | `ph_line_start_check`, `ph_confirm_line_start` | open |
+| VR-PH-C15 | QC-2: the **latest** QC-2 record governs. A finished pallet needs it to be a *final* Pass (G6); a later online Fail stops new finished pallets until another final Pass. QC-2 failures notify PHM and PE, not operators (T-10). | `ph_create_fg_pallet`, `ph_qc2_record` | open |
+| VR-PH-C16 | Lot attribution of a finished pallet is **proportional to the kg issued** to its Job Card (GEN-05/06) and the method is stored; exact / time-window attribution need line segregation data that does not exist yet. | `ph_fg_pallet_lots` | open |
+| VR-PH-C17 | Completing a Job Card closes every input (consumed + returned = issued). A pallet with kg left returns to **Stored** and needs QC-1 release again before it is issued (SM-IP Issued → Stored → Released). Its location is unchanged. | `ph_complete_job_card` | open |
+| VR-PH-C18 | Packaging issue is recorded as a described item and a quantity in pieces; there is no packaging master, stock or ERP removal yet (no packaging list was supplied). | `ph_jc_packaging` | open |
+| VR-PH-C19 | The SM-IP table names LL/PHO for issue and return; the §6.3 matrix gives `job_card.record_inputs` to LL (P) and TRC/DEC (NYV, OD-13) only. The matrix is applied; PHO cannot issue. | `ph_permission_cells` | open |
+| VR-PH-C20 | Finished pallets go only into finished-goods fridges (purpose `fg_storage`, F1–F4) with the V-07 storage-group check and V-08 capacity warning. The 24 h QC validity (CP-06) is computed from the QC stamp and shown; it is enforced at load (V-11) in M3. | `ph_move_fg_pallet`, `ph_fg_board` | open |
 
 ### Known gaps in the source (cannot be invented)
 
 | id | Item | Tier | Affects | Status |
 |---|---|---|---|---|
 | VR-PH-E01 | SOP-TR incoming-vehicle checklist items are not in the spec; the template has one placeholder item marked NYV. | E | FR-RC-02 | open |
-| VR-PH-E02 | Storage temperatures for Sweetbite pepper and watermelon are missing. | D | Crop master, storage groups | open |
+| VR-PH-E02 | Storage temperatures for Sweetbite pepper and watermelon are missing from SOP-PC. The product SOPs supplied 2026-10-21 (draft 001, effective date blank) state Sweet Bite Pepper 7–10 °C, Watermelon 10–15 °C, Melon 2–5 °C and Blocky Capsicum Color 7–10 °C. Not applied to the crop master: draft documents, and crop changes go through maker-checker (ADM enters, PHM/QAM approve). | D | Crop master, storage groups | open |
 | VR-PH-E03 | OD-03, OD-17 and OD-38 carry no recommendation in the spec. | E | Registration, QC-1, vehicle inspection | open |
 | VR-PH-E04 | Calibration due dates for SCALE-R1, SCALE-R2, SCALE-R3 are unknown, so every receiving weight is flagged (FR-MD-06) and counts as "needs attention" on the board. | E | Weights, board attention counts | open |
 | VR-PH-E05 | NYV permission cells with no named decision (packaging.request PE/LL, waste.create PHO, load.finalise DEC, deviation.create SAL) cannot be activated until an owner names the decision. | E | M2–M4 permissions | open |
 | VR-PH-E06 | Barcode / label format (OD-20) and label printer model (OD-24): labels print the code as text only. | E | Labels | open |
 | VR-PH-E07 | Location capacities, fridge-to-storage-group mapping and line rates beyond the SOP list. | E | Location board, placement | open |
+| VR-PH-E08 | Product SOPs (Cherry Tomato, Tomato, Blocky Capsicum Color, Sweet Bite Pepper, Melon, Watermelon) and the QC Function charter are **draft version 001 with no effective date**. Their line-start and QC-2 items are loaded word for word as checklists (evidence C, source cited per template); approval of the documents is needed before they are relied on. | E | G5, G6 checklists | open |
+| VR-PH-E09 | Grade criteria (Premium / GR1 / GR2), size and weight ranges and defect tolerances are in "company-approved grading standards" that were not supplied (OD-05, OD-06). QC-2 records a judgement flagged "no tolerance set". The SOPs' sampling figure (2.5 %) is a "working example" and is shown as a hint only. | E | QC-2, grading | open |
+| VR-PH-E10 | The Blocky Capsicum Color SOP describes Blocky as a capsicum (pepper) at 7–10 °C. This is evidence for OD-30 (crop identity), not a decision: the Blocky crop stays blocked until OD-30 is recorded. | E | OD-30, Blocky crop | open |
+| VR-PH-E11 | Melon has an SOP but is not in the crop master or Figure 4.2 routes; its checklists are loaded and unused until the crop is added and approved. Eggplant and mini cucumber have no SOP: their line-start checklist is a single NYV item and QC-2 uses the QC Function items. | E | Crop master, checklists | open |
+| VR-PH-E12 | Demo finished-pallet weights, box counts and packaging items are invented for the demo farm and labelled. Real values per crop and pack (FCT, OD-29) are not documented. | E | Demo only | open |

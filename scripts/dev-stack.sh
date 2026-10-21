@@ -170,6 +170,7 @@ demo_users() {
   psql_admin -d agri -o /dev/null -f "$RUN/demo-users.sql"
   psql_admin -d agri -o /dev/null -f "$ROOT/supabase/seed/demo_tasks.sql"
   psql_admin -d agri -o /dev/null -f "$ROOT/supabase/seed/demo_packing_house.sql"
+  psql_admin -d agri -o /dev/null -f "$ROOT/supabase/seed/demo_packing_house_production.sql"
 }
 
 write_env() {

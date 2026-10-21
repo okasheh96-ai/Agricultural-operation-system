@@ -13,6 +13,7 @@ import {
 } from './forms';
 import { phErrorMessage } from './phErrors';
 import { palletStrips } from './panels';
+import { IssueForm } from './production';
 import { PALLET_PATH, formatDuration, minutesBetween, pathIndex } from './stages';
 import { ActionPanel, ErrorBox, Field, ReasonNote, StatusPill, When, auditValue, btnCls, canPrint, inputCls, plausibilityText, primaryBtnCls } from './ui';
 
@@ -157,6 +158,8 @@ export default function PalletDetailPage() {
                   <Field label={t('ph.fields.plausibility')} wide>{plausibilityText(t, p.plausibility_note)}</Field>
                   <Field label={t('ph.fields.lot')}>{p.lot_code ? <bdi>{p.lot_code}</bdi> : <span className="text-amber-800">{t('ph.panel.lotPending')}</span>}</Field>
                   <Field label={t('ph.fields.location')}><bdi>{p.location_code ?? '—'}</bdi></Field>
+                  <Field label={t('ph.fields.available_kg')}><bdi>{p.available_kg ?? '—'} kg</bdi>
+                    {p.job_card_codes && <span className="text-stone-500"> · <bdi>{p.job_card_codes}</bdi></span>}</Field>
                   <Field label={t('ph.fields.received_at')}><When iso={p.received_at} /></Field>
                   <Field label={t('ph.fields.registered_by')}>{p.registered_by_name ?? '—'}</Field>
                   <Field label={t('ph.fields.age')}><bdi>{formatDuration(minutesBetween(p.received_at))}</bdi>{p.grading_overdue && <span className="ms-1 text-red-800">⏰ {t('ph.flags.gradingOverdue')}</span>}</Field>
@@ -315,6 +318,7 @@ export default function PalletDetailPage() {
                   {open === 'move' && <MoveForm pallet={p} canOverride={!!perms.data?.has('stock_move.override_placement')} onDone={done} onCancel={close} />}
                   {open === 'qc1_release' && <Qc1Form pallets={[p]} onDone={done} onCancel={close} />}
                   {open === 'raise_hold' && <HoldForm pallets={[p]} onDone={done} onCancel={close} />}
+                  {open === 'issue_to_job_card' && <IssueForm pallet={p} onDone={done} onCancel={close} />}
                   {open === 'record_disposition' && <SimpleActionForm fn="ph_record_disposition" needs={['note']} label={t('ph.next.disposition')}
                     hint={t(`ph.forms.dispositionHint.${p.reject_destination ?? 'farm_or_supplier'}`)}
                     args={(v) => ({ p_pallet: p.id, p_comment: v.note })} onDone={done} onCancel={close} />}

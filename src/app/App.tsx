@@ -38,6 +38,8 @@ const PhConfigPage = lazy(() => import('@/modules/packing-house/ConfigPage'));
 const PhMasterPage = lazy(() => import('@/modules/packing-house/MasterPage'));
 const PhExceptionsPage = lazy(() => import('@/modules/packing-house/ExceptionsPage'));
 const PhTracePage = lazy(() => import('@/modules/packing-house/TracePage'));
+const PhJobCardDetailPage = lazy(() => import('@/modules/packing-house/JobCardDetailPage'));
+const PhFgPalletDetailPage = lazy(() => import('@/modules/packing-house/FgPalletDetailPage'));
 
 // The in-browser demo runs inside a hosted page (or a local file), where only the part after # is the app's own.
 const Router = __BROWSER_DB__ ? HashRouter : BrowserRouter;
@@ -98,6 +100,8 @@ export function App() {
             <Route path="packing-house/master" element={<PhMasterPage />} />
             <Route path="packing-house/exceptions" element={<PhExceptionsPage />} />
             <Route path="packing-house/trace" element={<PhTracePage />} />
+            <Route path="packing-house/job-cards/:id" element={<PhJobCardDetailPage />} />
+            <Route path="packing-house/fg-pallets/:id" element={<PhFgPalletDetailPage />} />
             {unbuilt.map((i) => (
               <Route key={i.key} path={i.path.replace('/office/', '')}
                 element={<LaterPhase titleKey={i.labelKey} phase={i.phase} notVerified={i.notVerified} />} />

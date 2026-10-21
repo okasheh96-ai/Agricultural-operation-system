@@ -24,7 +24,7 @@ function asList(v: unknown): string {
 export function reasonText(t: TFunction, reason: PhReason): string {
   const params: Record<string, string> = {};
   for (const [k, v] of Object.entries(reason)) params[k] = Array.isArray(v) ? asList(v) : String(v ?? '');
-  if (reason.key === 'ph.v01' && Array.isArray(reason.missing)) {
+  if ((reason.key === 'ph.v01' || reason.key === 'ph.v09') && Array.isArray(reason.missing)) {
     params.missing = (reason.missing as string[]).map((f) => t(`ph.fields.${f}`, { defaultValue: f })).join('، ');
   }
   if (reason.key === 'ph.sod' && typeof reason.column === 'string') {

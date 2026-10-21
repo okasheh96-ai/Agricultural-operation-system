@@ -60,10 +60,12 @@ const check = await PGlite.create({ loadDataDir: new Blob([snapshot]), extension
 const t0 = Date.now();
 await check.exec(sqlFile('supabase/seed/demo_tasks.sql'));
 await check.exec(sqlFile('supabase/seed/demo_packing_house.sql'));
+await check.exec(sqlFile('supabase/seed/demo_packing_house_production.sql'));
 const counts = (await check.query(`select (select count(*)::int from public.tasks) as tasks, (select count(*)::int from public.ph_arrivals) as arrivals,
-  (select count(*)::int from public.ph_incoming_pallets) as pallets, (select count(*)::int from auth.users) as people`)).rows[0];
+  (select count(*)::int from public.ph_incoming_pallets) as pallets, (select count(*)::int from auth.users) as people,
+  (select count(*)::int from public.ph_job_cards) as job_cards, (select count(*)::int from public.ph_fg_pallets) as fg_pallets`)).rows[0];
 console.log(`   ${Date.now() - t0} ms in Node:`, counts);
-if (!counts.arrivals || !counts.pallets || !counts.tasks) throw new Error('demo seeds produced no records');
+if (!counts.arrivals || !counts.pallets || !counts.tasks || !counts.job_cards || !counts.fg_pallets) throw new Error('demo seeds produced no records');
 await check.close();
 await db.close();
 

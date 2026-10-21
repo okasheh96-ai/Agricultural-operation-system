@@ -7,16 +7,17 @@ import {
 import { phErrorMessage, phReason, type PhReason } from './phErrors';
 import { ErrorBox, Labelled, WarningList, btnCls, canPrint, inputCls, primaryBtnCls } from './ui';
 
-interface Lookup { id: string; code: string; name_ar: string; name_en: string | null; verification_status: string }
+export interface Lookup { id: string; code: string; name_ar: string; name_en: string | null; verification_status: string }
 interface SourceRow extends Lookup { kind: 'own_farm' | 'supplier' }
 interface VarietyRow extends Lookup { crop_code: string }
-interface CropRow extends Lookup { version_no: number; boxes_per_pallet: number | null; superseded_at: string | null; nominal_kg_per_pallet: string | null }
-interface ScaleRow extends Lookup { calibration_due_on: string | null; kind: string }
-interface LocationRow { id: string; code: string; name_ar: string; name_en: string | null; purpose: string; capacity_pallets: number | null;
+export interface CropRow extends Lookup { version_no: number; boxes_per_pallet: number | null; superseded_at: string | null; nominal_kg_per_pallet: string | null }
+export interface ScaleRow extends Lookup { calibration_due_on: string | null; kind: string }
+export interface LocationRow { id: string; code: string; name_ar: string; name_en: string | null; purpose: string; capacity_pallets: number | null;
   occupancy: number; storage_group_code: string | null; storage_group_name_ar: string | null; storage_group_name_en: string | null; verification_status: string }
-interface TemplateRow { id: string; inspection_type: string; version_no: number; items: { code: string; en: string; ar: string }[]; note: string | null; evidence: string }
+interface TemplateRow { id: string; inspection_type: string; version_no: number; items: { code: string; en: string; ar: string }[]; note: string | null; evidence: string;
+  crop_code: string | null; source: string | null }
 
-function useSubmit<T>(fn: () => Promise<T>, onDone: (r: T) => void) {
+export function useSubmit<T>(fn: () => Promise<T>, onDone: (r: T) => void) {
   const { t } = useTranslation();
   const invalidate = useInvalidatePh();
   const [error, setError] = useState<string | null>(null);
@@ -41,25 +42,28 @@ function useSubmit<T>(fn: () => Promise<T>, onDone: (r: T) => void) {
   return { submit, error, reason, busy };
 }
 
-function useApproved<T extends Lookup>(key: string, table: string, select: string) {
+export function useApproved<T extends Lookup>(key: string, table: string, select: string) {
   return useLookup<T>(key, table, select, (q) => q.eq('verification_status', 'verified'));
 }
 
-export function useTemplate(type: string) {
-  const q = useLookup<TemplateRow>(`template_${type}`, 'ph_inspection_templates', 'id, inspection_type, version_no, items, note, evidence',
+/** The checklist in effect for an inspection type: the crop's own (product SOP) when there is one, else the general one. */
+export function useTemplate(type: string, cropCode?: string) {
+  const q = useLookup<TemplateRow>(`template_${type}`, 'ph_inspection_templates', 'id, inspection_type, version_no, items, note, evidence, crop_code, source',
     (x) => x.eq('inspection_type', type));
-  return q.data?.find((r) => r.inspection_type === type) ?? null;
+  const list = (q.data ?? []).filter((r) => r.inspection_type === type);
+  return (cropCode ? list.find((r) => r.crop_code === cropCode) : undefined) ?? list.find((r) => !r.crop_code) ?? null;
 }
 
 /** Checklist per template: OK / Not OK / N/A for each documented item. */
-function Checklist({ type, value, onChange }: { type: string; value: Record<string, string>; onChange: (v: Record<string, string>) => void }) {
+export function Checklist({ type, crop, value, onChange }: { type: string; crop?: string; value: Record<string, string>; onChange: (v: Record<string, string>) => void }) {
   const { t, i18n } = useTranslation();
-  const tpl = useTemplate(type);
+  const tpl = useTemplate(type, crop);
   if (!tpl) return <p className="text-sm text-stone-500">{t('common.loading')}</p>;
   return (
     <fieldset className="rounded border border-stone-200 p-2">
       <legend className="px-1 text-sm font-semibold">{t('ph.forms.checklist')} <span className="text-xs font-normal text-stone-500">
         ({t('ph.forms.templateVersion', { v: tpl.version_no })})</span></legend>
+      {tpl.source && <p className="mb-1 text-xs text-stone-700">{t('ph.forms.templateSource', { source: tpl.source, evidence: tpl.evidence })}</p>}
       {tpl.note && <p className="mb-1 text-xs text-stone-600">{tpl.note}</p>}
       <div className="grid gap-1 sm:grid-cols-2">
         {tpl.items.map((it) => (
@@ -81,7 +85,7 @@ function Checklist({ type, value, onChange }: { type: string; value: Record<stri
   );
 }
 
-function PhotoInput({ files, onChange, required = false }: { files: File[]; onChange: (f: File[]) => void; required?: boolean }) {
+export function PhotoInput({ files, onChange, required = false }: { files: File[]; onChange: (f: File[]) => void; required?: boolean }) {
   const { t } = useTranslation();
   return (
     <Labelled label={t('ph.forms.photos')} required={required} hint={t('ph.forms.photosHint')}>
@@ -92,7 +96,7 @@ function PhotoInput({ files, onChange, required = false }: { files: File[]; onCh
   );
 }
 
-function Buttons({ busy, label, onCancel }: { busy: boolean; label: string; onCancel: () => void }) {
+export function Buttons({ busy, label, onCancel }: { busy: boolean; label: string; onCancel: () => void }) {
   const { t } = useTranslation();
   return (
     <div className="flex flex-wrap gap-2">

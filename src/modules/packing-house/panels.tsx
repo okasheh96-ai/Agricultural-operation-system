@@ -9,6 +9,7 @@ import {
   ArrivalCheckForm, HoldForm, LabelForm, MoveForm, Qc1Form, RecheckForm, RegisterPalletForm, RmaForm, SimpleActionForm,
   VehicleExceptionForm, VehicleInspectionForm,
 } from './forms';
+import { IssueForm } from './production';
 import { ActionPanel, ActivityStrip, ErrorBox, Field, StatusPill, When, btnCls, primaryBtnCls, type StripState } from './ui';
 
 type Perms = Map<string, string> | undefined;
@@ -35,6 +36,8 @@ export function palletStrips(p: PalletRow, t: (k: string, o?: Record<string, unk
   const storeState: StripState = passed('stored', 'released', 'issued', 'consumed') ? 'done' : s === 'accepted' ? 'waiting'
     : s === 'on_hold' && p.held_from_status === 'stored' ? 'held' : 'not_reached';
   const qc1State: StripState = passed('released', 'issued', 'consumed') ? 'done' : s === 'stored' ? 'waiting' : 'not_reached';
+  const prodState: StripState = s === 'consumed' ? 'done' : s === 'issued' ? 'active' : s === 'released' ? 'waiting'
+    : p.job_card_codes ? 'done' : 'not_reached';
 
   return (
     <>
@@ -57,7 +60,10 @@ export function palletStrips(p: PalletRow, t: (k: string, o?: Record<string, unk
         detail={p.lot_code ?? undefined} attention={p.grading_overdue} />
       <ActivityStrip icon="✔" title={t('ph.strips.qc1')} state={qc1State}
         who={qc1State === 'waiting' ? queue('QCI') : who(p.released_by_name, '—')} detail={p.qc1_code ?? undefined} />
-      <ActivityStrip icon="⏭" title={t('ph.strips.production')} state="later" who={t('labels.laterPhase')} />
+      <ActivityStrip icon="▶" title={t('ph.strips.production')} state={prodState}
+        who={prodState === 'waiting' ? queue('LL') : p.job_card_codes ?? '—'}
+        detail={Number(p.issued_open_kg) > 0 || Number(p.consumed_kg) > 0
+          ? t('ph.strips.issuedSummary', { issued: p.issued_open_kg, consumed: p.consumed_kg, available: p.available_kg ?? '0' }) : undefined} />
     </>
   );
 }
@@ -77,7 +83,8 @@ function nextActions(p: PalletRow): PanelAction[] {
     case 'accepted': return [{ key: 'move', label: 'moveToStorage', perm: 'stock_move.execute' }, { key: 'move', label: 'moveOverride', perm: 'stock_move.override_placement' }];
     case 'stored': return [{ key: 'qc1_release', label: 'qc1', perm: 'qc1.release' }, { key: 'move', label: 'move', perm: 'stock_move.execute' },
       { key: 'raise_hold', label: 'hold', perm: 'hold.raise' }];
-    case 'released': return [{ key: 'move', label: 'move', perm: 'stock_move.execute' }];
+    case 'released': return [{ key: 'issue', label: 'issue', perm: 'job_card.record_inputs' }, { key: 'move', label: 'move', perm: 'stock_move.execute' }];
+    case 'issued': return Number(p.available_kg) > 0 ? [{ key: 'issue', label: 'issue', perm: 'job_card.record_inputs' }] : [];
     case 'arrival_rejected': return [{ key: 'record_disposition', label: 'disposition', perm: 'incoming_pallet.record_disposition' }];
     default: return [];
   }
@@ -158,6 +165,7 @@ export function PalletPanel({ p, all, arrivals, perms }: { p: PalletRow; all: Pa
             {open === 'record_disposition' && <SimpleActionForm fn="ph_record_disposition" needs={['note']} label={t('ph.next.disposition')}
               hint={t(`ph.forms.dispositionHint.${p.reject_destination ?? 'farm_or_supplier'}`)}
               args={(v) => ({ p_pallet: p.id, p_comment: v.note })} onDone={done} onCancel={close} />}
+            {open === 'issue' && <IssueForm pallet={p} onDone={done} onCancel={close} />}
           </ActionPanel>
         </div>
       )}

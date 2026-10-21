@@ -90,7 +90,109 @@ export interface PalletRow {
   grading_overdue: boolean;
   decision_basis: Record<string, string>;
   attachment_count: number;
+  available_kg: string | null;
+  issued_open_kg: string;
+  consumed_kg: string;
+  job_card_codes: string | null;
 }
+
+/** One Job Card (ST-08) from ph_jc_board: line, crop, the person at each step, inputs, G5 and the latest QC-2. */
+export interface JobCardRow {
+  id: string;
+  code: string;
+  status: string;
+  version: number;
+  planned_date: string;
+  grade_target: 'premium' | 'gr1' | 'gr2';
+  customer_spec_ref: string | null;
+  attribution_method: 'exact' | 'time_window' | 'proportional';
+  notes: string | null;
+  line_start_inspection_id: string | null;
+  completed_at: string | null;
+  created_at: string;
+  stage_since: string;
+  line_id: string;
+  line_code: string;
+  line_name_ar: string;
+  line_name_en: string | null;
+  crop_id: string;
+  crop_code: string;
+  crop_name_ar: string;
+  crop_name_en: string | null;
+  created_by_name: string | null;
+  approved_by_name: string | null;
+  ready_by_name: string | null;
+  started_by_name: string | null;
+  completed_by_name: string | null;
+  inputs_count: number;
+  open_inputs: number;
+  issued_kg: string;
+  consumed_kg: string;
+  returned_kg: string;
+  packaging_count: number;
+  line_start_code: string | null;
+  line_start_result: 'pass' | 'fail' | null;
+  line_start_by_name: string | null;
+  line_start_at: string | null;
+  last_line_start_result: 'pass' | 'fail' | null;
+  qc2_code: string | null;
+  qc2_stage: 'online' | 'final' | null;
+  qc2_result: 'pass' | 'fail' | null;
+  qc2_at: string | null;
+  qc2_by_name: string | null;
+  qc2_tolerance_basis: string | null;
+  fg_count: number;
+  fg_kg: string;
+  decision_basis: Record<string, string>;
+}
+
+/** One finished-goods pallet (ST-10) from ph_fg_board. */
+export interface FgPalletRow {
+  id: string;
+  code: string;
+  status: string;
+  version: number;
+  grade: 'premium' | 'gr1' | 'gr2';
+  box_count: number;
+  net_kg: string;
+  calibration_flag: boolean;
+  plausibility_note: string | null;
+  label_print_count: number;
+  created_at: string;
+  earliest_harvest_at: string | null;
+  qc_approved_at: string | null;
+  qc_valid_until: string | null;
+  stage_since: string;
+  age_hours: string | null;
+  job_card_id: string;
+  job_card_code: string;
+  line_code: string;
+  crop_id: string;
+  crop_code: string;
+  crop_name_ar: string;
+  crop_name_en: string | null;
+  scale_code: string | null;
+  qc2_code: string | null;
+  qc2_at: string | null;
+  qc2_by_name: string | null;
+  qc_approved_by_name: string | null;
+  created_by_name: string | null;
+  location_id: string | null;
+  location_code: string | null;
+  location_name_ar: string | null;
+  location_name_en: string | null;
+  lot_codes: string;
+  composition: { pallet: string; pallet_id: string; lot: string | null; kg: number; share: number; method: string; source: string }[];
+  decision_basis: Record<string, string>;
+}
+
+export interface JcInputRow { id: string; job_card_id: string; pallet_id: string; pallet_code: string; pallet_status: string; lot_code: string | null;
+  source_code: string; harvest_at: string | null; issued_kg: string; consumed_kg: string | null; returned_kg: string | null; closed_at: string | null;
+  created_at: string; issued_by_name: string | null }
+export interface JcPackagingRow { id: string; job_card_id: string; description: string; quantity: string; unit_code: string; created_at: string; issued_by_name: string | null }
+export interface JcInspectionRow { id: string; job_card_id: string; code: string; inspection_type: 'line_start' | 'qc2'; qc2_stage: 'online' | 'final' | null;
+  result: 'pass' | 'fail'; reason: string | null; sample_note: string | null; remarks: string | null; checklist: Record<string, string>;
+  tolerance_basis: string | null; event_at: string; by_name: string | null; template_source: string | null; template_evidence: string | null; template_crop: string | null }
 
 export interface ArrivalRow {
   id: string;
@@ -217,6 +319,62 @@ export function usePallet(id: string | undefined) {
     enabled: !!id,
     queryFn: async () => {
       const { data, error } = await db().from('ph_ip_board').select('*').eq('id', id as string).maybeSingle<PalletRow>();
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+export function useJobCards() {
+  return useQuery({
+    queryKey: ['ph', 'job_cards'],
+    queryFn: () => rows<JobCardRow>(db().from('ph_jc_board').select('*').order('created_at', { ascending: false })),
+    refetchInterval: 30_000,
+  });
+}
+
+export function useJobCard(id: string | undefined) {
+  return useQuery({
+    queryKey: ['ph', 'job_card', id],
+    enabled: !!id,
+    queryFn: async () => {
+      const { data, error } = await db().from('ph_jc_board').select('*').eq('id', id as string).maybeSingle<JobCardRow>();
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+/** Inputs, packaging and inspections of one Job Card (read models, one query each). */
+export function useJobCardParts(id: string | undefined, version: number | undefined) {
+  return useQuery({
+    queryKey: ['ph', 'job_card_parts', id, version],
+    enabled: !!id,
+    queryFn: async () => {
+      const [inputs, packaging, inspections] = await Promise.all([
+        rows<JcInputRow>(db().from('ph_jc_input_list').select('*').eq('job_card_id', id as string).order('created_at')),
+        rows<JcPackagingRow>(db().from('ph_jc_packaging_list').select('*').eq('job_card_id', id as string).order('created_at')),
+        rows<JcInspectionRow>(db().from('ph_jc_inspection_list').select('*').eq('job_card_id', id as string).order('event_at')),
+      ]);
+      return { inputs, packaging, inspections };
+    },
+  });
+}
+
+export function useFgPallets() {
+  return useQuery({
+    queryKey: ['ph', 'fg_pallets'],
+    queryFn: () => rows<FgPalletRow>(db().from('ph_fg_board').select('*').order('created_at', { ascending: false })),
+    refetchInterval: 30_000,
+  });
+}
+
+export function useFgPallet(id: string | undefined) {
+  return useQuery({
+    queryKey: ['ph', 'fg_pallet', id],
+    enabled: !!id,
+    queryFn: async () => {
+      const { data, error } = await db().from('ph_fg_board').select('*').eq('id', id as string).maybeSingle<FgPalletRow>();
       if (error) throw error;
       return data;
     },

@@ -6,6 +6,13 @@ import { formatDateTime, type Locale } from '@/core/i18n';
 import { QueryState } from './QueryState';
 import { useNotifications } from './useNotifications';
 
+/** Packing-house records a notification can open. */
+const PH_RECORD_PATHS: Record<string, string> = {
+  ph_incoming_pallets: '/office/packing-house/pallets',
+  ph_job_cards: '/office/packing-house/job-cards',
+  ph_fg_pallets: '/office/packing-house/fg-pallets',
+};
+
 export default function NotificationsPage({ taskBase }: { taskBase: string }) {
   const { t, i18n } = useTranslation();
   const qc = useQueryClient();
@@ -34,6 +41,7 @@ export default function NotificationsPage({ taskBase }: { taskBase: string }) {
               <div className="mt-1 flex items-center justify-between text-sm text-stone-600">
                 <bdi>{formatDateTime(n.created_at, i18n.language as Locale)}</bdi>
                 {n.entity_type === 'tasks' && <Link className="underline" to={`${taskBase}/${n.entity_id}`}>{t('work.openTask')}</Link>}
+                {PH_RECORD_PATHS[n.entity_type] && <Link className="underline" to={`${PH_RECORD_PATHS[n.entity_type]}/${n.entity_id}`}>{t('notifications.openRecord')}</Link>}
               </div>
             </li>
           ))}

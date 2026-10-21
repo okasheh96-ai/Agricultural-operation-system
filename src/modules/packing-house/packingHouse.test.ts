@@ -5,7 +5,7 @@ import en from '@/locales/en.json';
 import { OFFICE_NAV, hasPhRole, phOnly, visibleNav } from '@/app/nav';
 import type { Access } from '@/core/rbac/access';
 import { phErrorMessage, phReason } from './phErrors';
-import { PALLET_PATH, STAGES, STATUS_STYLE, formatDuration, minutesBetween, pathIndex } from './stages';
+import { FG_PATH, JOB_CARD_PATH, PALLET_PATH, STAGES, STATUS_STYLE, formatDuration, minutesBetween, pathIndex } from './stages';
 
 const lookup = (dict: unknown, key: string) => key.split('.').reduce<unknown>((o, k) => (o as Record<string, unknown> | undefined)?.[k], dict);
 
@@ -108,6 +108,59 @@ describe('packing-house reasons', () => {
       expect(typeof lookup(ar, `ph.reasons.${k}`)).toBe('string');
       expect(typeof lookup(en, `ph.reasons.${k}`)).toBe('string');
     }
+  });
+});
+
+describe('packing-house production (M2.1)', () => {
+  const err = (detail: object, code = 'P0403') => ({ code, message: 'x', details: JSON.stringify(detail) });
+  const sql = readFileSync('supabase/migrations/20261021001500_ph_production.sql', 'utf8');
+  const workflow = (code: string) => {
+    const block = new RegExp(`define_workflow\\(p_farm, '${code}',\\s*'(\\[[\\s\\S]*?\\])'`).exec(sql)?.[1] ?? '[]';
+    return (JSON.parse(block) as { code: string; en: string; ar: string }[]);
+  };
+
+  it('labels every Job Card and finished-pallet status as the workflow defines it, with an icon for each built one', () => {
+    for (const [wf, key, built] of [['ph_job_card', 'ph_job_card', ['draft', 'planned', 'ready', 'line_check_failed', 'in_progress', 'paused', 'completed', 'cancelled']],
+      ['ph_fg_pallet', 'ph_fg_pallet', ['created', 'qc_approved', 'in_storage']]] as const) {
+      const statuses = workflow(wf);
+      expect(statuses.length).toBeGreaterThan(8);
+      for (const st of statuses) {
+        expect(lookup(en, `ph.status.${key}.${st.code}`)).toBe(st.en);
+        expect(lookup(ar, `ph.status.${key}.${st.code}`)).toBe(st.ar);
+      }
+      for (const st of built) expect(STATUS_STYLE[st]?.icon).toBeTruthy();
+    }
+  });
+
+  it('names every action the server offers on a Job Card or finished pallet', () => {
+    const block = (fn: string) => new RegExp(`function public\\.${fn}[\\s\\S]*?\\(values([\\s\\S]*?)\\) as x`).exec(sql)?.[1] ?? '';
+    const jc = [...block('ph_job_card_actions').matchAll(/^\s+\('([a-z_]+)', '/gm)].map((m) => m[1]);
+    const fg = [...block('ph_fg_pallet_actions').matchAll(/^\s+\('([a-z_]+)', '/gm)].map((m) => m[1]);
+    expect(jc).toContain('confirm_start');
+    expect(fg).toContain('qc_approve');
+    for (const k of jc) for (const d of [ar, en]) expect([k, typeof lookup(d, `ph.jcActions.${k}`)]).toEqual([k, 'string']);
+    for (const k of fg) for (const d of [ar, en]) expect([k, typeof lookup(d, `ph.fgActions.${k}`)]).toEqual([k, 'string']);
+  });
+
+  it('has a sentence for every reason key the packing-house migrations raise', () => {
+    const all = ['20261019001000_ph_engine_config', '20261019001100_ph_master_data', '20261019001200_ph_receiving', '20261021001500_ph_production']
+      .map((f) => readFileSync(`supabase/migrations/${f}.sql`, 'utf8')).join('\n');
+    const keys = new Set([...all.matchAll(/'key', 'ph\.([A-Za-z0-9_.]+)'/g)].map((m) => (m[1] ?? '').replace(/\./g, '_')));
+    expect(keys.size).toBeGreaterThan(40);
+    for (const k of keys) for (const d of [ar, en]) expect([k, typeof lookup(d, `ph.reasons.${k}`)]).toEqual([k, 'string']);
+  });
+
+  it('builds the production, QC-2 and finished-goods tabs, with Job Card and pallet paths named in both languages', () => {
+    for (const k of ['production', 'qc2', 'fg_pallets', 'fg_storage'] as const) expect(STAGES.find((s) => s.key === k)?.built).toBe(true);
+    for (const s of JOB_CARD_PATH) expect(typeof lookup(ar, `ph.status.ph_job_card.${s.key}`)).toBe('string');
+    for (const s of FG_PATH) expect(typeof lookup(ar, `ph.fgPath.${s.key}`)).toBe('string');
+  });
+
+  it('names the fields a missing FG label reports (V-09)', async () => {
+    const t = await translator('en');
+    const msg = phErrorMessage(t, err({ key: 'ph.v09', missing: ['lot', 'harvest_date'] }, 'P0422'));
+    expect(msg).toContain('Lot');
+    expect(msg).not.toContain('harvest_date');
   });
 });
 

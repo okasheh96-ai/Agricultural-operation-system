@@ -4,8 +4,9 @@ Authoritative instructions: `docs/MASTER_PROMPT.md`. Re-read the relevant Part a
 Working docs: `docs/ARCHITECTURE_PLAN.md`, `docs/VERIFICATION_REGISTER.md`, `docs/phase-reports/`.
 
 ## Current phase
-Packing house (owner instruction 2026-10-19, spec `docs/packing-house/PH-OAS-SPEC-001_v0.1.pdf`): milestone M1 (receiving → QC-1)
-is built; next is M2 (production, QC-2, FG pallets, waste). Plan: `docs/BUILD_ASSESSMENT.md`; per-ID status:
+Packing house (owner instruction 2026-10-19, spec `docs/packing-house/PH-OAS-SPEC-001_v0.1.pdf`): M1 (receiving → QC-1) and
+M2.1 (Job Cards, line start G5, QC-2 G6, FG pallets → FG storage) are built; next is M2.2 (waste workflow, reconciliation MB-01),
+then M2.3 (orders, split/merge). Line-start and QC-2 checklists come from the product SOPs (draft 001) — never invent criteria. Plan: `docs/BUILD_ASSESSMENT.md`; per-ID status:
 `docs/packing-house/TRACEABILITY.md`. Open decisions live in `ph_open_decisions` (critical: OD-01, 02, 03, 05, 24, 25). On a real farm,
 steps that depend on an open decision stay blocked; demo assumptions are allowed only on the demo farm and are labelled.
 Status by area is in `docs/GAP_REPORT.md`; keep it current. Still open from Phase 2: photos via Storage, PIN user switch + device wipe.

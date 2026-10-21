@@ -13,9 +13,12 @@ interface Trace {
   inspections: { code: string; type: string; result: string; at: string; by: string | null; pallet: string; tolerance_basis: string }[];
   moves: { pallet: string; from: string | null; to: string | null; at: string; by: string | null }[];
   holds: { code: string; type: string; status: string; disposition: string | null; pallet: string }[];
+  job_cards?: { id: string; code: string; status: string; line: string; issued_kg: string; consumed_kg: string; fg_kg: string }[];
+  fg_pallets?: { id: string; code: string; status: string; grade: string; net_kg: string; job_card: string; lots: string; location: string | null;
+    composition: { pallet: string; lot: string | null; kg: number; share: number; method: string }[] }[];
 }
 
-/** Backward trace (TQ-01) from a pallet, arrival or lot code, as far as milestone M1 records reach (source and arrival). */
+/** Trace from a finished pallet, Job Card, incoming pallet, arrival or lot code: back to arrival and source (TQ-01), forward to Job Cards and finished pallets (TQ-02, up to storage). */
 export default function TracePage() {
   const { t, i18n } = useTranslation();
   const [params, setParams] = useSearchParams();
@@ -64,6 +67,35 @@ export default function TracePage() {
               </tbody>
             </table>
           </div>
+          {(d.job_cards ?? []).length > 0 && (
+            <section className="rounded-lg border bg-white p-3">
+              <h2 className="font-semibold">{t('ph.trace.jobCards')}</h2>
+              <ul className="text-sm">
+                {d.job_cards?.map((j) => (
+                  <li key={j.id} className="flex flex-wrap items-center gap-2">
+                    <Link className="font-mono underline" to={`/office/packing-house/job-cards/${j.id}`}><bdi>{j.code}</bdi></Link>
+                    <StatusPill status={j.status} workflow="ph_job_card" />
+                    <span><bdi>{t('ph.trace.jcKg', { issued: j.issued_kg, consumed: j.consumed_kg, fg: j.fg_kg })}</bdi></span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+          {(d.fg_pallets ?? []).length > 0 && (
+            <section className="rounded-lg border bg-white p-3">
+              <h2 className="font-semibold">{t('ph.trace.fgPallets')}</h2>
+              <ul className="flex flex-col gap-1 text-sm">
+                {d.fg_pallets?.map((f) => (
+                  <li key={f.id} className="flex flex-wrap items-center gap-2">
+                    <Link className="font-mono underline" to={`/office/packing-house/fg-pallets/${f.id}`}><bdi>{f.code}</bdi></Link>
+                    <StatusPill status={f.status} workflow="ph_fg_pallet" />
+                    <span>{t(`ph.grade.${f.grade}`)} · <bdi>{f.net_kg} kg · {f.job_card} · {f.location ?? '—'}</bdi></span>
+                    <span className="text-xs text-stone-600"><bdi>{f.composition.map((c) => `${c.pallet} ${c.kg} kg (${t(`ph.attribution.${c.method}`)})`).join(' · ')}</bdi></span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
           <div className="grid gap-3 md:grid-cols-3">
             <section className="rounded-lg border bg-white p-3"><h2 className="font-semibold">{t('ph.trace.inspections')}</h2>
               <ul className="text-sm">{d.inspections.map((i, k) => <li key={k}><bdi>{i.code}</bdi> · {t(`ph.inspectionType.${i.type}`)} · {i.result} · {i.by} · <bdi>{i.pallet}</bdi></li>)}</ul></section>

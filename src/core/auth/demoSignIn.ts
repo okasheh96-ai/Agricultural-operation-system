@@ -16,6 +16,9 @@ export const DEMO_ACCOUNTS: { email: string; labelKey: string }[] = [
 /** Packing-house demo people (PH-OAS-SPEC-001 §6.1), one per role, so each role's view and limits can be tried. */
 export const DEMO_PH_ACCOUNTS: { email: string; labelKey: string }[] = [
   { email: 'demo.ph.phm@demo.local', labelKey: 'auth.demo.ph.phm' },
+  { email: 'demo.ph.pe@demo.local', labelKey: 'auth.demo.ph.pe' },
+  { email: 'demo.ph.ll@demo.local', labelKey: 'auth.demo.ph.ll' },
+  { email: 'demo.ph.stk@demo.local', labelKey: 'auth.demo.ph.stk' },
   { email: 'demo.ph.dec@demo.local', labelKey: 'auth.demo.ph.dec' },
   { email: 'demo.ph.qci@demo.local', labelKey: 'auth.demo.ph.qci' },
   { email: 'demo.ph.qao@demo.local', labelKey: 'auth.demo.ph.qao' },

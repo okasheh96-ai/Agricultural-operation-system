@@ -3,10 +3,13 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { QueryState } from '@/core/components/QueryState';
-import { db, localizedName, useArrivals, useDecisions, useMyPhPermissions, usePallets, useStageCounts, type PalletRow } from './api';
+import {
+  db, localizedName, useArrivals, useDecisions, useFgPallets, useJobCards, useMyPhPermissions, usePallets, useStageCounts, type PalletRow,
+} from './api';
 import { CreateArrivalForm, PrecoolScanBar } from './forms';
 import { HoldsList } from './holds';
 import { ArrivalPanel, PalletPanel } from './panels';
+import { CreateJobCardForm, FgPalletPanel, JobCardPanel } from './production';
 import { STAGES, type StageKey } from './stages';
 import { ActionPanel, StatusPill, When, btnCls, inputCls, primaryBtnCls } from './ui';
 
@@ -43,7 +46,10 @@ export default function WorkflowPage() {
   const perms = useMyPhPermissions();
   const decisions = useDecisions();
   const waste = useWaste(stage === 'waste');
+  const jobCards = useJobCards();
+  const fgPallets = useFgPallets();
   const [creating, setCreating] = useState(false);
+  const [creatingJc, setCreatingJc] = useState(false);
   const [search, setSearch] = useState('');
   const [crop, setCrop] = useState('');
   const [source, setSource] = useState('');
@@ -64,12 +70,23 @@ export default function WorkflowPage() {
   const rows = all.filter((p) => p.stage === stage && matches(p));
   const openArrivals = (arrivals.data ?? []).filter((a) => ['draft', 'vehicle_hold', 'submitted'].includes(a.status)
     && (!source || a.source_code === source) && (!date || a.arrived_at.slice(0, 10) === date));
+  // Job Cards and finished pallets per tab: the same status sets ph_stage_counts counts.
+  const jcStatuses = stage === 'qc2' ? ['in_progress'] : ['draft', 'planned', 'ready', 'line_check_failed', 'in_progress', 'paused', 'completed'];
+  const jcRows = (jobCards.data ?? []).filter((j) => jcStatuses.includes(j.status) && (!crop || j.crop_code === crop) && (!date || j.planned_date === date)
+    && (!attentionOnly || ['line_check_failed', 'paused'].includes(j.status) || j.qc2_result === 'fail'));
+  const fgStatuses = stage === 'fg_storage' ? ['in_storage'] : ['created', 'qc_approved'];
+  const fgRows = (fgPallets.data ?? []).filter((f) => fgStatuses.includes(f.status) && (!crop || f.crop_code === crop) && (!date || f.created_at.slice(0, 10) === date)
+    && (!attentionOnly || f.calibration_flag || f.label_print_count === 0 || (!!f.qc_valid_until && Date.parse(f.qc_valid_until) < Date.now())));
 
   function find(e: FormEvent) {
     e.preventDefault();
     const q = search.trim().toUpperCase();
     const hit = all.find((p) => p.code.toUpperCase() === q) ?? all.find((p) => p.code.toUpperCase().includes(q));
-    if (hit) navigate(`/office/packing-house/pallets/${hit.id}`);
+    const jc = (jobCards.data ?? []).find((j) => j.code.toUpperCase() === q);
+    const fg = (fgPallets.data ?? []).find((f) => f.code.toUpperCase() === q);
+    if (jc) navigate(`/office/packing-house/job-cards/${jc.id}`);
+    else if (fg) navigate(`/office/packing-house/fg-pallets/${fg.id}`);
+    else if (hit) navigate(`/office/packing-house/pallets/${hit.id}`);
     else if (q) navigate(`/office/packing-house/trace?ref=${encodeURIComponent(search.trim())}`);
   }
 
@@ -163,6 +180,29 @@ export default function WorkflowPage() {
           {openArrivals.length === 0 && <p className="p-4 text-stone-600">{t('ph.empty.arrivals')}</p>}
           <div className="flex flex-col gap-3">
             {openArrivals.map((a) => <ArrivalPanel key={a.id} a={a} pallets={all} perms={perms.data} />)}
+          </div>
+        </QueryState>
+      ) : def.kind === 'jobcards' ? (
+        <QueryState isLoading={jobCards.isLoading} error={jobCards.error} isEmpty={false} onRetry={() => void jobCards.refetch()}>
+          {stage === 'production' && perms.data?.has('job_card.create') && !creatingJc && (
+            <div><button type="button" className={primaryBtnCls} onClick={() => setCreatingJc(true)}>＋ {t('ph.jc.new')}</button></div>
+          )}
+          {stage === 'production' && creatingJc && (
+            <ActionPanel title={t('ph.jc.new')} onClose={() => setCreatingJc(false)}>
+              <CreateJobCardForm onDone={(id) => { setCreatingJc(false); navigate(`/office/packing-house/job-cards/${id}`); }} onCancel={() => setCreatingJc(false)} />
+            </ActionPanel>
+          )}
+          {stage === 'qc2' && <p className="rounded border border-sky-200 bg-sky-50 px-3 py-2 text-sm text-sky-950">{t('ph.jc.qc2Queue')}</p>}
+          {jcRows.length === 0 && <p className="p-4 text-stone-600">{t('ph.empty.jobCards')}</p>}
+          <div className="flex flex-col gap-3">
+            {jcRows.map((j) => <JobCardPanel key={j.id} j={j} perms={perms.data} />)}
+          </div>
+        </QueryState>
+      ) : def.kind === 'fg' ? (
+        <QueryState isLoading={fgPallets.isLoading} error={fgPallets.error} isEmpty={false} onRetry={() => void fgPallets.refetch()}>
+          {fgRows.length === 0 && <p className="p-4 text-stone-600">{t(stage === 'fg_storage' ? 'ph.empty.fgStorage' : 'ph.empty.fgPallets')}</p>}
+          <div className="flex flex-col gap-3">
+            {fgRows.map((f) => <FgPalletPanel key={f.id} f={f} perms={perms.data} />)}
           </div>
         </QueryState>
       ) : def.kind === 'waste' ? (

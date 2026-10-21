@@ -454,7 +454,8 @@ select is((select permission_basis from public.record_transitions where entity_i
 select is((select decision_basis from public.record_transitions where entity_id = tests.ph_id('ph_incoming_pallets', :'ip1') and to_status = 'released'),
   'OD-17=A', '… and the decision that opened the gate');
 select is((select a ->> 'reason' from jsonb_array_elements(public.ph_pallet_actions(tests.ph_id('ph_incoming_pallets', :'ip1'))) a
-            where a ->> 'action' = 'issue_to_job_card'), '{"key": "ph.later", "milestone": "M2"}', 'issue to a Job Card is labelled as a later milestone');
+            where a ->> 'action' = 'issue_to_job_card'), '{"key": "ph.denied.noRole", "roles": ["DEC", "LL", "TRC"], "action": "job_card.record_inputs"}',
+  'issue to a Job Card (built in M2.1) is offered with the reason QC cannot do it: the Line Leader issues');
 
 -- ---------------------------------------------------------------------------------------------
 -- X-01 Holds (SM-NC; SoD-05)

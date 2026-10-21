@@ -14,6 +14,9 @@ export const USERS = [
   { email: 'demo.exec@demo.local', name: 'مشاهد إداري (تجريبي)', roles: [['executive_viewer', null]] },
   // Packing house (PH-OAS-SPEC-001 §6.1): one demo person per role, granted farm-wide; the matrix decides what each may do.
   { email: 'demo.ph.phm@demo.local', name: 'مدير بيت التعبئة (تجريبي)', roles: [['ph_phm', null]] },
+  { email: 'demo.ph.pe@demo.local', name: 'مهندس الإنتاج (تجريبي)', roles: [['ph_pe', null]] },
+  { email: 'demo.ph.ll@demo.local', name: 'قائد الخط (تجريبي)', roles: [['ph_ll', null]] },
+  { email: 'demo.ph.stk@demo.local', name: 'أمين المخزن (تجريبي)', roles: [['ph_stk', null]] },
   { email: 'demo.ph.dec@demo.local', name: 'مدخل بيانات الاستلام (تجريبي)', roles: [['ph_dec', null]] },
   { email: 'demo.ph.qci@demo.local', name: 'مراقب جودة (تجريبي)', roles: [['ph_qci', null]] },
   { email: 'demo.ph.qcm@demo.local', name: 'مدير مراقبة الجودة (تجريبي)', roles: [['ph_qcm', null]] },

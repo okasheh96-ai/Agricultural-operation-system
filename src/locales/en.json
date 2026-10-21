@@ -74,7 +74,10 @@
         "eng": "Regrade Engineer",
         "whm": "Warehouse Manager",
         "top": "Top Management",
-        "aud": "Auditor"
+        "aud": "Auditor",
+        "pe": "Production Engineer",
+        "ll": "Line Leader",
+        "stk": "Store Keeper"
       }
     },
     "demoPhTitle": "Packing house roles"
@@ -358,8 +361,19 @@
       "ph_reweigh_due": "Pallet {{code}} needs re-weighing after regrade",
       "ph_recheck_due": "Pallet {{code}} awaits re-check",
       "ph_second_rejection": "Second rejection on {{code}} (E-04)",
-      "ph_hold_raised": "Hold {{code}} raised"
-    }
+      "ph_hold_raised": "Hold {{code}} raised",
+      "ph_jc_approval_due": "Job Card {{code}} waits for your approval",
+      "ph_packaging_due": "Issue packaging for Job Card {{code}}",
+      "ph_jc_planned": "Job Card {{code}} is planned: issue its inputs",
+      "ph_line_start_due": "Line-start check due for {{code}}",
+      "ph_line_start_confirm": "Confirm the line-start check of {{code}}",
+      "ph_line_start_failed": "Line-start check failed on {{code}}",
+      "ph_qc2_due": "Job Card {{code}} is running: QC-2 inspections due",
+      "ph_qc2_failed": "QC-2 failed on {{code}}: re-sort the product",
+      "ph_fg_ready": "QC-2 final pass on {{code}}: finished pallets can be created",
+      "ph_fg_qc_due": "Finished pallet {{code}} waits for the QC stamp"
+    },
+    "openRecord": "Open record"
   },
   "quick": {
     "title": "New task",
@@ -417,7 +431,7 @@
   },
   "ph": {
     "title": "Packing House",
-    "subtitle": "Receiving to QC-1 release (milestone M1). Counts come from the database; every action is checked on the server.",
+    "subtitle": "Receiving to finished goods in storage (milestones M1 and M2.1). Counts come from the database; every action is checked on the server.",
     "search": "Search pallet, arrival or lot code",
     "newArrival": "New arrival",
     "criticalOpen": "{{n}} critical decisions are not decided. Steps that depend on them stay blocked on a real farm.",
@@ -461,7 +475,10 @@
     "empty": {
       "arrivals": "No arrivals in this view.",
       "stage": "No pallets in this stage.",
-      "waste": "No waste records."
+      "waste": "No waste records.",
+      "jobCards": "No Job Cards at this stage.",
+      "fgPallets": "No finished pallets waiting for the QC stamp or storage.",
+      "fgStorage": "No finished pallets in storage."
     },
     "filters": {
       "title": "Filters",
@@ -540,7 +557,8 @@
       "exception": "Exception signature: {{role}}",
       "dwell": "Dwell {{d}}",
       "dwellExceeded": "Dwell limit exceeded",
-      "noTolerance": "no tolerance set (QAM review)"
+      "noTolerance": "no tolerance set (QAM review)",
+      "issuedSummary": "Open {{issued}} kg · consumed {{consumed}} kg · left {{available}} kg"
     },
     "panel": {
       "fullRecord": "Full record",
@@ -575,7 +593,8 @@
       "regradeStart": "Start regrade",
       "reweigh": "Re-weigh",
       "rma": "QA acceptance (RMA)",
-      "qc1": "QC-1 release"
+      "qc1": "QC-1 release",
+      "issue": "Issue to Job Card"
     },
     "arrivalNext": {
       "vehicle": "Inspect vehicle",
@@ -620,7 +639,9 @@
       "rma": "QA acceptance (RMA, G3)",
       "vehicle": "Vehicle inspection",
       "void_approve": "Approve void",
-      "void_request": "Request void"
+      "void_request": "Request void",
+      "issue": "Issue to a Job Card",
+      "issue_to_job_card": "Issue to a Job Card"
     },
     "evidence": {
       "C": "Documented (C)",
@@ -675,7 +696,9 @@
       "vehicle_in": "Incoming vehicle",
       "rma": "QA acceptance (RMA)",
       "recheck": "Re-check",
-      "qc1": "QC-1 release"
+      "qc1": "QC-1 release",
+      "line_start": "Line start (G5)",
+      "qc2": "QC-2 (G6)"
     },
     "wasteCategory": {
       "processed": "Processed",
@@ -798,14 +821,35 @@
       "waste_record_id": "Waste record",
       "decision_basis": "Decision basis",
       "arrival_id": "Arrival",
-      "plausibility_note": "Weight plausibility"
+      "plausibility_note": "Weight plausibility",
+      "line": "Line",
+      "grade_target": "Grade target",
+      "grade": "Grade",
+      "planned_date": "Planned date",
+      "customer_spec_ref": "Customer specification",
+      "notes": "Notes",
+      "pallet": "Incoming pallet",
+      "job_card": "Job Card",
+      "issued_kg": "kg issued",
+      "consumed_kg": "kg consumed",
+      "returned_kg": "kg returned",
+      "available_kg": "kg available to issue",
+      "packaging": "Packaging item",
+      "quantity_pc": "Quantity (pieces)",
+      "fg_output": "Finished pallets",
+      "attribution": "Lot attribution",
+      "approved_by": "Approved by",
+      "started_by": "Line started by",
+      "section": "Block / section",
+      "supplier": "Supplier"
     },
     "sodColumns": {
       "created_by": "creator",
       "maker": "maker",
       "void_requested_by": "person who requested the void",
       "regraded_by": "regrading engineer",
-      "reweighed_by": "person who re-weighed"
+      "reweighed_by": "person who re-weighed",
+      "line_start_recorder": "person who recorded the line-start check"
     },
     "actions": {
       "customer_order_create": "Create / edit / submit order lines",
@@ -959,6 +1003,35 @@
         "signed_off": "Signed off",
         "erp_posted": "ERP posted",
         "disposed": "Disposed"
+      },
+      "ph_job_card": {
+        "draft": "Draft",
+        "planned": "Planned",
+        "ready": "Ready",
+        "line_check_failed": "Line-start check failed",
+        "in_progress": "In progress",
+        "paused": "Paused",
+        "completed": "Completed",
+        "reconciled": "Reconciled",
+        "closed": "Closed",
+        "cancelled": "Cancelled"
+      },
+      "ph_fg_pallet": {
+        "created": "Created",
+        "qc_approved": "QC approved",
+        "in_storage": "In storage",
+        "allocated": "Allocated",
+        "picked": "Picked",
+        "reinspection_required": "Re-inspection required",
+        "dispatch_rejected": "Dispatch rejected",
+        "cooling": "Cooling",
+        "loaded": "Loaded",
+        "dispatched": "Dispatched",
+        "on_hold": "On hold",
+        "reworked": "Reworked",
+        "waste": "Waste",
+        "age_blocked": "Age blocked",
+        "split_merged": "Split / merged"
       }
     },
     "label": {
@@ -1056,7 +1129,8 @@
       "qc1Notice": "QC-1 releases stored pallets to production (G4). It depends on OD-17.",
       "holdTypeHint": "Food-safety holds are decided by QAM.",
       "foodSafetyQam": "Food safety: QAM decides",
-      "labelHint": "Print on A6 or a label printer; the printer model is not yet verified."
+      "labelHint": "Print on A6 or a label printer; the printer model is not yet verified.",
+      "templateSource": "Checklist from {{source}} — evidence {{evidence}}"
     },
     "reasons": {
       "afterQa": "This can no longer be changed after QA acceptance.",
@@ -1103,7 +1177,26 @@
       "v21": "Weight differs from the documented nominal ({{nominal}} kg). The tolerance is pending OD-29; confirm the weight.",
       "v23": "A rejection needs at least one photo (V-23).",
       "v26": "Re-weigh is required after regrade before the re-check.",
-      "voidAfterCheck": "A pallet can be voided only before its arrival check."
+      "voidAfterCheck": "A pallet can be voided only before its arrival check.",
+      "jc_notFound": "Job Card {{ref}} not found.",
+      "fg_notFound": "Finished pallet {{ref}} not found.",
+      "jc_lineRoute": "Line {{line}} is not allowed for this crop (allowed: {{allowed}}).",
+      "v10": "The grade must be Premium, GR1 or GR2 (V-10).",
+      "jc_state": "Not possible while the Job Card is \"{{status}}\".",
+      "jc_cancelInputs": "Only a draft or planned Job Card with no pallets issued can be cancelled.",
+      "v05": "Pallet {{pallet}} is \"{{status}}\": only pallets released by QC-1 can be issued (V-05).",
+      "jc_crop": "Pallet {{pallet}} is a different crop from the Job Card.",
+      "jc_alreadyIssued": "Pallet {{pallet}} is already issued to this Job Card.",
+      "jc_issueKg": "Issue more than 0 and at most {{available}} kg.",
+      "jc_needInputs": "Issue at least one released pallet first.",
+      "jc_needPackaging": "The store keeper has not issued packaging yet.",
+      "jc_closeAll": "Every issued pallet needs its consumed and returned kg.",
+      "jc_closeBalance": "Consumed + returned must equal the {{issued}} kg issued.",
+      "g5_notPassed": "There is no passed line-start check to confirm.",
+      "g5_pair": "The line-start check is QC and Line Leader together: the confirming person must hold the other role.",
+      "g6_notPassed": "QC-2 final inspection has not passed for {{job_card}} (G6).",
+      "fg_state": "Not possible while the pallet is \"{{status}}\".",
+      "v09": "The FG label cannot print: {{missing}} unknown (V-09)."
     },
     "decisions": {
       "title": "Open decisions & configuration",
@@ -1246,7 +1339,10 @@
         "X_01": "Open holds",
         "OD_05": "Accepted without a set tolerance (QAM review)",
         "V_03": "Late arrival today",
-        "FR_MD_06": "Weights on scales without confirmed calibration"
+        "FR_MD_06": "Weights on scales without confirmed calibration",
+        "E_09": "Line-start check failed (Job Card blocked)",
+        "E_10": "QC-2 failed — re-sort (PHM / PE)",
+        "OD_06": "QC-2 passed without a tolerance (for QA review)"
       }
     },
     "locations": {
@@ -1269,13 +1365,165 @@
     },
     "trace": {
       "title": "Trace",
-      "intro": "Backward trace from a pallet, arrival or lot code.",
-      "ref": "Pallet, arrival or lot code",
+      "intro": "Trace from a finished pallet, Job Card, incoming pallet, arrival or lot code.",
+      "ref": "FG pallet, Job Card, pallet, arrival or lot code",
       "run": "Trace",
-      "scope": "Milestone M1 reaches the source, the arrival, inspections, moves and holds. Production and dispatch links come with M2 and M3.",
+      "scope": "Back to the source and arrival; forward to Job Cards and finished pallets up to storage. Loads and customers come with dispatch (M3).",
       "pallet": "Pallet",
       "inspections": "Inspections",
-      "moves": "Moves"
+      "moves": "Moves",
+      "jobCards": "Job Cards",
+      "fgPallets": "Finished pallets",
+      "jcKg": "issued {{issued}} kg · consumed {{consumed}} kg · finished {{fg}} kg"
+    },
+    "laterIncrement": "Next increment ({{m}})",
+    "grade": {
+      "premium": "Premium",
+      "gr1": "Grade 1 (GR1)",
+      "gr2": "Grade 2 (GR2)"
+    },
+    "attribution": {
+      "exact": "Exact (line segregated)",
+      "time_window": "Time window",
+      "proportional": "Proportional to kg issued"
+    },
+    "qc2Stage": {
+      "online": "Online (during the run)",
+      "final": "Final (end of run)"
+    },
+    "inspectionResult": {
+      "pass": "Pass",
+      "fail": "Fail"
+    },
+    "jc": {
+      "new": "New Job Card",
+      "create": "Create Job Card",
+      "notFound": "Job Card not found.",
+      "gradeNotice": "The grade criteria (Premium / GR1 / GR2) are in the \"company-approved grading standards\", which have not been supplied (OD-05, OD-06). The grade is recorded as the plan states; it is not checked against a standard.",
+      "onlyApproved": "Only approved crops and lines are offered.",
+      "route": "This crop is routed to line(s) {{lines}} (Figure 4.2).",
+      "todayDefault": "Empty = today",
+      "specHint": "Optional. Without one, QC-2 is recorded as \"no tolerance set\" (OD-06).",
+      "noSpec": "None (OD-06)",
+      "issueHint": "Only pallets released by QC-1 (V-05) of the same crop. Part of a pallet may be issued; the rest stays available (GEN-04).",
+      "availableKg": "{{kg}} kg available",
+      "noReleased": "No released {{crop}} pallets with kg left. QC-1 releases them in the \"Released (QC-1)\" stage.",
+      "noJobCard": "No planned, ready or running Job Card for this crop.",
+      "issueAllHint": "Empty = all {{kg}} kg left",
+      "issue": "Issue",
+      "packagingHint": "The store keeper issues packaging to the line (SOP-PL). Packaging items and stock are not modelled yet: describe the item as issued.",
+      "issuePackaging": "Record packaging issue",
+      "lineStartHint": "Line-start check (G5): one of QC / Line Leader records it, the other confirms. The items are the product SOP's own.",
+      "lineStartPass": "Line ready",
+      "lineStartFail": "Not ready",
+      "recordLineStart": "Record line-start check",
+      "approveHint": "Approving puts the Job Card in the plan: the store keeper is asked for packaging and the Line Leader for inputs.",
+      "readyHint": "Inputs and packaging are present. QC and the Line Leader are asked for the line-start check.",
+      "confirmHint": "Confirm the line-start check {{code}} recorded by {{by}}. You must be the other of QC / Line Leader.",
+      "correctedHint": "Describe what was corrected. The line-start check is then recorded again.",
+      "qc2Photo": "QC-2 sample",
+      "qc2Notice": "No grading standard or customer tolerance has been supplied (OD-05, OD-06): the result is QC's judgement and is listed for QA review.",
+      "sampleHint": "Sample drawn, e.g. 2.5 % of units (the SOP's working example)",
+      "qc2Pass": "Pass",
+      "qc2Fail": "Fail",
+      "qc2FailHint": "A fail sends the product back to the line for re-sorting. The Packing House Manager and Production Engineer get the task (T-10); no finished pallet until a later final pass.",
+      "recordQc2": "Record QC-2",
+      "qc2Queue": "Job Cards running now. QC records online inspections during the run and a final one before finished pallets are created (G6).",
+      "qc2Failed": "QC-2 failed — re-sort",
+      "completeHint": "For every issued pallet enter the kg consumed; the rest is returned to storage and needs QC-1 release again before reuse.",
+      "massBalanceLater": "Mass balance against finished goods and waste (MB-01) and its tolerance (OD-28) come with the next increment (M2.2).",
+      "complete": "Complete Job Card",
+      "inputsSummary": "{{n}} pallets · {{kg}} kg",
+      "packagingSummary": "{{n}} issues",
+      "awaitingConfirm": "Recorded by {{by}}; second person to confirm",
+      "lineCheckFailed": "Failed — correct the line",
+      "resortQueue": "Re-sort: PHM · PE",
+      "outputSummary": "{{n}} pallets · {{kg}} kg",
+      "balanceSummary": "Consumed {{consumed}} kg · returned {{returned}} kg",
+      "noInputs": "No pallets issued yet.",
+      "packaging": "Packaging",
+      "noPackaging": "No packaging issued yet.",
+      "noInspections": "No inspections yet.",
+      "noOutput": "No finished pallets yet.",
+      "checklistFrom": "Checklist: {{source}} ({{evidence}})",
+      "noActions": "No actions are available for you on this Job Card now."
+    },
+    "jcActions": {
+      "approve": "Approve",
+      "cancel": "Cancel Job Card",
+      "issue_input": "Issue pallet",
+      "issue_packaging": "Issue packaging",
+      "mark_ready": "Mark ready",
+      "line_start_check": "Line-start check (G5)",
+      "confirm_start": "Confirm line start",
+      "line_corrected": "Line corrected",
+      "pause": "Pause",
+      "resume": "Resume",
+      "qc2": "QC-2 inspection",
+      "create_fg": "Finished pallet",
+      "complete": "Complete",
+      "reconcile": "Reconcile (MB-01)"
+    },
+    "jcStrips": {
+      "plan": "Plan",
+      "approval": "Approval",
+      "inputs": "Inputs",
+      "packaging": "Packaging",
+      "lineStart": "Line start",
+      "qc2": "QC-2",
+      "output": "Finished pallets",
+      "completion": "Completion",
+      "reconcile": "Reconciliation"
+    },
+    "jcSections": {
+      "general": "Job Card",
+      "inputs": "Inputs and packaging",
+      "quality": "Line start and QC-2",
+      "output": "Finished pallets",
+      "history": "History"
+    },
+    "fg": {
+      "created": "Finished pallet created:",
+      "another": "Another pallet",
+      "create": "Create finished pallet",
+      "notFound": "Finished pallet not found.",
+      "createHint": "Only after a QC-2 final pass (G6). The pallet number is issued by the system.",
+      "gradeHint": "A pallet not packed for an order carries a grade (V-10).",
+      "compositionHint": "Lots are attributed from the Job Card's inputs in proportion to the kg issued (GEN-05/06); the method is recorded.",
+      "labelTitle": "Finished-goods pallet",
+      "boxes": "boxes",
+      "packedOn": "Packed",
+      "labelHint": "The label prints only when every mandatory field is known (V-09). Each print is logged.",
+      "fridgeHint": "Finished-goods fridges only (F1–F4). The fridge group must match the crop (V-07).",
+      "qcApproveHint": "Your stamp starts the 24 h validity of the QC approval (SOP-GR, CP-06).",
+      "printed": "Printed {{n}}×",
+      "expired": "QC approval older than 24 h",
+      "validUntil": "Valid until",
+      "qcStamp": "QC stamp",
+      "labelPrints": "Label prints",
+      "composition": "Composition by lot",
+      "compositionNote": "Attributed from the Job Card's inputs; the method shows how certain the link is (GEN-05/06).",
+      "share": "Share",
+      "noActions": "No actions are available for you on this pallet now."
+    },
+    "fgActions": {
+      "print_label": "FG label",
+      "qc_approve": "QC stamp",
+      "move": "Move to FG fridge"
+    },
+    "fgStrips": {
+      "created": "Weighed",
+      "qc2": "QC-2 (G6)",
+      "label": "Label",
+      "stamp": "QC stamp",
+      "storage": "FG storage",
+      "dispatch": "Dispatch"
+    },
+    "fgPath": {
+      "created": "Created",
+      "qc_approved": "QC approved",
+      "in_storage": "In storage",
+      "dispatch": "Dispatch"
     }
   },
   "browserDb": {
