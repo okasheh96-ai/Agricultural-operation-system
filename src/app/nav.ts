@@ -62,6 +62,7 @@ export const OFFICE_NAV: NavItem[] = [
     visible: hasPhRole,
     children: [
       { key: 'phWorkflow', path: '/office/packing-house', labelKey: 'nav.ph.workflow', phase: 'PH-M1', built: true },
+      { key: 'phPlan', path: '/office/packing-house/plan', labelKey: 'nav.ph.plan', phase: 'PH-M2', built: true },
       { key: 'phExceptions', path: '/office/packing-house/exceptions', labelKey: 'nav.ph.exceptions', phase: 'PH-M1', built: true },
       { key: 'phTrace', path: '/office/packing-house/trace', labelKey: 'nav.ph.trace', phase: 'PH-M1', built: true },
       { key: 'phDecisions', path: '/office/packing-house/decisions', labelKey: 'nav.ph.decisions', phase: 'PH-M1', built: true },

@@ -1,9 +1,9 @@
-import type { ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { formatDateTime, type Locale } from '@/core/i18n';
 import { STATUS_STYLE, TONE_CLASS } from './stages';
-import type { Evidence } from './api';
+import { rpc, type Evidence } from './api';
 import { reasonText, type PhReason } from './phErrors';
 
 export const inputCls = 'min-h-touch w-full min-w-0 rounded border border-stone-300 bg-white px-3';
@@ -168,4 +168,21 @@ export function plausibilityText(t: TFunction, note: string | null): string {
 /** Printing works everywhere except the in-browser demo shown inside a host page, whose frame blocks the print dialog. */
 export function canPrint(): boolean {
   return !(__BROWSER_DB__ && window.self !== window.top);
+}
+
+export interface AttachmentRow { id: string; kind: string; mime_type: string; size_bytes: number; sha256: string; caption: string | null; created_at: string;
+  entity_type: string; by_name: string | null }
+
+/** A stored photo (read through ph_attachment_content); other files show an icon. */
+export function Thumb({ a }: { a: AttachmentRow }) {
+  const [src, setSrc] = useState<string | null>(null);
+  useEffect(() => {
+    if (!a.mime_type.startsWith('image/')) return;
+    let alive = true;
+    void rpc<{ mime_type: string; base64: string } | null>('ph_attachment_content', { p_id: a.id })
+      .then((r) => { if (alive && r) setSrc(`data:${r.mime_type};base64,${r.base64}`); });
+    return () => { alive = false; };
+  }, [a.id, a.mime_type]);
+  return src ? <img src={src} alt={a.caption ?? ''} className="h-28 w-40 rounded border object-cover" />
+    : <div className="flex h-28 w-40 items-center justify-center rounded border bg-stone-100 text-3xl" aria-hidden="true">📄</div>;
 }

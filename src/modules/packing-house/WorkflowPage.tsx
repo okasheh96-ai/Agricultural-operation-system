@@ -1,33 +1,20 @@
 import { useMemo, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { QueryState } from '@/core/components/QueryState';
 import {
-  db, localizedName, useArrivals, useDecisions, useFgPallets, useJobCards, useMyPhPermissions, usePallets, useStageCounts, type PalletRow,
+  localizedName, useArrivals, useDecisions, useFgChanges, useFgPallets, useJobCards, useMyPhPermissions, useOrders, usePallets, useStageCounts,
+  useWasteBoard, type PalletRow,
 } from './api';
 import { CreateArrivalForm, PrecoolScanBar } from './forms';
 import { HoldsList } from './holds';
+import { CreateOrderLineForm, OrderPanel } from './orders';
 import { ArrivalPanel, PalletPanel } from './panels';
 import { CreateJobCardForm, FgPalletPanel, JobCardPanel } from './production';
+import { FgChangePanel } from './splitmerge';
 import { STAGES, type StageKey } from './stages';
-import { ActionPanel, StatusPill, When, btnCls, inputCls, primaryBtnCls } from './ui';
-
-interface WasteRow { id: string; code: string; status: string; category: string; origin: string; reference_kg: string | null; created_at: string;
-  ph_crops: { name_ar: string; name_en: string | null } | null }
-
-function useWaste(enabled: boolean) {
-  return useQuery({
-    queryKey: ['ph', 'waste'],
-    enabled,
-    queryFn: async () => {
-      const { data, error } = await db().from('ph_waste_records').select('id, code, status, category, origin, reference_kg, created_at, ph_crops(name_ar, name_en)')
-        .is('voided_at', null).order('created_at', { ascending: false }).returns<WasteRow[]>();
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
-}
+import { ActionPanel, btnCls, inputCls, primaryBtnCls } from './ui';
+import { CreateWasteForm, WastePanel } from './waste';
 
 /**
  * Packing-house workflow dashboard (the agreed AutoScore-style layout): the stage bar is the primary navigation; each tab
@@ -45,11 +32,15 @@ export default function WorkflowPage() {
   const arrivals = useArrivals();
   const perms = useMyPhPermissions();
   const decisions = useDecisions();
-  const waste = useWaste(stage === 'waste');
+  const waste = useWasteBoard();
   const jobCards = useJobCards();
   const fgPallets = useFgPallets();
+  const orders = useOrders();
+  const fgChanges = useFgChanges();
   const [creating, setCreating] = useState(false);
   const [creatingJc, setCreatingJc] = useState(false);
+  const [creatingOrder, setCreatingOrder] = useState(false);
+  const [creatingWaste, setCreatingWaste] = useState(false);
   const [search, setSearch] = useState('');
   const [crop, setCrop] = useState('');
   const [source, setSource] = useState('');
@@ -71,12 +62,18 @@ export default function WorkflowPage() {
   const openArrivals = (arrivals.data ?? []).filter((a) => ['draft', 'vehicle_hold', 'submitted'].includes(a.status)
     && (!source || a.source_code === source) && (!date || a.arrived_at.slice(0, 10) === date));
   // Job Cards and finished pallets per tab: the same status sets ph_stage_counts counts.
-  const jcStatuses = stage === 'qc2' ? ['in_progress'] : ['draft', 'planned', 'ready', 'line_check_failed', 'in_progress', 'paused', 'completed'];
+  const jcStatuses = stage === 'qc2' ? ['in_progress'] : ['draft', 'planned', 'ready', 'line_check_failed', 'in_progress', 'paused', 'completed', 'reconciled'];
   const jcRows = (jobCards.data ?? []).filter((j) => jcStatuses.includes(j.status) && (!crop || j.crop_code === crop) && (!date || j.planned_date === date)
     && (!attentionOnly || ['line_check_failed', 'paused'].includes(j.status) || j.qc2_result === 'fail'));
   const fgStatuses = stage === 'fg_storage' ? ['in_storage'] : ['created', 'qc_approved'];
   const fgRows = (fgPallets.data ?? []).filter((f) => fgStatuses.includes(f.status) && (!crop || f.crop_code === crop) && (!date || f.created_at.slice(0, 10) === date)
     && (!attentionOnly || f.calibration_flag || f.label_print_count === 0 || (!!f.qc_valid_until && Date.parse(f.qc_valid_until) < Date.now())));
+
+  const orderRows = (orders.data ?? []).filter((o) => ['pending_acceptance', 'accepted'].includes(o.status) && (!crop || o.crop_code === crop)
+    && (!date || o.required_date === date) && (!attentionOnly || o.status === 'pending_acceptance' || (o.shortage_in_window === false)));
+  const wasteRows = (waste.data ?? []).filter((w) => !['disposed', 'returned_to_line'].includes(w.status) && (!crop || w.crop_code === crop)
+    && (!date || w.created_at.slice(0, 10) === date) && (!attentionOnly || w.top_mgmt_overdue || w.status === 'weighed'));
+  const openChanges = (fgChanges.data ?? []).filter((c) => c.status === 'requested');
 
   function find(e: FormEvent) {
     e.preventDefault();
@@ -84,7 +81,9 @@ export default function WorkflowPage() {
     const hit = all.find((p) => p.code.toUpperCase() === q) ?? all.find((p) => p.code.toUpperCase().includes(q));
     const jc = (jobCards.data ?? []).find((j) => j.code.toUpperCase() === q);
     const fg = (fgPallets.data ?? []).find((f) => f.code.toUpperCase() === q);
+    const wr = (waste.data ?? []).find((w) => w.code.toUpperCase() === q);
     if (jc) navigate(`/office/packing-house/job-cards/${jc.id}`);
+    else if (wr) navigate(`/office/packing-house/waste/${wr.id}`);
     else if (fg) navigate(`/office/packing-house/fg-pallets/${fg.id}`);
     else if (hit) navigate(`/office/packing-house/pallets/${hit.id}`);
     else if (q) navigate(`/office/packing-house/trace?ref=${encodeURIComponent(search.trim())}`);
@@ -127,12 +126,11 @@ export default function WorkflowPage() {
                     ? 'border-b-4 border-brand bg-brand-light' : 'border-b-4 border-transparent hover:bg-stone-50'} ${s.built ? '' : 'text-stone-400'}`}>
                   <span className="flex items-center gap-1.5 whitespace-nowrap text-sm font-semibold">
                     {t(`ph.stages.${s.key}`)}
-                    {s.built && s.kind !== 'waste' && (
+                    {s.built && (
                       <span className={`rounded px-1.5 text-xs font-bold ${active ? 'bg-brand text-white' : 'bg-stone-700 text-white'}`}>
                         <bdi>{s.key === 'arrivals' ? openArrivals.length : (c?.total ?? 0)}</bdi>
                       </span>
                     )}
-                    {s.kind === 'waste' && <span className="rounded bg-stone-500 px-1.5 text-xs font-bold text-white"><bdi>{waste.data?.length ?? '·'}</bdi></span>}
                     {(c?.attention ?? 0) > 0 && (
                       <span className="rounded bg-red-600 px-1.5 text-xs font-bold text-white" title={t('ph.attention')}>! <bdi>{c?.attention}</bdi></span>
                     )}
@@ -170,6 +168,24 @@ export default function WorkflowPage() {
           <p className="mt-1 text-stone-700">{t('ph.laterStage', { milestone: def.milestone })}</p>
           <p className="mt-1 text-sm text-stone-600">{t(`ph.laterWhy.${def.key}`)}</p>
         </section>
+      ) : def.kind === 'orders' ? (
+        <QueryState isLoading={orders.isLoading} error={orders.error} isEmpty={false} onRetry={() => void orders.refetch()}>
+          <div className="flex flex-wrap items-center gap-2">
+            {perms.data?.has('customer_order.create') && !creatingOrder && (
+              <button type="button" className={primaryBtnCls} onClick={() => setCreatingOrder(true)}>＋ {t('ph.order.new')}</button>
+            )}
+            <Link to="/office/packing-house/plan" className={btnCls}>📅 {t('ph.plan.title')}</Link>
+          </div>
+          {creatingOrder && (
+            <ActionPanel title={t('ph.order.new')} onClose={() => setCreatingOrder(false)}>
+              <CreateOrderLineForm onDone={() => setCreatingOrder(false)} onCancel={() => setCreatingOrder(false)} />
+            </ActionPanel>
+          )}
+          {orderRows.length === 0 && <p className="p-4 text-stone-600">{t('ph.empty.orders')}</p>}
+          <div className="flex flex-col gap-3">
+            {orderRows.map((o) => <OrderPanel key={o.id} o={o} perms={perms.data} />)}
+          </div>
+        </QueryState>
       ) : def.kind === 'arrivals' ? (
         <QueryState isLoading={arrivals.isLoading} error={arrivals.error} isEmpty={false} onRetry={() => void arrivals.refetch()}>
           {creating && (
@@ -200,36 +216,33 @@ export default function WorkflowPage() {
         </QueryState>
       ) : def.kind === 'fg' ? (
         <QueryState isLoading={fgPallets.isLoading} error={fgPallets.error} isEmpty={false} onRetry={() => void fgPallets.refetch()}>
+          {stage === 'fg_storage' && openChanges.length > 0 && (
+            <section className="flex flex-col gap-2" aria-label={t('ph.fgChange.open')}>
+              <h2 className="font-semibold">{t('ph.fgChange.open')}</h2>
+              {openChanges.map((c) => <FgChangePanel key={c.id} c={c} perms={perms.data} />)}
+            </section>
+          )}
           {fgRows.length === 0 && <p className="p-4 text-stone-600">{t(stage === 'fg_storage' ? 'ph.empty.fgStorage' : 'ph.empty.fgPallets')}</p>}
           <div className="flex flex-col gap-3">
             {fgRows.map((f) => <FgPalletPanel key={f.id} f={f} perms={perms.data} />)}
           </div>
         </QueryState>
       ) : def.kind === 'waste' ? (
-        <section className="flex flex-col gap-2">
+        <QueryState isLoading={waste.isLoading} error={waste.error} isEmpty={false} onRetry={() => void waste.refetch()}>
+          {perms.data?.has('waste.create') && !creatingWaste && (
+            <div><button type="button" className={primaryBtnCls} onClick={() => setCreatingWaste(true)}>＋ {t('ph.waste.new')}</button></div>
+          )}
+          {creatingWaste && (
+            <ActionPanel title={t('ph.waste.new')} onClose={() => setCreatingWaste(false)}>
+              <CreateWasteForm onDone={() => setCreatingWaste(false)} onCancel={() => setCreatingWaste(false)} />
+            </ActionPanel>
+          )}
           <p className="rounded border border-sky-200 bg-sky-50 px-3 py-2 text-sm text-sky-950">{t('ph.wasteNote')}</p>
-          <QueryState isLoading={waste.isLoading} error={waste.error} isEmpty={(waste.data ?? []).length === 0} emptyText={t('ph.empty.waste')}>
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[720px] border-collapse bg-white text-sm">
-                <thead><tr className="border-b bg-stone-100 text-start">
-                  <th className="p-2 text-start">{t('common.code')}</th><th className="p-2 text-start">{t('ph.fields.category')}</th>
-                  <th className="p-2 text-start">{t('ph.fields.crop_id')}</th><th className="p-2 text-start">{t('ph.fields.reference_kg')}</th>
-                  <th className="p-2 text-start">{t('ph.fields.origin')}</th><th className="p-2 text-start">{t('common.status')}</th>
-                  <th className="p-2 text-start">{t('ph.fields.created')}</th></tr></thead>
-                <tbody>
-                  {waste.data?.map((w) => (
-                    <tr key={w.id} className="border-b">
-                      <td className="p-2 font-mono"><bdi>{w.code}</bdi></td><td className="p-2">{t(`ph.wasteCategory.${w.category}`)}</td>
-                      <td className="p-2">{localizedName(i18n.language, w.ph_crops?.name_ar, w.ph_crops?.name_en)}</td>
-                      <td className="p-2"><bdi>{w.reference_kg ? `${w.reference_kg} kg` : '—'}</bdi></td><td className="p-2">{w.origin}</td>
-                      <td className="p-2"><StatusPill status={w.status} workflow="ph_waste" /></td><td className="p-2"><When iso={w.created_at} /></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </QueryState>
-        </section>
+          {wasteRows.length === 0 && <p className="p-4 text-stone-600">{t('ph.empty.waste')}</p>}
+          <div className="flex flex-col gap-3">
+            {wasteRows.map((w) => <WastePanel key={w.id} w={w} perms={perms.data} />)}
+          </div>
+        </QueryState>
       ) : (
         <QueryState isLoading={pallets.isLoading} error={pallets.error} isEmpty={false} onRetry={() => void pallets.refetch()}>
           {stage === 'precooling' && perms.data?.has('precool.record') && <PrecoolScanBar />}

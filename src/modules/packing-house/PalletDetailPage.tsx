@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -15,29 +15,16 @@ import { phErrorMessage } from './phErrors';
 import { palletStrips } from './panels';
 import { IssueForm } from './production';
 import { PALLET_PATH, formatDuration, minutesBetween, pathIndex } from './stages';
-import { ActionPanel, ErrorBox, Field, ReasonNote, StatusPill, When, auditValue, btnCls, canPrint, inputCls, plausibilityText, primaryBtnCls } from './ui';
+import {
+  ActionPanel, ErrorBox, Field, ReasonNote, StatusPill, When, auditValue, btnCls, canPrint, inputCls, plausibilityText, primaryBtnCls, Thumb, type AttachmentRow,
+} from './ui';
 
 interface HistoryRow { at: string; kind: string; from_status: string | null; to_status: string | null; actor: string | null; comment: string | null;
   permission_basis: string | null; decision_basis: string | null; changes: Record<string, { from: unknown; to: unknown }> | null }
 interface MoveRow { id: string; moved_at: string; reason: string | null; group_override_reason: string | null; over_capacity: boolean; permission_basis: string;
   from_code: string | null; to_code: string | null; by_name: string | null }
-interface AttachmentRow { id: string; kind: string; mime_type: string; size_bytes: number; sha256: string; caption: string | null; created_at: string;
-  entity_type: string; by_name: string | null }
 
 const SECTIONS = ['general', 'receiving', 'quality', 'storage', 'photos', 'history'] as const;
-
-function Thumb({ a }: { a: AttachmentRow }) {
-  const [src, setSrc] = useState<string | null>(null);
-  useEffect(() => {
-    if (!a.mime_type.startsWith('image/')) return;
-    let alive = true;
-    void rpc<{ mime_type: string; base64: string } | null>('ph_attachment_content', { p_id: a.id })
-      .then((r) => { if (alive && r) setSrc(`data:${r.mime_type};base64,${r.base64}`); });
-    return () => { alive = false; };
-  }, [a.id, a.mime_type]);
-  return src ? <img src={src} alt={a.caption ?? ''} className="h-28 w-40 rounded border object-cover" />
-    : <div className="flex h-28 w-40 items-center justify-center rounded border bg-stone-100 text-3xl" aria-hidden="true">📄</div>;
-}
 
 export default function PalletDetailPage() {
   const { id } = useParams();

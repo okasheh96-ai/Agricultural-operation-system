@@ -5,7 +5,7 @@ import en from '@/locales/en.json';
 import { OFFICE_NAV, hasPhRole, phOnly, visibleNav } from '@/app/nav';
 import type { Access } from '@/core/rbac/access';
 import { phErrorMessage, phReason } from './phErrors';
-import { FG_PATH, JOB_CARD_PATH, PALLET_PATH, STAGES, STATUS_STYLE, formatDuration, minutesBetween, pathIndex } from './stages';
+import { FG_PATH, JOB_CARD_PATH, PALLET_PATH, STAGES, STATUS_STYLE, WASTE_PATH, formatDuration, minutesBetween, pathIndex } from './stages';
 
 const lookup = (dict: unknown, key: string) => key.split('.').reduce<unknown>((o, k) => (o as Record<string, unknown> | undefined)?.[k], dict);
 
@@ -161,6 +161,64 @@ describe('packing-house production (M2.1)', () => {
     const msg = phErrorMessage(t, err({ key: 'ph.v09', missing: ['lot', 'harvest_date'] }, 'P0422'));
     expect(msg).toContain('Lot');
     expect(msg).not.toContain('harvest_date');
+  });
+});
+
+describe('packing-house waste, reconciliation, orders and split / merge (M2.2, M2.3)', () => {
+  const waste = readFileSync('supabase/migrations/20261021001600_ph_waste_reconciliation.sql', 'utf8');
+  const orders = readFileSync('supabase/migrations/20261021001700_ph_orders_plan_splitmerge.sql', 'utf8');
+  const workflow = (sql: string, code: string) => {
+    const block = new RegExp(`define_workflow\\(p_farm, '${code}',\\s*'(\\[[\\s\\S]*?\\])'`).exec(sql)?.[1] ?? '[]';
+    return (JSON.parse(block) as { code: string; en: string; ar: string }[]);
+  };
+  const actionKeys = (sql: string, fn: string) => {
+    const block = new RegExp(`function public\\.${fn}[\\s\\S]*?\\(values([\\s\\S]*?)\\) as x`).exec(sql)?.[1] ?? '';
+    return [...block.matchAll(/^\s+\('([a-z_]+)', /gm)].map((m) => m[1] ?? '');
+  };
+
+  it('labels every order-line and split / merge status as the workflow defines it, with an icon', () => {
+    for (const wf of ['ph_order_line', 'ph_fg_change']) {
+      const statuses = workflow(orders, wf);
+      expect(statuses.length).toBeGreaterThanOrEqual(3);
+      for (const st of statuses) {
+        expect(lookup(en, `ph.status.${wf}.${st.code}`)).toBe(st.en);
+        expect(lookup(ar, `ph.status.${wf}.${st.code}`)).toBe(st.ar);
+        expect(STATUS_STYLE[st.code]?.icon).toBeTruthy();
+      }
+    }
+    for (const st of Object.keys(lookup(en, 'ph.status.ph_waste') as object)) expect(STATUS_STYLE[st]?.icon).toBeTruthy();
+  });
+
+  it('names every action the server offers on a waste record, Job Card and finished pallet', () => {
+    const w = actionKeys(waste, 'ph_waste_actions');
+    const jc = actionKeys(waste, 'ph_job_card_actions');
+    const fg = actionKeys(orders, 'ph_fg_pallet_actions');
+    expect(w).toEqual(expect.arrayContaining(['qc_label', 'weigh', 'sign_off', 'erp_ref', 'dispose']));
+    expect(jc).toEqual(expect.arrayContaining(['record_waste', 'reconcile', 'close', 'reopen']));
+    expect(fg).toEqual(expect.arrayContaining(['split', 'merge', 'record_waste']));
+    for (const d of [ar, en]) {
+      for (const k of w) expect([k, typeof lookup(d, `ph.wasteActions.${k}`)]).toEqual([k, 'string']);
+      for (const k of jc) expect([k, typeof lookup(d, `ph.jcActions.${k}`)]).toEqual([k, 'string']);
+      for (const k of fg) expect([k, typeof lookup(d, `ph.fgActions.${k}`)]).toEqual([k, 'string']);
+    }
+  });
+
+  it('has a sentence for every reason key, notification and exception rule the M2.2 / M2.3 migrations raise', () => {
+    const all = waste + orders;
+    const keys = new Set([...all.matchAll(/'key', 'ph\.([A-Za-z0-9_.]+)'/g)].map((m) => (m[1] ?? '').replace(/\./g, '_')));
+    expect(keys.size).toBeGreaterThan(20);
+    for (const k of keys) for (const d of [ar, en]) expect([k, typeof lookup(d, `ph.reasons.${k}`)]).toEqual([k, 'string']);
+    const kinds = new Set([...all.matchAll(/ph_notify_role\([^;]*?'(ph_[a-z_]+_(?:due|decided|shortage|returned))'/g)].map((m) => m[1] ?? ''));
+    expect(kinds.size).toBeGreaterThanOrEqual(8);
+    for (const k of kinds) for (const d of [ar, en]) expect([k, typeof lookup(d, `notifications.kinds.${k}`)]).toEqual([k, 'string']);
+    for (const r of ['E_20', 'OD_11', 'MB_01']) for (const d of [ar, en]) expect(typeof lookup(d, `ph.exceptions.rules.${r}`)).toBe('string');
+  });
+
+  it('builds the orders and waste tabs, and names the waste and Job Card paths in both languages', () => {
+    for (const k of ['orders', 'waste'] as const) expect(STAGES.find((s) => s.key === k)?.built).toBe(true);
+    for (const s of WASTE_PATH) for (const d of [ar, en]) expect(typeof lookup(d, `ph.wastePath.${s.key}`)).toBe('string');
+    expect(JOB_CARD_PATH.some((s) => s.milestone)).toBe(false);
+    for (const g of ['balanced', 'within_tolerance', 'outside_tolerance', 'no_tolerance_set']) expect(typeof lookup(ar, `ph.mb.basis.${g}`)).toBe('string');
   });
 });
 

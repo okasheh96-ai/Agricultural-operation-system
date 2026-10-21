@@ -77,7 +77,10 @@
         "aud": "Auditor",
         "pe": "Production Engineer",
         "ll": "Line Leader",
-        "stk": "Store Keeper"
+        "stk": "Store Keeper",
+        "fin": "Finance",
+        "sal": "Sales",
+        "qcm": "QC Manager"
       }
     },
     "demoPhTitle": "Packing house roles"
@@ -126,7 +129,8 @@
       "decisions": "Open decisions",
       "matrix": "Permissions",
       "config": "Rules",
-      "master": "Master data"
+      "master": "Master data",
+      "plan": "Daily plan"
     }
   },
   "admin": {
@@ -371,7 +375,17 @@
       "ph_qc2_due": "Job Card {{code}} is running: QC-2 inspections due",
       "ph_qc2_failed": "QC-2 failed on {{code}}: re-sort the product",
       "ph_fg_ready": "QC-2 final pass on {{code}}: finished pallets can be created",
-      "ph_fg_qc_due": "Finished pallet {{code}} waits for the QC stamp"
+      "ph_fg_qc_due": "Finished pallet {{code}} waits for the QC stamp",
+      "ph_waste_qc_due": "Waste {{code}} waits for the QC label",
+      "ph_waste_weigh_due": "Waste {{code}} is labelled: weigh it",
+      "ph_waste_returned": "QC refused waste {{code}}: back to the line",
+      "ph_waste_topmgmt_due": "Long-storage waste {{code}} needs top-management approval",
+      "ph_waste_signoff_due": "Waste {{code}} waits for your sign-off",
+      "ph_waste_erp_due": "Waste {{code}} is signed off: enter the ERP reference",
+      "ph_order_line_due": "Order line {{code}} waits for acceptance",
+      "ph_order_decided": "Order line {{code}} has been accepted or rejected: open it",
+      "ph_order_shortage": "Shortage on order line {{code}}",
+      "ph_fg_change_due": "Split / merge {{code}} waits for your approval"
     },
     "openRecord": "Open record"
   },
@@ -431,7 +445,7 @@
   },
   "ph": {
     "title": "Packing House",
-    "subtitle": "Receiving to finished goods in storage (milestones M1 and M2.1). Counts come from the database; every action is checked on the server.",
+    "subtitle": "From order and receiving to finished goods in storage, waste and the mass balance (milestones M1 and M2). Counts come from the database; every action is checked on the server.",
     "search": "Search pallet, arrival or lot code",
     "newArrival": "New arrival",
     "criticalOpen": "{{n}} critical decisions are not decided. Steps that depend on them stay blocked on a real farm.",
@@ -461,7 +475,7 @@
     "overCapacity": "Over capacity (warning)",
     "exceptionPallets": "Pallets in exception",
     "exceptionBoardLink": "Open the exception board",
-    "wasteNote": "Waste records created at receiving (rejected product sent to the waste area). The waste workflow (weighing, QC approval, sign-off) is milestone M2.",
+    "wasteNote": "Waste follows SOP-WS: QC labels it before anyone weighs it (V-16); the weight decides the sign-off route (V-17) once OD-11 is decided; the creator, labeller and weigher never sign it (SoD-03).",
     "photoStorageNote": "Photos are stored in the database (max 5 MB each) until file storage is set up (VR-S01).",
     "printRecord": "Print record",
     "stepper": "Pallet stages",
@@ -475,10 +489,11 @@
     "empty": {
       "arrivals": "No arrivals in this view.",
       "stage": "No pallets in this stage.",
-      "waste": "No waste records.",
+      "waste": "No open waste records.",
       "jobCards": "No Job Cards at this stage.",
       "fgPallets": "No finished pallets waiting for the QC stamp or storage.",
-      "fgStorage": "No finished pallets in storage."
+      "fgStorage": "No finished pallets in storage.",
+      "orders": "No open order lines."
     },
     "filters": {
       "title": "Filters",
@@ -528,7 +543,7 @@
       "within": "Within tolerance"
     },
     "laterWhy": {
-      "orders": "Orders and production plans (ST-00) depend on OD-21 and are built in M2.",
+      "orders": "Order lines are entered by Sales and accepted by PH management.",
       "production": "Job cards, line checks and grading (ST-08) are built in M2.",
       "qc2": "QC-2 release of finished goods (ST-09) is built in M2.",
       "fg_pallets": "Finished-goods pallets (ST-10) are built in M2.",
@@ -841,7 +856,22 @@
       "approved_by": "Approved by",
       "started_by": "Line started by",
       "section": "Block / section",
-      "supplier": "Supplier"
+      "supplier": "Supplier",
+      "bags": "Bags",
+      "customer_name": "Customer",
+      "erp_ref": "ERP reference",
+      "explanation": "Explanation of the variance",
+      "forecast_ref": "Forecast reference",
+      "market_type": "Market",
+      "order_line": "Order line",
+      "pack_spec": "Pack specification",
+      "quantity": "Quantity",
+      "quantity_unit": "Unit",
+      "required_date": "Required date",
+      "route": "Sign-off route",
+      "route_basis": "Route basis",
+      "source": "Source",
+      "source_type": "Source type"
     },
     "sodColumns": {
       "created_by": "creator",
@@ -849,7 +879,9 @@
       "void_requested_by": "person who requested the void",
       "regraded_by": "regrading engineer",
       "reweighed_by": "person who re-weighed",
-      "line_start_recorder": "person who recorded the line-start check"
+      "line_start_recorder": "person who recorded the line-start check",
+      "qc_by": "person who labelled the waste",
+      "weighed_by": "person who weighed the waste"
     },
     "actions": {
       "customer_order_create": "Create / edit / submit order lines",
@@ -1032,6 +1064,17 @@
         "waste": "Waste",
         "age_blocked": "Age blocked",
         "split_merged": "Split / merged"
+      },
+      "ph_order_line": {
+        "pending_acceptance": "Pending acceptance",
+        "accepted": "Accepted",
+        "rejected": "Rejected",
+        "cancelled": "Cancelled"
+      },
+      "ph_fg_change": {
+        "requested": "Requested",
+        "approved": "Approved and done",
+        "rejected": "Rejected"
       }
     },
     "label": {
@@ -1196,7 +1239,31 @@
       "g5_pair": "The line-start check is QC and Line Leader together: the confirming person must hold the other role.",
       "g6_notPassed": "QC-2 final inspection has not passed for {{job_card}} (G6).",
       "fg_state": "Not possible while the pallet is \"{{status}}\".",
-      "v09": "The FG label cannot print: {{missing}} unknown (V-09)."
+      "v09": "The FG label cannot print: {{missing}} unknown (V-09).",
+      "fg_changePending": "A split or merge is already waiting for approval for this pallet.",
+      "fg_mergeCount": "A merge takes two or more finished pallets.",
+      "fg_mergeJobCards": "Pallets from different Job Cards are not merged.",
+      "fg_splitChildren": "A split makes two or more pallets, each with boxes and kg above zero.",
+      "fg_splitSum": "The new pallets must add up to {{boxes}} boxes and {{kg}} kg.",
+      "fg_versionOld": "This pallet was created before split / merge was built and keeps its original workflow.",
+      "mb_explain": "Explain the variance of {{variance}} kg: no approved tolerance covers it.",
+      "mb_wastePending": "{{count}} waste record(s) of this Job Card are not weighed yet.",
+      "order_hasJobCards": "Job Cards are planned for this order line.",
+      "order_notAccepted": "Production is planned for an accepted order line only (now \"{{status}}\").",
+      "order_notFound": "Order line {{ref}} not found.",
+      "order_pastDate": "The required date is in the past.",
+      "order_state": "Not possible while the order line is \"{{status}}\".",
+      "requestReused": "This form was already sent for a different request. Reload the page and try again.",
+      "v16": "Waste is weighed only after the QC waste label (V-16).",
+      "v22": "The pallets differ in crop, grade, customer or storage group (V-22).",
+      "waste_erpDuplicate": "ERP reference {{ref}} is already on another waste record: check it.",
+      "waste_notFound": "Waste record {{ref}} not found.",
+      "waste_packagingLater": "Packaging waste is counted by the warehouse (FR-WS-06), a later increment.",
+      "waste_phmLast": "This record started before the current waste workflow: the PHM signs last.",
+      "waste_photos": "Long-storage waste needs photos (SOP-WS).",
+      "waste_roleSigned": "Role {{role}} has already signed this record.",
+      "waste_source": "Source {{ref}} not found (a Job Card must be running, paused or completed).",
+      "waste_state": "Not possible while the waste record is \"{{status}}\"."
     },
     "decisions": {
       "title": "Open decisions & configuration",
@@ -1342,7 +1409,10 @@
         "FR_MD_06": "Weights on scales without confirmed calibration",
         "E_09": "Line-start check failed (Job Card blocked)",
         "E_10": "QC-2 failed — re-sort (PHM / PE)",
-        "OD_06": "QC-2 passed without a tolerance (for QA review)"
+        "OD_06": "QC-2 passed without a tolerance (for QA review)",
+        "E_20": "Long-storage waste: top-management approval overdue",
+        "OD_11": "Weighed waste waiting for OD-11 (sign-off route)",
+        "MB_01": "Job Card variance without an approved tolerance (last 7 days)"
       }
     },
     "locations": {
@@ -1374,7 +1444,13 @@
       "moves": "Moves",
       "jobCards": "Job Cards",
       "fgPallets": "Finished pallets",
-      "jcKg": "issued {{issued}} kg · consumed {{consumed}} kg · finished {{fg}} kg"
+      "jcKg": "issued {{issued}} kg · consumed {{consumed}} kg · finished {{fg}} kg",
+      "waste": "Waste",
+      "balances": "Quantity balances (MB-02, MB-03)",
+      "balancesNote": "From recorded quantities only. Farm dispatch weights are not captured (OD-01, CP-02); weight loss is not deducted (OD-28).",
+      "lotLine": "accepted {{accepted}} · consumed {{consumed}} · in production {{prod}} · in stock {{stock}} · raw waste {{waste}} · in finished pallets {{fg}} kg",
+      "unexplained": "unexplained {{kg}} kg",
+      "arrivalLine": "registered {{registered}} · accepted {{accepted}} · returned {{returned}} · rejected to waste {{waste}} · removed in regrade {{regrade}} · undecided {{undecided}} kg"
     },
     "laterIncrement": "Next increment ({{m}})",
     "grade": {
@@ -1446,7 +1522,10 @@
       "noInspections": "No inspections yet.",
       "noOutput": "No finished pallets yet.",
       "checklistFrom": "Checklist: {{source}} ({{evidence}})",
-      "noActions": "No actions are available for you on this Job Card now."
+      "noActions": "No actions are available for you on this Job Card now.",
+      "closeHint": "Close the reconciled Job Card. Reopening waits on OD-15.",
+      "reconciledBy": "Reconciled by {{by}}",
+      "waste": "Waste from this Job Card"
     },
     "jcActions": {
       "approve": "Approve",
@@ -1462,7 +1541,10 @@
       "qc2": "QC-2 inspection",
       "create_fg": "Finished pallet",
       "complete": "Complete",
-      "reconcile": "Reconcile (MB-01)"
+      "reconcile": "Reconcile (MB-01)",
+      "record_waste": "Record waste",
+      "close": "Close Job Card",
+      "reopen": "Reopen"
     },
     "jcStrips": {
       "plan": "Plan",
@@ -1480,7 +1562,8 @@
       "inputs": "Inputs and packaging",
       "quality": "Line start and QC-2",
       "output": "Finished pallets",
-      "history": "History"
+      "history": "History",
+      "balance": "Mass balance and waste"
     },
     "fg": {
       "created": "Finished pallet created:",
@@ -1504,12 +1587,19 @@
       "composition": "Composition by lot",
       "compositionNote": "Attributed from the Job Card's inputs; the method shows how certain the link is (GEN-05/06).",
       "share": "Share",
-      "noActions": "No actions are available for you on this pallet now."
+      "noActions": "No actions are available for you on this pallet now.",
+      "lineage": "Split and merge",
+      "madeFrom": "Made from:",
+      "becameInto": "Became:",
+      "stampFrom": "QC stamp carried from {{code}}"
     },
     "fgActions": {
       "print_label": "FG label",
       "qc_approve": "QC stamp",
-      "move": "Move to FG fridge"
+      "move": "Move to FG fridge",
+      "split": "Split",
+      "merge": "Merge",
+      "record_waste": "Record waste"
     },
     "fgStrips": {
       "created": "Weighed",
@@ -1524,6 +1614,193 @@
       "qc_approved": "QC approved",
       "in_storage": "In storage",
       "dispatch": "Dispatch"
+    },
+    "waste": {
+      "new": "Record waste",
+      "create": "Record and send to QC",
+      "createHint": "Record waste from where it came from. QC labels it before it is weighed (V-16). Long-storage waste needs photos (SOP-WS).",
+      "packagingLater": "counted by the warehouse, later increment",
+      "weightLossOd": "needs OD-28",
+      "sourceHint": {
+        "job_card": "Job Card code (running, paused or completed)",
+        "fg_pallet": "Finished pallet code",
+        "incoming_pallet": "Incoming pallet code",
+        "location": "Store or fridge code (e.g. HF)"
+      },
+      "referenceHint": "Estimate only; the weight is taken after the QC label",
+      "photoCaption": "Waste photo",
+      "submitHint": "Send this record to QC for the waste label.",
+      "qcHint": "Approve the waste label, or refuse it: the product goes back to the line with your reason.",
+      "qcApprove": "Approve label",
+      "qcRefuse": "Refuse (back to line)",
+      "weighHint": "Weigh after the QC label. The route to sign-off follows from the weight once OD-11 is decided.",
+      "weighed": "Weighed: {{kg}} kg.",
+      "routeHint": "Route the weighed record to its sign-off now that OD-11 is decided.",
+      "routeBlocked": "Blocked: OD-11 open",
+      "topMgmtHint": "Long-storage waste of {{kg}} kg: top management approval first (SOP-WS).",
+      "topMgmtOverdue": "Top-management approval overdue (E-20)",
+      "signHint": "Route: {{route}}. Signatures needed: {{roles}}. You cannot sign a record you created, labelled or weighed.",
+      "signersLeft": "Still to sign: {{roles}}",
+      "erpHint": "Enter the ERP reference of the waste posting. The ERP is not connected (OD-04): the reference is typed.",
+      "erpSaved": "ERP reference {{ref}} saved.",
+      "disposeHint": "Record that the waste has left the site.",
+      "signoffs": "Sign-offs (V-17)",
+      "signoffNote": "One signature per role and per person; the creator, QC labeller and weigher cannot sign (SoD-03).",
+      "noSignoffs": "No signatures yet.",
+      "required": "Required: {{roles}}",
+      "notFound": "Waste record not found.",
+      "noActions": "No action is open on this record.",
+      "notWeighed": "not weighed"
+    },
+    "wasteActions": {
+      "submit": "Send to QC",
+      "qc_label": "QC waste label (G7)",
+      "weigh": "Weigh",
+      "route": "Route to sign-off",
+      "top_mgmt": "Top-management approval",
+      "sign_off": "Sign off",
+      "erp_ref": "ERP reference",
+      "dispose": "Disposed"
+    },
+    "wasteStrips": {
+      "recorded": "Recorded",
+      "qc": "QC label",
+      "weigh": "Weighing",
+      "route": "Route (V-17)",
+      "topMgmt": "Top management",
+      "signOff": "Sign-off",
+      "erp": "ERP",
+      "disposal": "Disposal"
+    },
+    "wasteRoute": {
+      "small": "Small: PHM signs",
+      "large": "Large: all signatories",
+      "top_mgmt": "Top management, then all signatories"
+    },
+    "wasteSource": {
+      "job_card": "Job Card (line)",
+      "fg_pallet": "Finished pallet",
+      "incoming_pallet": "Incoming pallet",
+      "location": "Store / fridge"
+    },
+    "wastePath": {
+      "awaiting_qc": "QC label",
+      "qc_approved": "Labelled",
+      "weighed": "Weighed",
+      "awaiting_sign_off": "Sign-off",
+      "signed_off": "Signed off",
+      "erp_posted": "ERP posted",
+      "disposed": "Disposed"
+    },
+    "mb": {
+      "hint": "MB-01 from the recorded quantities. Nothing is forced to balance.",
+      "note": "Issued − returned = consumed; consumed − finished − weighed waste = variance. A split or merged pallet is counted once.",
+      "noTolerance": "No mass-balance tolerance is approved (OD-28): any variance needs an explanation and is listed for review.",
+      "explainHint": "Required: the variance is not zero and no approved tolerance covers it.",
+      "issued_kg": "Issued",
+      "returned_kg": "Returned",
+      "consumed_kg": "Consumed",
+      "fg_kg": "Finished pallets",
+      "waste_kg": "Weighed waste",
+      "variance": "Unexplained variance",
+      "tolerance": "Tolerance",
+      "tolerancePending": "Not set (OD-28)",
+      "wastePending": "Waste records not yet weighed",
+      "recorded": "Reconciled: {{basis}} · variance {{kg}} kg · by {{by}}",
+      "basis": {
+        "balanced": "Balanced",
+        "within_tolerance": "Within tolerance",
+        "outside_tolerance": "Outside tolerance (explained)",
+        "no_tolerance_set": "No tolerance set (explained)"
+      }
+    },
+    "split": {
+      "hint": "Enter the new pallets. Together they must hold the pallet's {{boxes}} boxes and {{kg}} kg. Nothing changes until the PHM approves.",
+      "add": "Add a pallet",
+      "remove": "Remove",
+      "request": "Request split",
+      "total": "Entered {{boxes}} boxes · {{kg}} kg of {{pboxes}} · {{pkg}} kg"
+    },
+    "merge": {
+      "hint": "Merge pallets in storage from the same Job Card, crop, grade and customer (V-22). The PHM approves.",
+      "none": "No other pallet in storage can be merged with this one.",
+      "with": "Merge with",
+      "request": "Request merge"
+    },
+    "fgChange": {
+      "open": "Split / merge requests waiting for the PHM",
+      "kind": {
+        "split": "Split",
+        "merge": "Merge"
+      },
+      "decide": "Decide",
+      "approve": "Approve",
+      "reject": "Reject",
+      "decideHint": "Approval closes the pallets and creates the new ones with the same QC stamp, location and composition. You cannot decide your own request.",
+      "from": "From",
+      "into": "Into",
+      "onePallet": "One pallet",
+      "requestedBy": "Requested by",
+      "decidedBy": "Decided by {{by}}"
+    },
+    "order": {
+      "new": "New order line",
+      "create": "Enter order line",
+      "notice": "The customer is entered as Sales gives it: there is no customer master yet (FR-MD-04) and who owns customer specifications is OD-06. The order source and format are OD-37.",
+      "specHint": "Reference of the customer specification, if any",
+      "packHint": "As Sales states it (e.g. punnet size)",
+      "unit": {
+        "kg": "kg",
+        "pc": "boxes"
+      },
+      "decideHint": "Accept the line, or reject it with a reason (SOP-FC).",
+      "accept": "Accept",
+      "reject": "Reject",
+      "amendHint": "An amendment returns an accepted line to \"Pending acceptance\".",
+      "cancelHint": "A line with planned Job Cards cannot be cancelled.",
+      "shortageHint": "Tell Sales and Logistics about a shortage. SOP-FC asks for it {{hours}} h before the required date.",
+      "planHint": "The Job Card takes {{crop}} and {{grade}} from the order line. The PHM approves it as any Job Card.",
+      "stock": "Stock (no order line)",
+      "trace": "Trace",
+      "ordered": "Ordered {{q}} {{unit}}",
+      "packedSummary": "{{n}} pallets · {{boxes}} boxes · {{kg}} kg",
+      "inWindow": "Notice given in time",
+      "lateNotice": "Notice later than SOP-FC asks"
+    },
+    "orderActions": {
+      "decide": "Accept / reject",
+      "amend": "Amend",
+      "cancel": "Cancel line",
+      "shortage": "Shortage notice",
+      "plan": "Plan Job Card"
+    },
+    "orderStrips": {
+      "entered": "Entered",
+      "decision": "Acceptance",
+      "production": "Job Cards",
+      "packed": "Packed",
+      "shortage": "Shortage",
+      "dispatch": "Dispatch"
+    },
+    "market": {
+      "export": "Export",
+      "local": "Local",
+      "retail": "Retail",
+      "lss": "LSS"
+    },
+    "plan": {
+      "title": "Daily production plan",
+      "intro": "Open order lines, Job Cards by line, raw stock (oldest first) and finished stock for the day. Plans are made by creating Job Cards, which the PHM approves.",
+      "lines": "Lines",
+      "noJobCards": "No Job Card planned.",
+      "orders": "Order lines due",
+      "notPlanned": "not planned",
+      "rawStock": "Raw stock (QC-1 released or stored)",
+      "rawLine": "released {{released}} kg · stored {{stored}} kg · {{n}} pallets · oldest {{age}} h",
+      "rawNote": "Stored pallets need QC-1 release before they are issued.",
+      "fgStock": "Finished stock in storage",
+      "fgLine": "{{n}} pallets · {{boxes}} boxes · {{kg}} kg",
+      "none": "None."
     }
   },
   "browserDb": {

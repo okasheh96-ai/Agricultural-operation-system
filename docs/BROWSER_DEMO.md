@@ -1,4 +1,4 @@
-# In-browser demo (packing house M1 + M2.1)
+# In-browser demo (packing house M1 + M2)
 
 A way to open and use the application from a link, on a phone or laptop, with nothing installed and no server. It is a
 **demo**, not a deployment.
@@ -17,7 +17,8 @@ A way to open and use the application from a link, on a phone or laptop, with no
   - `src/browser-db/gotrue.ts` answers the sign-in calls.
   - Neither decides anything itself. Unsupported request shapes are refused with an error, not guessed.
 - On the first visit, the time-based demo records are created by the same seeds the local stack uses, so their timers start
-  then (`demo_tasks.sql`, `demo_packing_house.sql`, `demo_packing_house_production.sql`).
+  then (`demo_tasks.sql`, `demo_packing_house.sql`, `demo_packing_house_production.sql`, `demo_packing_house_m2.sql`; the last
+  records OD-11 as a labelled demo assumption so waste sign-off can be tried).
 - Data is kept in that browser (IndexedDB), written before each request answers. "Reset demo data" (bottom corner) starts over.
 
 ## How it differs from a real deployment
@@ -38,7 +39,7 @@ placeholders.
 
 ```bash
 node scripts/build-browser-demo.mjs                        # .local/browser-demo/{site,standalone,preview}
-npx playwright test -c playwright.browserdb.config.ts     # 7 tests, iPhone size, CSP like the artifact host's
+npx playwright test -c playwright.browserdb.config.ts     # 9 tests, iPhone size, CSP like the artifact host's
 node scripts/serve-browser-demo.mjs 4175                   # http://127.0.0.1:4175 (BROWSER_DEMO_CSP=artifact-wasm to mimic the host)
 ```
 
@@ -51,10 +52,14 @@ node scripts/serve-browser-demo.mjs 4175                   # http://127.0.0.1:41
 **What the host must allow:** WebAssembly. Under a policy without `wasm-unsafe-eval`, the page shows "The demo database could
 not start", with the browser's reason (tested).
 
-**Tests:** `tests/e2e/browserdb/packing-house.spec.ts`, `tests/e2e/browserdb/production.spec.ts`
+**Tests:** `tests/e2e/browserdb/packing-house.spec.ts`, `production.spec.ts`, `m2.spec.ts`, `session.spec.ts`
 - Moves one pallet from arrival to QC-1 release through five demo roles, reloading between them.
 - Takes a Job Card from plan to a finished pallet in a finished-goods fridge through six roles (partial issue, failed and
   corrected line start, QC-2 final pass, FG label, QC stamp, completion) and traces it back; checks no sideways scroll at phone width.
+- M2 (`m2.spec.ts`): waste from the QC label to weighing, sign-off, ERP reference and disposal; the Job Card mass balance
+  (1.9 kg variance, explanation required without a tolerance), reconciliation and closing; an order line (a refused past date
+  corrected and sent again, a double tap creating one line), accepted, planned as a Job Card; a finished pallet split approved by
+  the manager and traced back through the split; the daily plan.
 - Checks the board, English and a read-only auditor.
 - Runs the app inside a cross-origin sandboxed frame.
 - A sign-in kept from an earlier demo version is dropped when the new version replaces the database (`session.spec.ts`);

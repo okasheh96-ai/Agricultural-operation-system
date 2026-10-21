@@ -1,6 +1,6 @@
 # Traceability index — PH-OAS-SPEC-001 v0.1
 
-Generated 2026-10-19 from the specification (read in full). Milestone plan: `docs/BUILD_ASSESSMENT.md` §3. Updated 2026-10-21 at the end of increment M2.1 (production → QC-2 → finished pallets in storage). Migrations: `001000` engine/config, `001100` master data, `001200` receiving, `001300` read models, `001400` view grants, `001500` production. UI: `src/modules/packing-house/`. Product SOPs (draft 001) and the QC Function charter supply the line-start and QC-2 checklists.
+Generated 2026-10-19 from the specification (read in full). Milestone plan: `docs/BUILD_ASSESSMENT.md` §3. Updated 2026-10-21 at the end of M2 (M2.1 production → QC-2 → finished pallets; M2.2 waste and Job Card reconciliation; M2.3 orders, daily plan, split / merge). Migrations: `001000` engine/config, `001100` master data, `001200` receiving, `001300` read models, `001400` view grants, `001500` production, `001600` waste and reconciliation, `001700` orders, plan, split / merge, `001800` read-model fixes. UI: `src/modules/packing-house/`. Product SOPs (draft 001) and the QC Function charter supply the line-start and QC-2 checklists. Browser tests: `browserdb:name` = `tests/e2e/browserdb/name.spec.ts`. Open decisions OD-01…OD-17 reviewed in `docs/packing-house/OD_REVIEW_M2.md`.
 
 Status: **Done** = data model, server rules, permissions, audit, UI and tests in place for the stated scope · **Partial** = see note · **Gated** = built but refused until the named open decision is recorded · **Planned** = not built yet (milestone shown) · **Blocked** = cannot be built without the decision or input named.
 Tests: `pgtap:NN` = `supabase/tests/pgtap/NN_*.sql` · `e2e:name` = `tests/e2e/stack/name.spec.ts` · `unit:path` = Vitest.
@@ -12,7 +12,7 @@ Tests: `pgtap:NN` = `supabase/tests/pgtap/NN_*.sql` · `e2e:name` = `tests/e2e/s
 | FR-MD-01 | Crop master | PH-MD | M1 | Done | ph_crops (versioned), ph_save_master / ph_approve_master; Master data page | pgtap:15 | SOP crop list loaded as Not Yet Verified until approved; Blocky crop gated by OD-30 |
 | FR-MD-02 | Location master (capacity, storage group, occupancy) | PH-MD | M1 | Done | ph_locations + ph_location_occupancy; Location board | pgtap:15, e2e:packing-house | Capacities not in sources stay "Not Yet Verified" |
 | FR-MD-03 | Quality parameter sets (versioned, maker-checker) | PH-MD | M1 | Partial | ph_storage_groups (QAM, maker-checker), inspection templates | pgtap:15 | No quality parameter values exist in the sources (VR E34); none invented |
-| FR-MD-04 | Customers & customer specifications | PH-MD | M2 | Planned |  |  |  |
+| FR-MD-04 | Customers & customer specifications | PH-MD | M2 | Partial | Customer named as free text on order lines; customer specification as a reference | pgtap:18 | No customer master or specification owner (OD-06, VR-PH-C28) |
 | FR-MD-05 | Sources (blocks/sections, suppliers) | PH-MD | M1 | Done | ph_sources (own-farm block/section or supplier), ph_varieties | pgtap:15, e2e:packing-house |  |
 | FR-MD-06 | Equipment & calibration | PH-MD | M1 | Partial | ph_equipment.calibration_due_on; weights flagged; exception rule FR-MD-06 | pgtap:15 | Calibration dates unknown (VR-PH-E04) so every weight is flagged |
 | FR-MD-07 | Rule parameters (effective-dated) | PH-CFG | M1 | Done | ph_rule_parameters (versioned, source, label); Rules page | pgtap:14 | Pending values shown as Not Yet Verified with their OD |
@@ -22,10 +22,10 @@ Tests: `pgtap:NN` = `supabase/tests/pgtap/NN_*.sql` · `e2e:name` = `tests/e2e/s
 | FR-AC-04 | Electronic signature (PIN) | PH-AU | M4 | Planned |  |  |  |
 | FR-AC-05 | Access review | PH-ACL | M4 | Planned |  |  |  |
 | FR-AC-06 | Fast user switching on shared devices | PH-ACL | M4 | Planned |  |  |  |
-| FR-PL-01 | Record order lines | PH-PL | M2 | Planned |  |  |  |
-| FR-PL-02 | Accept / reject order lines | PH-PL | M2 | Planned |  |  |  |
-| FR-PL-03 | Daily plan view | PH-PL | M2 | Planned |  |  |  |
-| FR-PL-04 | Shortage notification | PH-PL | M2 | Planned |  |  |  |
+| FR-PL-01 | Record order lines | PH-PL | M2 | Done | ph_create_order_line (SAL, C): customer, crop, grade, pack spec, quantity kg / boxes, required date, market; New order line form | pgtap:18, e2e:m2, browserdb:m2 | Order source and format OD-37; free-text customer (VR-PH-C28) |
+| FR-PL-02 | Accept / reject order lines | PH-PL | M2 | Done | ph_decide_order_line (PHM, C; reason on reject); amend returns to Pending, cancel with reason (P cells) | pgtap:18, e2e:m2, browserdb:m2 | A line with planned Job Cards cannot be cancelled |
+| FR-PL-03 | Daily plan view | PH-PL | M2 | Done | ph_daily_plan; Daily plan page (open lines, Job Cards by line, raw stock oldest first, finished stock) | pgtap:18, e2e:m2, browserdb:m2 | Read-only; plans are made as Job Cards. Line rates not used (OD-40) |
+| FR-PL-04 | Shortage notification | PH-PL | M2 | Done | ph_flag_shortage (PHM): notifies Sales and Logistics, records whether the 24 h local / 48 h export window was met | pgtap:18 | Retail and LSS use the local window (VR-PH-C29) |
 | FR-RC-01 | Create arrival | PH-RC | M1 | Done | ph_create_arrival; New arrival form | pgtap:15, e2e:packing-house |  |
 | FR-RC-02 | Incoming vehicle inspection & exception | PH-RC | M1 | Done | ph_record_vehicle_inspection, ph_vehicle_exception_decide (PHM+QAM+TOP) | pgtap:15 (T-05), e2e:packing-house | Inspector role OD-38; SOP-TR checklist content missing (VR-PH-E01) |
 | FR-RC-03 | Register incoming pallet | PH-RC | M1 | Gated | ph_register_pallet; Register pallet form | pgtap:15, e2e:packing-house | Refused on a real farm until OD-01 = B and OD-03 = A are recorded |
@@ -46,26 +46,26 @@ Tests: `pgtap:NN` = `supabase/tests/pgtap/NN_*.sql` · `e2e:name` = `tests/e2e/s
 | FR-ST-05 | Location board | PH-ST | M1 | Done | ph_location_occupancy; Location board | pgtap:15, e2e:packing-house |  |
 | FR-ST-06 | Fridge group assignment | PH-ST | M1 | Done | ph_set_location_group (reason when occupied); Location board | pgtap:15 |  |
 | FR-ST-07 | Customer crates & LSS boxes | PH-ST | M3 | Planned |  |  |  |
-| FR-PR-01 | Create & approve Job Card | PH-PR | M2 | Gated | ph_create_job_card (PE/PHM), ph_approve_job_card / ph_cancel_job_card (PHM); route check (Figure 4.2) | pgtap:16, e2e:production | Cells are proposals (OD-15): refused on a real farm until the owner approves them; order lines come with ST-00 (M2.3) |
+| FR-PR-01 | Create & approve Job Card | PH-PR | M2 | Gated | ph_create_job_card (PE/PHM), ph_approve_job_card / ph_cancel_job_card (PHM); route check (Figure 4.2) | pgtap:16, pgtap:18, e2e:production, e2e:m2, browserdb:m2 | Cells are proposals (OD-15): refused on a real farm until the owner approves them. Job Card for an accepted order line: ph_create_job_card_for_order (V-10) |
 | FR-PR-02 | Issue inputs | PH-PR | M2 | Done | ph_issue_to_job_card: QC-1 released pallets, same crop, partial kg (available kg tracked) | pgtap:16 (T-08), e2e:production | Issue allowed from Planned (VR-PH-C13); PHO not in the §6.3 cell (VR-PH-C19) |
 | FR-PR-03 | Packaging issue reference | PH-PR | M2 | Partial | ph_issue_packaging (STK): item description + quantity (pc) | pgtap:16 | No packaging master, stock or ERP removal (WHM) yet |
 | FR-PR-04 | Run control | PH-PR | M2 | Done | Ready (inputs + packaging), start via G5, pause/resume with reason, complete | pgtap:16, e2e:production |  |
 | FR-PR-05 | Record outputs | PH-PR | M2 | Done | ph_create_fg_pallet from a running Job Card after G6; composition by lot | pgtap:16, e2e:production |  |
-| FR-PR-06 | Mass balance | PH-PR | M2 | Planned |  |  | M2.2: MB-01 needs waste records and the tolerance OD-28 |
-| FR-PR-07 | Rework Job Card | PH-PR | M2 | Planned |  |  |  |
-| FR-PR-08 | Customer deviation | PH-PR | M2 | Planned |  |  |  |
+| FR-PR-06 | Mass balance | PH-PR | M2 | Partial | ph_jc_balance (live MB-01), ph_reconcile_job_card, ph_close_job_card; balance section on the Job Card | pgtap:17, pgtap:18, browserdb:m2 | No approved tolerance (OD-28): every variance needs an explanation and is listed (VR-PH-C25); unweighed waste blocks reconciliation |
+| FR-PR-07 | Rework Job Card | PH-PR | M2 | Planned |  |  | Not built: rework of held product (hold disposition "rework" refused since M1) |
+| FR-PR-08 | Customer deviation | PH-PR | M2 | Planned |  |  | Not built: needs customer specifications (OD-06) and the deviation.create SAL cell (NYV, VR-PH-E05) |
 | FR-FG-01 | Create FG pallet | PH-FG | M2 | Done | ph_create_fg_pallet: FGP-YYMMDD-NNNNN, grade (V-10), box count, net kg, scale, calibration flag | pgtap:16, e2e:production | Plausibility not checked until OD-29 |
 | FR-FG-02 | Print FG label | PH-FG | M2 | Partial | ph_print_fg_label: §7.3 fields, blocked when one is missing (V-09); prints logged | pgtap:16, e2e:production | Barcode type OD-20; printer OD-24 |
 | FR-FG-03 | QC validity | PH-FG | M2 | Partial | QC stamp (QCI) starts the 24 h validity; shown on board and record | pgtap:16 | Enforcement at load scan (V-11) is M3 |
-| FR-FG-04 | Split pallet | PH-FG | M2 | Planned |  |  |  |
-| FR-FG-05 | Merge pallets | PH-FG | M2 | Planned |  |  |  |
-| FR-FG-06 | Relabel / void label | PH-FG | M2 | Planned |  |  |  |
-| FR-WS-01 | Create waste record | PH-WS | M2 | Planned |  |  |  |
-| FR-WS-02 | QC waste approval | PH-WS | M2 | Planned |  |  |  |
-| FR-WS-03 | Sign-off routing | PH-WS | M2 | Planned |  |  |  |
-| FR-WS-04 | ERP reference capture | PH-WS | M2 | Planned |  |  |  |
-| FR-WS-05 | Weight-loss adjustment | PH-WS | M2 | Planned |  |  |  |
-| FR-WS-06 | Packaging waste count | PH-WS | M2 | Planned |  |  |  |
+| FR-FG-04 | Split pallet | PH-FG | M2 | Gated | ph_request_fg_split (PHO) → ph_decide_fg_change (PHM, different person); children inherit QC stamp, location, composition pro rata | pgtap:18, browserdb:m2 | Cells are proposals: refused on a real farm until approved |
+| FR-FG-05 | Merge pallets | PH-FG | M2 | Gated | ph_request_fg_merge (V-22) → ph_decide_fg_change | pgtap:18 | Same Job Card only (VR-PH-C26); cells are proposals |
+| FR-FG-06 | Relabel / void label | PH-FG | M2 | Planned |  |  | Not built: relabel / void label |
+| FR-WS-01 | Create waste record | PH-WS | M2 | Done | ph_create_waste_record (DEC): category, source (Job Card, finished pallet, incoming pallet, store), photos for long storage; Record waste form | pgtap:17, e2e:m2, browserdb:m2 | PHO cell NYV without a named decision (VR-PH-E05) |
+| FR-WS-02 | QC waste approval | PH-WS | M2 | Done | ph_waste_qc (QCI): approve the label or refuse (back to the line); labeller ≠ creator | pgtap:17, e2e:m2, browserdb:m2 |  |
+| FR-WS-03 | Sign-off routing | PH-WS | M2 | Gated | ph_waste_route (V-17): small (PHM), large (PHM, WHM, FIN; QCM / QAM after OD-11), long storage over the threshold → top management first; ph_waste_signoff | pgtap:17, e2e:m2, browserdb:m2 | Routing refused until OD-11 is recorded; each record routed on its own weight (VR-PH-C21) |
+| FR-WS-04 | ERP reference capture | PH-WS | M2 | Done | ph_waste_erp_ref (DEC, typed; a reused reference warns) | pgtap:17, browserdb:m2 | No ERP interface (OD-04) |
+| FR-WS-05 | Weight-loss adjustment | PH-WS | M2 | Blocked | — | pgtap:17 | Weight-loss % and approver are OD-28: refused |
+| FR-WS-06 | Packaging waste count | PH-WS | M2 | Planned |  | pgtap:17 | Packaging waste is counted by the warehouse: refused with a reason |
 | FR-DS-01 | Create load & allocate | PH-DS | M3 | Planned |  |  |  |
 | FR-DS-02 | Load by scan | PH-DS | M3 | Planned |  |  |  |
 | FR-DS-03 | Vehicle inspection | PH-DS | M3 | Planned |  |  |  |
@@ -81,22 +81,22 @@ Tests: `pgtap:NN` = `supabase/tests/pgtap/NN_*.sql` · `e2e:name` = `tests/e2e/s
 | FR-NC-03 | CAPA | PH-NC | M4 | Planned |  |  |  |
 | FR-NC-04 | Emergency override | PH-NC | M4 | Planned |  |  |  |
 | FR-TR-01 | Complaint intake | PH-TR | M4 | Planned |  |  |  |
-| FR-TR-02 | Backward trace | PH-TR | M1 | Partial | ph_backward_trace from FG pallet, Job Card, pallet, arrival or lot; Trace page | pgtap:15, pgtap:16, e2e:production | Reaches source and arrival back, Job Cards and FG pallets forward; loads and customers M3 |
+| FR-TR-02 | Backward trace | PH-TR | M1 | Partial | ph_backward_trace from FG pallet, Job Card, pallet, arrival, lot or order line; through splits and merges; waste and order line / customer; lot and arrival balances on the Trace page | pgtap:15, pgtap:16, pgtap:18, e2e:production, browserdb:m2 | Loads and customer deliveries arrive with dispatch (M3) |
 | FR-TR-03 | Forward trace & recall scope | PH-TR | M4 | Planned |  |  |  |
 | FR-TR-04 | Mock recall mode | PH-TR | M4 | Planned |  |  |  |
 | FR-TR-05 | Investigation & response | PH-TR | M4 | Planned |  |  |  |
 | FR-RP-01 | Daily stock report | PH-RP | M4 | Planned |  |  |  |
-| FR-RP-02 | Exception board | PH-RP | M1 | Done | ph_exception_items; Exception board | pgtap:15 | M1 rules plus E-09 (line start failed), E-10 (QC-2 failed), OD-06 review |
+| FR-RP-02 | Exception board | PH-RP | M1 | Done | ph_exception_items; Exception board | pgtap:15 | M1 rules plus E-09, E-10, OD-06 review, E-20 (top management overdue), OD-11 (weighed waste waiting), MB-01 (variance without tolerance) |
 | FR-RP-03 | KPI reports | PH-RP | M4 | Planned |  |  |  |
 | FR-RP-04 | Export | PH-RP | M4 | Planned |  |  |  |
 | FR-AU-01 | Audit capture | PH-AU | M1 | Done | register_table audit trigger + record_transitions | pgtap:15 |  |
 | FR-AU-02 | Audit viewer | PH-AU | M1 | Partial | ph_record_history per record; existing Audit Log page | pgtap:15 | No packing-house-specific audit search screen |
 | FR-AU-03 | Corrections | PH-AU | M4 | Planned |  |  |  |
 | FR-AU-04 | Downtime back-entry | PH-AU | M4 | Planned |  |  |  |
-| FR-NT-01 | Tasks & notifications | PH-NT | M1 | Partial | app.ph_notify_role → notifications (23 kinds) | pgtap:15 | In-app only; escalation timers M4 |
+| FR-NT-01 | Tasks & notifications | PH-NT | M1 | Partial | app.ph_notify_role → notifications (33 kinds) | pgtap:15 | In-app only; escalation timers M4 |
 | FR-NT-02 | E-mail notifications | PH-NT | M4 | Planned |  |  |  |
 | FR-NT-03 | Escalation timers | PH-NT | M4 | Planned |  |  |  |
-| FR-IN-01 | External references | PH-IN | M2 | Planned |  |  |  |
+| FR-IN-01 | External references | PH-IN | M2 | Partial | ERP reference on waste; customer specification and forecast references on order lines | pgtap:17, pgtap:18 | Typed references only (OD-04) |
 | FR-IN-02 | ERP-ready summaries | PH-IN | M2 | Planned |  |  |  |
 | FR-IN-03 | Import templates | PH-IN | M4 | Planned |  |  |  |
 
@@ -105,9 +105,9 @@ Tests: `pgtap:NN` = `supabase/tests/pgtap/NN_*.sql` · `e2e:name` = `tests/e2e/s
 | ID | Rule | Module | Milestone | Status | Implementation | Tests | Limitation / dependency |
 |---|---|---|---|---|---|---|---|
 | SM-IP | Incoming Pallet state model | PH-RC/QG | M1 | Done | workflow ph_incoming_pallet (16 statuses) via transition_record | pgtap:15 | Issued, partial return to Stored and Consumed built in M2.1 |
-| SM-JC | Job Card state model | PH-PR | M2 | Partial | workflow ph_job_card via transition_record (server functions only) | pgtap:16 | Reconciled, Closed and Reopen are declared and refused until M2.2 (MB-01, OD-28, OD-15) |
-| SM-FGP | Finished-goods pallet state model | PH-FG | M2 | Partial | workflow ph_fg_pallet: Created → QC approved → In storage | pgtap:16 | Allocation, loading, holds, split/merge declared and refused until M2.3/M3 |
-| SM-WR | Waste record state model | PH-WS | M2 | Planned |  |  |  |
+| SM-JC | Job Card state model | PH-PR | M2 | Partial | workflow ph_job_card via transition_record: Completed → Reconciled (MB-01) → Closed | pgtap:16, pgtap:17, browserdb:m2 | Reopen refused until OD-15 sets the window |
+| SM-FGP | Finished-goods pallet state model | PH-FG | M2 | Partial | workflow ph_fg_pallet v2: Created → QC approved → In storage → Split / merged | pgtap:16, pgtap:18 | Allocation, loading and holds are M3; pallets on version 1 cannot be split (VR-PH-C27) |
+| SM-WR | Waste record state model | PH-WS | M2 | Partial | workflow ph_waste v2: awaiting QC → QC approved → weighed → (top management) → sign-off → signed off → ERP posted → disposed | pgtap:17, browserdb:m2 | Automatic E-20 timeout needs a scheduler (VR-S01); listed on the exception board |
 | SM-NC | Hold / nonconformity state model | PH-NC | M1 | Done | workflow ph_hold | pgtap:15 |  |
 | SM-LD | Dispatch load state model | PH-DS | M3 | Planned |  |  |  |
 | SM-CMP | Customer complaint state model | PH-TR | M4 | Planned |  |  |  |
@@ -117,7 +117,7 @@ Tests: `pgtap:NN` = `supabase/tests/pgtap/NN_*.sql` · `e2e:name` = `tests/e2e/s
 | G4 | QC-1 release | PH-QG | M1 | Gated | QC-1 release | pgtap:15 | OD-17 |
 | G5 | Line start check | PH-PR | M2 | Done | two people: QC + Line Leader; fail blocks the Job Card (E-09) | pgtap:16 (T-09), e2e:production |  |
 | G6 | QC-2 online & final | PH-FG | M2 | Done | latest QC-2 must be a final Pass before a finished pallet | pgtap:16 (T-10), e2e:production |  |
-| G7 | Waste QC approval | PH-WS | M2 | Planned |  |  |  |
+| G7 | Waste QC approval | PH-WS | M2 | Done | QC label before weighing; refusal returns the product to the line | pgtap:17, browserdb:m2 |  |
 | G8 | Dispatch release | PH-DS | M3 | Planned |  |  |  |
 | G9 | Hold release | PH-NC | M1 | Done | hold release returns to the prior state (held_from_status) | pgtap:15 | Spec SM-IP shows OnHold→Stored only (VR-PH-C03) |
 | V-01 | Harvest-tag fields mandatory | PH-RC | M1 | Done | ph_create_arrival | pgtap:15, unit:packingHouse |  |
@@ -129,19 +129,19 @@ Tests: `pgtap:NN` = `supabase/tests/pgtap/NN_*.sql` · `e2e:name` = `tests/e2e/s
 | V-07 | Storage-group match or PHM override | PH-ST | M1 | Done | ph_move_pallet, ph_move_fg_pallet; PHM override with reason | pgtap:15 (T-07), pgtap:16 |  |
 | V-08 | Location capacity warning | PH-ST | M1 | Done | capacity warning (non-blocking) | pgtap:15 |  |
 | V-09 | FG label mandatory fields | PH-FG | M2 | Done | label fields: lot, block/section or supplier, harvest date; refused with the missing fields | pgtap:16 |  |
-| V-10 | Customer pallet needs accepted order line | PH-FG | M2 | Partial | non-order pallet carries Premium / GR1 / GR2 | pgtap:16 | Order-line reference with ST-00 (M2.3) |
+| V-10 | Customer pallet needs accepted order line | PH-FG | M2 | Done | Non-order pallet carries Premium / GR1 / GR2; an order Job Card takes crop and grade from an accepted line; label shows customer and order line | pgtap:16, pgtap:18 |  |
 | V-11 | QC approval 24 h validity at load | PH-DS | M3 | Planned |  |  |  |
 | V-12 | Age > 48 h reason / > 72 h block | PH-DS | M3 | Planned |  |  |  |
 | V-13 | Seal (and logger) before departure | PH-DS | M3 | Planned |  |  |  |
 | V-14 | Vehicle temperature blocks loading | PH-DS | M3 | Planned |  |  |  |
 | V-15 | Loading window 01:00-09:00 needs override | PH-DS | M3 | Planned |  |  |  |
-| V-16 | Waste weight only after QC approval | PH-WS | M2 | Planned |  |  |  |
-| V-17 | Waste sign-off routing | PH-WS | M2 | Planned |  |  |  |
+| V-16 | Waste weight only after QC approval | PH-WS | M2 | Done | ph_waste_weigh refused before the QC label | pgtap:17, e2e:m2 |  |
+| V-17 | Waste sign-off routing | PH-WS | M2 | Gated | ph_waste_route | pgtap:17, e2e:m2 | OD-11 |
 | V-18 | Complaint fields and timers | PH-TR | M4 | Planned |  |  |  |
 | V-19 | IDs unique, never reused | ALL | M1 | Done | app.ph_next per farm and day; unique codes | pgtap:15 |  |
-| V-20 | Mass-balance variance blocks Reconciled | PH-PR | M2 | Planned |  |  |  |
+| V-20 | Mass-balance variance blocks Reconciled | PH-PR | M2 | Partial | ph_reconcile_job_card | pgtap:17 | Without a tolerance (OD-28) a variance needs an explanation rather than blocking (VR-PH-C25) |
 | V-21 | Weight plausibility (non-blocking) | PH-RC | M1 | Gated | plausibility check | pgtap:15 | Not checked until OD-29 sets a tolerance; shown as such |
-| V-22 | Merge compatibility | PH-FG | M2 | Planned |  |  |  |
+| V-22 | Merge compatibility | PH-FG | M2 | Done | same crop, grade, customer and storage group; same Job Card | pgtap:18 | VR-PH-C26 |
 | V-23 | Photos mandatory on RMA and dispatch QC | PH-QG | M1 | Partial | RMA rejection needs ≥1 photo | pgtap:15 | Dispatch QC photos M3 |
 | V-24 | Shelf-life sample or waiver before departure | PH-DS | M3 | Planned |  |  |  |
 | V-25 | Fridge temperature overdue / out of range | PH-ST | M3 | Planned |  |  |  |
@@ -152,7 +152,7 @@ Tests: `pgtap:NN` = `supabase/tests/pgtap/NN_*.sql` · `e2e:name` = `tests/e2e/s
 | V-30 | QC/QA instruction routed to PHM/PE | PH-NT | M2 | Planned |  |  |  |
 | SoD-01 | Registrar cannot record QA acceptance | PH-ACL | M1 | Done | registrar ≠ QA acceptance | pgtap:15 |  |
 | SoD-02 | Regrade and recheck by different people | PH-ACL | M1 | Done | regrade ≠ recheck | pgtap:15 |  |
-| SoD-03 | Waste maker != QC label != sign-off | PH-ACL | M2 | Planned |  |  |  |
+| SoD-03 | Waste maker != QC label != sign-off | PH-ACL | M2 | Done | waste creator ≠ QC labeller; creator, labeller and weigher never sign; one signature per role and per person | pgtap:17, browserdb:m2 |  |
 | SoD-04 | Dispatch release only by QC | PH-ACL | M3 | Planned |  |  |  |
 | SoD-05 | Quality hold released only by QCM/QAM | PH-ACL | M1 | Done | quality hold closed only by QCM/QAM; food safety by QAM | pgtap:15 |  |
 | SoD-06 | Admin performs no operational transactions | PH-ACL | M1 | Done | ADM holds no operational cells | pgtap:14 |  |
@@ -176,9 +176,9 @@ Tests: `pgtap:NN` = `supabase/tests/pgtap/NN_*.sql` · `e2e:name` = `tests/e2e/s
 | GEN-04 | JC consumes IPs, partial issue | PH-PR | M2 | Done | ph_jc_inputs (issued / consumed / returned kg) | pgtap:16 (T-08) |  |
 | GEN-05 | JC produces FG pallets with composition | PH-PR | M2 | Done | ph_fg_pallet_lots per finished pallet | pgtap:16, e2e:production |  |
 | GEN-06 | Lot attribution method recorded | PH-PR | M2 | Partial | method stored per composition row (default proportional to kg issued) | pgtap:16 | Exact / time-window attribution need line segregation data (VR-PH-C16) |
-| GEN-07 | Split | PH-FG | M2 | Planned |  |  |  |
-| GEN-08 | Merge | PH-FG | M2 | Planned |  |  |  |
-| GEN-09 | Rework inherits lots and harvest dates | PH-PR | M2 | Planned |  |  |  |
+| GEN-07 | Split | PH-FG | M2 | Gated | ph_fg_pallet_links (split), composition pro rata | pgtap:18, browserdb:m2 | Proposed cells |
+| GEN-08 | Merge | PH-FG | M2 | Gated | ph_fg_pallet_links (merge), composition summed | pgtap:18 | Proposed cells; same Job Card only |
+| GEN-09 | Rework inherits lots and harvest dates | PH-PR | M2 | Planned |  |  | Rework not built |
 | GEN-10 | Load contains FG pallets | PH-DS | M3 | Planned |  |  |  |
 | GEN-11 | Holds/QC records link to IDs | PH-NC | M1 | Done | holds and inspections link to pallet ids | pgtap:15 |  |
 | GEN-12 | No ID reused or deleted; void keeps ID | ALL | M1 | Done | void keeps the id | pgtap:15 |  |
@@ -186,10 +186,10 @@ Tests: `pgtap:NN` = `supabase/tests/pgtap/NN_*.sql` · `e2e:name` = `tests/e2e/s
 | TQ-02 | Forward trace | PH-TR | M4 | Planned |  |  |  |
 | TQ-03 | Recall scope | PH-TR | M4 | Planned |  |  |  |
 | TQ-04 | Mass balance query | PH-PR | M2 | Planned |  |  |  |
-| MB-01 | Job Card balance | PH-PR | M2 | Planned |  |  |  |
-| MB-02 | Lot balance | PH-PR | M2 | Planned |  |  |  |
-| MB-03 | Daily receiving balance (needs CP-01/CP-02) | PH-RC | M1 (data) / OD-01 | Blocked | — |  | Needs CP-01/CP-02 farm dispatch data (OD-01); dispatch note captured when given |
-| MB-04 | Weight loss | PH-WS | M2 | Planned |  |  |  |
+| MB-01 | Job Card balance | PH-PR | M2 | Partial | ph_jc_balance view; reconciliation record append-only; a split / merge is counted once | pgtap:17, pgtap:18, browserdb:m2 | Tolerance OD-28 |
+| MB-02 | Lot balance | PH-PR | M2 | Done | ph_lot_balance (accepted, consumed, in production, in stock, raw waste, in finished pallets, unexplained); Trace page | pgtap:17 | Weight loss not deducted (OD-28) |
+| MB-03 | Daily receiving balance (needs CP-01/CP-02) | PH-RC | M1 (data) / OD-01 | Partial | ph_arrival_balance from the scale (registered, returned, rejected to waste, removed in regrade, accepted, undecided) | pgtap:17 | Farm dispatch weight not captured (OD-01 / CP-02) |
+| MB-04 | Weight loss | PH-WS | M2 | Blocked | — |  | OD-28 |
 | X-01 | Hold & nonconformity | PH-NC | M1 | Done | holds (SM-NC) | pgtap:15 |  |
 | X-02 | CAPA | PH-NC | M4 | Planned |  |  |  |
 | X-03 | Customer deviation / concession | PH-PR | M2 | Planned |  |  |  |
@@ -212,7 +212,7 @@ Tests: `pgtap:NN` = `supabase/tests/pgtap/NN_*.sql` · `e2e:name` = `tests/e2e/s
 | T-08 | Partial issue | M2 | Done | pgtap:16, e2e:production | One pallet split across two Job Cards; consumed + returned = issued |
 | T-09 | Line start fail | M2 | Done | pgtap:16, e2e:production |  |
 | T-10 | QC-2 fail | M2 | Done | pgtap:16 |  |
-| T-11 | Split & merge | M2 | Planned |  |  |
+| T-11 | Split & merge | M2 | Done | pgtap:18, browserdb:m2 | Split approved and traced; merge back; V-22 refusals |
 | T-12 | Dispatch re-inspection & rejection | M3 | Planned |  |  |
 | T-13 | Vehicle temperature | M3 | Planned |  |  |
 | T-14 | Non-lockable vehicle | M3 | Planned |  |  |

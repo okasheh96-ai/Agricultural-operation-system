@@ -16,11 +16,11 @@ export interface StageDef {
   owner: string;
   built: boolean;
   milestone?: string;
-  kind: 'arrivals' | 'pallets' | 'jobcards' | 'fg' | 'waste' | 'later';
+  kind: 'orders' | 'arrivals' | 'pallets' | 'jobcards' | 'fg' | 'waste' | 'later';
 }
 
 export const STAGES: StageDef[] = [
-  { key: 'orders', spec: 'ST-00', owner: 'SAL · PHM', built: false, milestone: 'M2', kind: 'later' },
+  { key: 'orders', spec: 'ST-00', owner: 'SAL · PHM · PE', built: true, kind: 'orders' },
   { key: 'arrivals', spec: 'ST-01 · ST-02', gate: 'G1', owner: 'DEC', built: true, kind: 'arrivals' },
   { key: 'arrival_check', spec: 'ST-03', gate: 'G2', owner: 'QCI · QAO', built: true, kind: 'pallets' },
   { key: 'precooling', spec: 'ST-04', owner: 'PHO · DEC', built: true, kind: 'pallets' },
@@ -30,7 +30,7 @@ export const STAGES: StageDef[] = [
   { key: 'production', spec: 'ST-08', gate: 'G5', owner: 'PE · PHM · LL · STK · QCI', built: true, kind: 'jobcards' },
   { key: 'qc2', spec: 'ST-09', gate: 'G6', owner: 'QCI', built: true, kind: 'jobcards' },
   { key: 'fg_pallets', spec: 'ST-10', owner: 'PHO · QCI', built: true, kind: 'fg' },
-  { key: 'waste', spec: 'ST-11', gate: 'G7', owner: 'PHO · QCI · PHM', built: true, milestone: 'M2', kind: 'waste' },
+  { key: 'waste', spec: 'ST-11', gate: 'G7', owner: 'DEC · QCI · PHM · WHM · FIN · TOP', built: true, kind: 'waste' },
   { key: 'fg_storage', spec: 'ST-12', owner: 'PHO', built: true, kind: 'fg' },
   { key: 'dispatch', spec: 'ST-13 · ST-14', gate: 'G8', owner: 'PHM · QCI · QAO', built: false, milestone: 'M3', kind: 'later' },
   { key: 'exceptions', spec: 'X-01 · E-03', gate: 'G9', owner: 'QCI · QAO · QCM · QAM', built: true, kind: 'pallets' },
@@ -98,16 +98,42 @@ export const STATUS_STYLE: Record<string, { icon: string; tone: 'blue' | 'green'
   created: { icon: '▦', tone: 'blue' },
   qc_approved: { icon: '✔', tone: 'green' },
   in_storage: { icon: '▣', tone: 'green' },
+  split_merged: { icon: '⑂', tone: 'grey' },
+  awaiting_qc: { icon: '⌛', tone: 'amber' },
+  returned_to_line: { icon: '↩', tone: 'grey' },
+  weighed: { icon: '⚖', tone: 'blue' },
+  awaiting_top_mgmt: { icon: '⌛', tone: 'violet' },
+  removed_on_timeout: { icon: '⏰', tone: 'red' },
+  awaiting_sign_off: { icon: '✍', tone: 'amber' },
+  signed_off: { icon: '✔', tone: 'green' },
+  erp_posted: { icon: '⇄', tone: 'blue' },
+  disposed: { icon: '■', tone: 'grey' },
+  pending_acceptance: { icon: '⌛', tone: 'amber' },
+  rejected: { icon: '✕', tone: 'red' },
+  requested: { icon: '⌛', tone: 'amber' },
+  approved: { icon: '✓', tone: 'green' },
 };
 
-/** Job Card path (SM-JC) for the record view; reconciliation and closing come with M2.2. */
+/** Job Card path (SM-JC) for the record view, through the mass balance (MB-01) and closing. */
 export const JOB_CARD_PATH: { key: string; statuses: string[]; milestone?: string }[] = [
   { key: 'draft', statuses: ['draft'] },
   { key: 'planned', statuses: ['planned'] },
   { key: 'ready', statuses: ['ready', 'line_check_failed'] },
   { key: 'in_progress', statuses: ['in_progress', 'paused'] },
   { key: 'completed', statuses: ['completed'] },
-  { key: 'reconciled', statuses: ['reconciled', 'closed'], milestone: 'M2.2' },
+  { key: 'reconciled', statuses: ['reconciled'] },
+  { key: 'closed', statuses: ['closed'] },
+];
+
+/** Waste path (SM-WR): QC label before weighing (V-16), routing by weight (V-17, OD-11), sign-off, ERP, disposal. */
+export const WASTE_PATH: { key: string; statuses: string[] }[] = [
+  { key: 'awaiting_qc', statuses: ['draft', 'awaiting_qc', 'returned_to_line'] },
+  { key: 'qc_approved', statuses: ['qc_approved'] },
+  { key: 'weighed', statuses: ['weighed'] },
+  { key: 'awaiting_sign_off', statuses: ['awaiting_top_mgmt', 'awaiting_sign_off'] },
+  { key: 'signed_off', statuses: ['signed_off'] },
+  { key: 'erp_posted', statuses: ['erp_posted'] },
+  { key: 'disposed', statuses: ['disposed', 'removed_on_timeout'] },
 ];
 
 /** Finished-goods pallet path (SM-FGP) up to storage; allocation, loading and dispatch come with M3. */

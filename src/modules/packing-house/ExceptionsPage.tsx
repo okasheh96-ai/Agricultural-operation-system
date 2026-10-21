@@ -8,7 +8,7 @@ import { When } from './ui';
 
 interface ExceptionItem { rule: string; entity_type: string; entity_id: string; code: string; since: string | null; severity: string; params: Record<string, unknown> }
 
-const RULE_ORDER = ['E-02', 'E-05', 'E-06', 'E-03', 'E-04', 'E-09', 'E-10', 'X-01', 'OD-05', 'OD-06', 'V-03', 'FR-MD-06'];
+const RULE_ORDER = ['E-02', 'E-05', 'E-06', 'E-03', 'E-04', 'E-09', 'E-10', 'E-20', 'X-01', 'OD-05', 'OD-06', 'OD-11', 'MB-01', 'V-03', 'FR-MD-06'];
 
 /** Exception board (FR-RP-02, M1 scope): every open exception links to its record. */
 export default function ExceptionsPage() {
@@ -26,6 +26,7 @@ export default function ExceptionsPage() {
   const groups = RULE_ORDER.map((rule) => ({ rule, items: (q.data ?? []).filter((i) => i.rule === rule) })).filter((g) => g.items.length > 0);
   const link = (i: ExceptionItem) => (i.entity_type === 'ph_incoming_pallets' ? `/office/packing-house/pallets/${i.entity_id}`
     : i.entity_type === 'ph_job_cards' ? `/office/packing-house/job-cards/${i.entity_id}`
+    : i.entity_type === 'ph_waste_records' ? `/office/packing-house/waste/${i.entity_id}`
     : i.entity_type === 'ph_arrivals' ? '/office/packing-house?stage=arrivals' : '/office/packing-house?stage=exceptions');
   return (
     <section className="flex flex-col gap-3">
@@ -46,6 +47,7 @@ export default function ExceptionsPage() {
                     <span className="text-stone-500"><When iso={i.since} /></span>
                     {typeof i.params.minutes !== 'undefined' && <span>{t('ph.exceptions.minutes', { n: i.params.minutes })}</span>}
                     {typeof i.params.hours !== 'undefined' && <span>{t('ph.exceptions.hours', { n: i.params.hours })}</span>}
+                    {typeof i.params.kg !== 'undefined' && i.params.kg !== null && <span><bdi>{String(i.params.kg)} kg</bdi></span>}
                   </li>
                 ))}
                 {g.items.length > 12 && <li className="text-stone-500">{t('ph.exceptions.more', { n: g.items.length - 12 })}</li>}

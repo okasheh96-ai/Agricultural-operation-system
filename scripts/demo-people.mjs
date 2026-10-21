@@ -26,6 +26,8 @@ export const USERS = [
   { email: 'demo.ph.eng@demo.local', name: 'مهندس إعادة الفرز (تجريبي)', roles: [['ph_eng', null]] },
   { email: 'demo.ph.whm@demo.local', name: 'مدير المستودعات (تجريبي)', roles: [['ph_whm', null]] },
   { email: 'demo.ph.top@demo.local', name: 'الإدارة العليا (تجريبي)', roles: [['ph_top', null]] },
+  { email: 'demo.ph.fin@demo.local', name: 'المالية (تجريبي)', roles: [['ph_fin', null]] },
+  { email: 'demo.ph.sal@demo.local', name: 'المبيعات (تجريبي)', roles: [['ph_sal', null]] },
   { email: 'demo.ph.adm@demo.local', name: 'مسؤول نظام بيت التعبئة (تجريبي)', roles: [['ph_adm', null]] },
   { email: 'demo.ph.aud@demo.local', name: 'مدقق (تجريبي)', roles: [['ph_aud', null]] },
 ];

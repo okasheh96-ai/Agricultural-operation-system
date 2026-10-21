@@ -20,9 +20,14 @@ test('production through the real API: plan, partial issue, two-person line star
   await expect(rpc(pe, 'ph_approve_job_card', { p_jc: jc.id })).rejects.toThrow(/P0403|403/);
   await rpc(phm, 'ph_approve_job_card', { p_jc: jc.id });
 
-  // A released regular-tomato pallet with kg left (the demo releases one); half of what remains is issued.
-  const ip = await one<{ id: string; code: string; available_kg: string }>(ll,
-    'ph_ip_board?crop_code=eq.regular_tomato&status=in.(released,issued)&available_kg=gt.0&select=id,code,available_kg&order=code&limit=1');
+  // A released regular-tomato pallet with kg left (the demo releases one); half of what remains is issued. On a local stack
+  // kept from an earlier run, that run's completion returned the pallet to storage (SM-IP): QC-1 releases it again first.
+  const released = 'ph_ip_board?crop_code=eq.regular_tomato&status=in.(released,issued)&available_kg=gt.0&select=id,code,available_kg&order=code&limit=1';
+  if ((await rest<unknown[]>(ll, released)).length === 0) {
+    const stored = await one<{ id: string }>(qci, 'ph_ip_board?crop_code=eq.regular_tomato&status=eq.stored&available_kg=gt.0&select=id&order=code&limit=1');
+    await rpc(qci, 'ph_qc1_release', { p_pallets: [stored.id], p_checklist: { quality_grading: 'ok' } });
+  }
+  const ip = await one<{ id: string; code: string; available_kg: string }>(ll, released);
   const half = Math.floor(Number(ip.available_kg) / 2);
   const issued = await rpc<{ available_after: number }>(ll, 'ph_issue_to_job_card', { p_jc: jc.id, p_pallet: ip.code, p_kg: half });
   expect(Number(issued.available_after)).toBeCloseTo(Number(ip.available_kg) - half, 2);

@@ -144,6 +144,14 @@ export interface JobCardRow {
   fg_count: number;
   fg_kg: string;
   decision_basis: Record<string, string>;
+  order_line_id: string | null;
+  order_line_code: string | null;
+  customer_name: string | null;
+  market_type: string | null;
+  required_date: string | null;
+  reconciled_basis: 'balanced' | 'within_tolerance' | 'outside_tolerance' | 'no_tolerance_set' | null;
+  reconciled_at: string | null;
+  reconciled_by_name: string | null;
 }
 
 /** One finished-goods pallet (ST-10) from ph_fg_board. */
@@ -184,6 +192,159 @@ export interface FgPalletRow {
   lot_codes: string;
   composition: { pallet: string; pallet_id: string; lot: string | null; kg: number; share: number; method: string; source: string }[];
   decision_basis: Record<string, string>;
+  /** Split / merge child: the pallet whose QC stamp it carries; the parents and children through splits and merges. */
+  qc_stamp_from_code: string | null;
+  parent_codes: string[];
+  child_codes: string[];
+  order_line_id: string | null;
+  order_line_code: string | null;
+  customer_name: string | null;
+}
+
+/** One waste record (ST-11, SM-WR) from ph_waste_board, with its people, sign-offs and route. */
+export interface WasteRow {
+  id: string;
+  code: string;
+  status: string;
+  version: number;
+  category: 'processed' | 'long_storage' | 'packaging' | 'weight_loss';
+  source_type: 'job_card' | 'fg_pallet' | 'incoming_pallet' | 'location' | null;
+  source_id: string | null;
+  source_code: string | null;
+  origin: string;
+  notes: string | null;
+  reference_kg: string | null;
+  bags: number | null;
+  net_kg: string | null;
+  calibration_flag: boolean;
+  route: 'small' | 'large' | 'top_mgmt' | null;
+  route_basis: string | null;
+  erp_ref: string | null;
+  qc_reason: string | null;
+  created_at: string;
+  qc_at: string | null;
+  weighed_at: string | null;
+  top_mgmt_at: string | null;
+  erp_at: string | null;
+  disposed_at: string | null;
+  stage_since: string;
+  job_card_id: string | null;
+  crop_id: string | null;
+  crop_code: string | null;
+  crop_name_ar: string | null;
+  crop_name_en: string | null;
+  scale_code: string | null;
+  created_by_name: string | null;
+  qc_by_name: string | null;
+  weighed_by_name: string | null;
+  top_mgmt_by_name: string | null;
+  erp_by_name: string | null;
+  disposed_by_name: string | null;
+  signoffs: { role: string; by: string | null; at: string; comment: string | null }[];
+  required_signers: string[];
+  attachment_count: number;
+  top_mgmt_overdue: boolean;
+}
+
+/** MB-01 for one Job Card from ph_jc_balance: issued − returned = consumed; consumed − FG − weighed waste = variance. */
+export interface JcBalanceRow {
+  id: string;
+  code: string;
+  status: string;
+  issued_kg: string;
+  returned_kg: string;
+  consumed_kg: string;
+  fg_kg: string;
+  waste_kg: string;
+  waste_pending: number;
+  variance_kg: string;
+  variance_pct: string | null;
+  tolerance_pct: string | null;
+  reconciled_basis: 'balanced' | 'within_tolerance' | 'outside_tolerance' | 'no_tolerance_set' | null;
+  reconciled_explanation: string | null;
+  reconciled_at: string | null;
+  reconciled_by_name: string | null;
+  reconciled_variance_kg: string | null;
+}
+
+export interface LotBalanceRow {
+  id: string; code: string; crop_code: string; crop_name_ar: string; crop_name_en: string | null; source_code: string; pallets: number;
+  accepted_kg: string; consumed_kg: string; in_production_kg: string; in_stock_kg: string; raw_waste_kg: string; raw_waste_unweighed_kg: string;
+  fg_attributed_kg: string; unexplained_kg: string;
+}
+
+export interface ArrivalBalanceRow {
+  id: string; code: string; arrived_at: string; dispatched_pallets: number | null; dispatched_boxes: number | null; pallets: number;
+  registered_kg: string; returned_to_source_kg: string; rejected_to_waste_kg: string; regrade_removed_kg: string; accepted_kg: string;
+  undecided_kg: string; void_kg: string;
+}
+
+/** One customer order line (ST-00) from ph_order_board. */
+export interface OrderRow {
+  id: string;
+  code: string;
+  status: string;
+  version: number;
+  customer_name: string;
+  customer_spec_ref: string | null;
+  grade: 'premium' | 'gr1' | 'gr2';
+  pack_spec: string;
+  quantity: string;
+  quantity_unit: 'kg' | 'pc';
+  required_date: string;
+  market_type: 'export' | 'local' | 'retail' | 'lss';
+  forecast_ref: string | null;
+  notes: string | null;
+  created_at: string;
+  decided_at: string | null;
+  decision_reason: string | null;
+  shortage_at: string | null;
+  shortage_note: string | null;
+  shortage_in_window: boolean | null;
+  stage_since: string;
+  crop_id: string;
+  crop_code: string;
+  crop_name_ar: string;
+  crop_name_en: string | null;
+  created_by_name: string | null;
+  decided_by_name: string | null;
+  shortage_by_name: string | null;
+  job_cards: number;
+  job_card_codes: string | null;
+  fg_pallets: number;
+  fg_boxes: number;
+  fg_kg: string;
+}
+
+/** A split or merge request (FR-FG-04/05) from ph_fg_change_board. */
+export interface FgChangeRow {
+  id: string;
+  code: string;
+  status: 'requested' | 'approved' | 'rejected';
+  version: number;
+  kind: 'split' | 'merge';
+  parent_ids: string[];
+  children: { box_count: number; net_kg: number }[];
+  reason: string;
+  created_at: string;
+  decided_at: string | null;
+  decision_reason: string | null;
+  requested_by_name: string | null;
+  decided_by_name: string | null;
+  parents: { id: string; code: string; box_count: number; net_kg: string; status: string }[];
+  results: { id: string; code: string; box_count: number; net_kg: string }[];
+}
+
+/** FR-PL-03 daily plan (ph_daily_plan). */
+export interface DailyPlan {
+  date: string;
+  order_lines: OrderRow[];
+  lines: { code: string; name_ar: string; name_en: string | null; kind: string;
+    job_cards: { id: string; code: string; status: string; crop_name_ar: string; crop_name_en: string | null; grade_target: string; issued_kg: string;
+      fg_kg: string; order_line: string | null }[] }[];
+  raw_stock: { crop_code: string; crop_name_ar: string; crop_name_en: string | null; released_kg: string | null; stored_kg: string | null; pallets: number;
+    oldest_received: string; oldest_age_hours: string }[];
+  fg_stock: { crop_code: string; crop_name_ar: string; crop_name_en: string | null; grade: string; pallets: number; boxes: number; kg: string; oldest_qc_at: string | null }[];
 }
 
 export interface JcInputRow { id: string; job_card_id: string; pallet_id: string; pallet_code: string; pallet_status: string; lot_code: string | null;
@@ -378,6 +539,62 @@ export function useFgPallet(id: string | undefined) {
       if (error) throw error;
       return data;
     },
+  });
+}
+
+export function useWasteBoard() {
+  return useQuery({
+    queryKey: ['ph', 'waste'],
+    queryFn: () => rows<WasteRow>(db().from('ph_waste_board').select('*').order('created_at', { ascending: false })),
+    refetchInterval: 30_000,
+  });
+}
+
+export function useWaste(id: string | undefined) {
+  return useQuery({
+    queryKey: ['ph', 'waste_record', id],
+    enabled: !!id,
+    queryFn: async () => {
+      const { data, error } = await db().from('ph_waste_board').select('*').eq('id', id as string).maybeSingle<WasteRow>();
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+export function useJcBalance(id: string | undefined, version: number | undefined) {
+  return useQuery({
+    queryKey: ['ph', 'jc_balance', id, version],
+    enabled: !!id,
+    queryFn: async () => {
+      const { data, error } = await db().from('ph_jc_balance').select('*').eq('id', id as string).maybeSingle<JcBalanceRow>();
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+export function useOrders() {
+  return useQuery({
+    queryKey: ['ph', 'orders'],
+    queryFn: () => rows<OrderRow>(db().from('ph_order_board').select('*').order('required_date').order('code')),
+    refetchInterval: 30_000,
+  });
+}
+
+export function useFgChanges() {
+  return useQuery({
+    queryKey: ['ph', 'fg_changes'],
+    queryFn: () => rows<FgChangeRow>(db().from('ph_fg_change_board').select('*').order('created_at', { ascending: false })),
+    refetchInterval: 30_000,
+  });
+}
+
+export function useDailyPlan(date: string) {
+  return useQuery({
+    queryKey: ['ph', 'daily_plan', date],
+    queryFn: () => rpc<DailyPlan>('ph_daily_plan', { p_date: date || null }),
+    refetchInterval: 60_000,
   });
 }
 

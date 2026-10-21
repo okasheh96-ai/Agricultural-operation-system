@@ -61,11 +61,15 @@ const t0 = Date.now();
 await check.exec(sqlFile('supabase/seed/demo_tasks.sql'));
 await check.exec(sqlFile('supabase/seed/demo_packing_house.sql'));
 await check.exec(sqlFile('supabase/seed/demo_packing_house_production.sql'));
+await check.exec(sqlFile('supabase/seed/demo_packing_house_m2.sql'));
 const counts = (await check.query(`select (select count(*)::int from public.tasks) as tasks, (select count(*)::int from public.ph_arrivals) as arrivals,
   (select count(*)::int from public.ph_incoming_pallets) as pallets, (select count(*)::int from auth.users) as people,
-  (select count(*)::int from public.ph_job_cards) as job_cards, (select count(*)::int from public.ph_fg_pallets) as fg_pallets`)).rows[0];
+  (select count(*)::int from public.ph_job_cards) as job_cards, (select count(*)::int from public.ph_fg_pallets) as fg_pallets,
+  (select count(*)::int from public.ph_order_lines) as order_lines, (select count(*)::int from public.ph_waste_records where weighed_at is not null) as waste`)).rows[0];
 console.log(`   ${Date.now() - t0} ms in Node:`, counts);
-if (!counts.arrivals || !counts.pallets || !counts.tasks || !counts.job_cards || !counts.fg_pallets) throw new Error('demo seeds produced no records');
+if (!counts.arrivals || !counts.pallets || !counts.tasks || !counts.job_cards || !counts.fg_pallets || !counts.order_lines || !counts.waste) {
+  throw new Error('demo seeds produced no records');
+}
 await check.close();
 await db.close();
 

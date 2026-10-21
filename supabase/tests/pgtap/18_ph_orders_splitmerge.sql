@@ -302,6 +302,12 @@ select is((select box_count || ':' || net_kg from public.ph_fg_pallets where id 
 select is((select count(*)::int from public.ph_fg_pallets where id = any (:'kids'::uuid[]) and status = 'split_merged'), 2, 'both merged pallets are closed');
 select is((select sum(kg) from public.ph_fg_pallet_lots where fg_pallet_id = :'merged'), 300.00::numeric, 'composition carried over');
 
+-- MB-01 and the Job Card board count each kilogram once after a split and a merge (closed parents are not added again).
+select is((select fg_kg from public.ph_jc_balance where id = :'jc'), 400.00::numeric, 'MB-01: finished kg unchanged by the split and the merge');
+select is((select fg_count::int || '/' || fg_kg from public.ph_jc_board where id = :'jc'), '3/400.00', 'the Job Card board counts the pallets that exist now');
+select is((select order_line_code from public.ph_jc_board where id = :'jc'), (select code from public.ph_order_lines where id = :'ol1'),
+  'the Job Card board shows its order line');
+
 -- Trace through the split and the merge, to the order line and customer
 select is((select jsonb_agg(f ->> 'code' order by f ->> 'code') from jsonb_array_elements(public.ph_backward_trace((select code from public.ph_fg_pallets where id = :'merged')) -> 'fg_pallets') f)
            @> (select jsonb_agg(code) from public.ph_fg_pallets where id in (:'fg1', :'merged')), true,

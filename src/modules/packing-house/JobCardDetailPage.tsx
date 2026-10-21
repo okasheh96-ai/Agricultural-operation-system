@@ -4,15 +4,15 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { QueryState } from '@/core/components/QueryState';
 import type { Locale } from '@/core/i18n';
-import { localizedName, rpc, useFgPallets, useInvalidatePh, useJobCard, useJobCardParts, type ActionAvailability } from './api';
-import { JobCardActionForm, jobCardStrips } from './production';
+import { localizedName, rpc, useFgPallets, useInvalidatePh, useJcBalance, useJobCard, useJobCardParts, useWasteBoard, type ActionAvailability } from './api';
+import { BalanceTable, JobCardActionForm, jobCardStrips } from './production';
 import { JOB_CARD_PATH } from './stages';
 import { ActionPanel, Field, ReasonNote, StatusPill, When, auditValue, btnCls, canPrint, primaryBtnCls } from './ui';
 
 interface HistoryRow { at: string; kind: string; from_status: string | null; to_status: string | null; actor: string | null; comment: string | null;
   permission_basis: string | null; decision_basis: string | null; changes: Record<string, { from: unknown; to: unknown }> | null }
 
-const SECTIONS = ['general', 'inputs', 'quality', 'output', 'history'] as const;
+const SECTIONS = ['general', 'inputs', 'quality', 'output', 'balance', 'history'] as const;
 
 /** Job Card record view (ST-08 … ST-10): plan, inputs and packaging, G5 and QC-2, finished pallets, history; actions come from the server. */
 export default function JobCardDetailPage() {
@@ -22,6 +22,8 @@ export default function JobCardDetailPage() {
   const jc = useJobCard(id);
   const parts = useJobCardParts(id, jc.data?.version);
   const fgs = useFgPallets();
+  const balance = useJcBalance(id, jc.data?.version);
+  const waste = useWasteBoard();
   const [open, setOpen] = useState<string | null>(null);
   const actions = useQuery({
     queryKey: ['ph', 'jc_actions', id, jc.data?.version],
@@ -38,6 +40,7 @@ export default function JobCardDetailPage() {
   // A form that finishes closes itself only, never a form opened after it.
   const done = (key: string) => { setOpen((cur) => (cur === key ? null : cur)); void invalidate(); };
   const outputs = (fgs.data ?? []).filter((f) => f.job_card_id === id);
+  const wasteRows = (waste.data ?? []).filter((w) => w.source_type === 'job_card' && w.source_id === id);
 
   return (
     <QueryState isLoading={jc.isLoading} error={jc.error} isEmpty={!j} emptyText={t('ph.jc.notFound')} onRetry={() => void jc.refetch()}>
@@ -86,6 +89,9 @@ export default function JobCardDetailPage() {
                   <Field label={t('ph.fields.grade_target')}>{t(`ph.grade.${j.grade_target}`)}</Field>
                   <Field label={t('ph.fields.planned_date')}><bdi>{j.planned_date}</bdi></Field>
                   <Field label={t('ph.fields.customer_spec_ref')}>{j.customer_spec_ref ?? <span className="text-amber-800">{t('ph.jc.noSpec')}</span>}</Field>
+                  <Field label={t('ph.fields.order_line')}>{j.order_line_code
+                    ? <Link className="underline" to={`/office/packing-house/trace?ref=${encodeURIComponent(j.order_line_code)}`}><bdi>{j.order_line_code} · {j.customer_name}</bdi></Link>
+                    : <span className="text-stone-500">{t('ph.order.stock')}</span>}</Field>
                   <Field label={t('ph.fields.attribution')}>{t(`ph.attribution.${j.attribution_method}`)}</Field>
                   <Field label={t('ph.fields.created')}>{j.created_by_name ?? '—'} · <When iso={j.created_at} /></Field>
                   <Field label={t('ph.fields.approved_by')}>{j.approved_by_name ?? '—'}</Field>
@@ -166,6 +172,29 @@ export default function JobCardDetailPage() {
                         <Link className="font-mono underline" to={`/office/packing-house/fg-pallets/${f.id}`}><bdi>{f.code}</bdi></Link>
                         <span>{t(`ph.grade.${f.grade}`)} · <bdi>{f.box_count} · {f.net_kg} kg</bdi></span>
                         <StatusPill status={f.status} workflow="ph_fg_pallet" /><bdi>{f.location_code ?? ''}</bdi>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+
+              <section id="jc-balance" className="rounded-lg border bg-white p-3">
+                <h2 className="mb-2 font-semibold">{t('ph.jcSections.balance')}</h2>
+                <p className="mb-2 text-xs text-stone-600">{t('ph.mb.note')}</p>
+                {balance.data && <BalanceTable b={balance.data} />}
+                {balance.data?.reconciled_basis && (
+                  <p className="mt-2 text-sm">{t('ph.mb.recorded', { basis: t(`ph.mb.basis.${balance.data.reconciled_basis}`), by: balance.data.reconciled_by_name ?? '—',
+                    kg: balance.data.reconciled_variance_kg ?? '0' })} · <When iso={balance.data.reconciled_at} />
+                    {balance.data.reconciled_explanation && <span className="block text-stone-700">“{balance.data.reconciled_explanation}”</span>}</p>
+                )}
+                <h3 className="mt-3 font-semibold">{t('ph.jc.waste')}</h3>
+                {wasteRows.length === 0 ? <p className="text-sm text-stone-600">{t('ph.empty.waste')}</p> : (
+                  <ul className="flex flex-col gap-1 text-sm">
+                    {wasteRows.map((w) => (
+                      <li key={w.id} className="flex flex-wrap items-center gap-2">
+                        <Link className="font-mono underline" to={`/office/packing-house/waste/${w.id}`}><bdi>{w.code}</bdi></Link>
+                        <StatusPill status={w.status} workflow="ph_waste" />
+                        <span>{t(`ph.wasteCategory.${w.category}`)} · <bdi>{w.net_kg ? `${w.net_kg} kg` : t('ph.waste.notWeighed')}</bdi></span>
                       </li>
                     ))}
                   </ul>

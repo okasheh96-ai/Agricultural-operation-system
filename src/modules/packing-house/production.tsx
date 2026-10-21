@@ -2,14 +2,18 @@ import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-  db, localizedName, rpc, uploadPhoto, useInvalidatePh, useJobCards, useLookup, usePallets,
+  db, localizedName, rpc, uploadPhoto, useInvalidatePh, useJcBalance, useJobCards, useLookup, usePallets,
   type FgPalletRow, type JcInputRow, type JobCardRow, type PalletRow,
 } from './api';
-import { Buttons, Checklist, PhotoInput, useApproved, useSubmit, type CropRow, type LocationRow, type ScaleRow } from './forms';
-import { phErrorMessage, type PhReason } from './phErrors';
-import { ACCENT_CLASS, STATUS_STYLE, formatDuration, minutesBetween } from './stages';
 import {
-  ActionPanel, ActivityStrip, ErrorBox, Field, Labelled, StatusPill, WarningList, When, btnCls, canPrint, inputCls, primaryBtnCls,
+  Buttons, Checklist, ConfirmForm, PhotoInput, ResultChoice, useApproved, useSubmit, type CropRow, type LocationRow, type ScaleRow,
+} from './forms';
+import { phErrorMessage, type PhReason } from './phErrors';
+import { FgMergeForm, FgSplitForm } from './splitmerge';
+import { ACCENT_CLASS, STATUS_STYLE, formatDuration, minutesBetween } from './stages';
+import { CreateWasteForm } from './waste';
+import {
+  ActionPanel, ActivityStrip, ErrorBox, Field, Labelled, StatusPill, WarningList, btnCls, canPrint, inputCls, primaryBtnCls,
   type StripState,
 } from './ui';
 
@@ -30,7 +34,7 @@ export function CreateJobCardForm({ onDone, onCancel }: { onDone: (id: string) =
   const crop = crops.data?.find((c) => c.id === f.crop_id);
   const lineChoices = (lines.data ?? []).filter((l) => l.kind !== 'washer' && (!crop || crop.allowed_lines.length === 0 || crop.allowed_lines.includes(l.code)))
     .sort((a, b) => a.code.localeCompare(b.code));
-  const s = useSubmit(() => rpc<{ id: string; code: string }>('ph_create_job_card', { p: Object.fromEntries(Object.entries(f).filter(([, v]) => v !== '')) }),
+  const s = useSubmit((rid) => rpc<{ id: string; code: string }>('ph_create_job_card', { p: Object.fromEntries(Object.entries(f).filter(([, v]) => v !== '')), p_request_id: rid }),
     (r) => onDone(r.id));
   const set = (k: keyof typeof f) => (e: { target: { value: string } }) => setF({ ...f, [k]: e.target.value });
   return (
@@ -116,7 +120,7 @@ export function PackagingForm({ jc, onDone, onCancel }: { jc: JobCardRow; onDone
   const { t } = useTranslation();
   const [description, setDescription] = useState('');
   const [quantity, setQuantity] = useState('');
-  const s = useSubmit(() => rpc('ph_issue_packaging', { p_jc: jc.id, p_description: description, p_quantity: Number(quantity), p_unit: 'pc' }), () => onDone());
+  const s = useSubmit((rid) => rpc('ph_issue_packaging', { p_jc: jc.id, p_description: description, p_quantity: Number(quantity), p_unit: 'pc', p_request_id: rid }), () => onDone());
   return (
     <form onSubmit={(e) => void s.submit(e)} className="flex flex-col gap-3">
       <p className="text-sm text-stone-700">{t('ph.jc.packagingHint')}</p>
@@ -128,19 +132,6 @@ export function PackagingForm({ jc, onDone, onCancel }: { jc: JobCardRow; onDone
       <ErrorBox message={s.error} />
       <Buttons busy={s.busy} label={t('ph.jc.issuePackaging')} onCancel={onCancel} />
     </form>
-  );
-}
-
-function ResultChoice({ value, onChange, options }: { value: string; onChange: (v: string) => void; options: { key: string; label: string; good: boolean }[] }) {
-  const { t } = useTranslation();
-  return (
-    <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={t('ph.forms.result')}>
-      {options.map((o) => (
-        <button key={o.key} type="button" role="radio" aria-checked={value === o.key} onClick={() => onChange(o.key)}
-          className={`${btnCls} ${value === o.key ? (o.good ? '!border-green-600 !bg-green-600 !text-white' : '!border-red-600 !bg-red-600 !text-white') : ''}`}>
-          {o.label}</button>
-      ))}
-    </div>
   );
 }
 
@@ -164,28 +155,6 @@ export function LineStartForm({ jc, onDone, onCancel }: { jc: JobCardRow; onDone
       <Labelled label={t('ph.fields.remarks')}><input className={inputCls} value={remarks} onChange={(e) => setRemarks(e.target.value)} /></Labelled>
       <ErrorBox message={s.error} />
       <Buttons busy={s.busy || !result} label={t('ph.jc.recordLineStart')} onCancel={onCancel} />
-    </form>
-  );
-}
-
-/** A step with an optional or required comment and nothing else to enter (approve, confirm, correct, pause, cancel, QC stamp). */
-export function ConfirmForm({ fn, args, label, hint, comment = 'optional', onDone, onCancel }: {
-  fn: string; args: (comment: string) => Record<string, unknown>; label: string; hint?: string; comment?: 'optional' | 'required' | 'none';
-  onDone: () => void; onCancel: () => void;
-}) {
-  const { t } = useTranslation();
-  const [note, setNote] = useState('');
-  const s = useSubmit(() => rpc(fn, args(note.trim())), () => onDone());
-  return (
-    <form onSubmit={(e) => void s.submit(e)} className="flex flex-col gap-3">
-      {hint && <p className="text-sm text-stone-700">{hint}</p>}
-      {comment !== 'none' && (
-        <Labelled label={t('ph.fields.comment')} required={comment === 'required'}>
-          <input required={comment === 'required'} className={inputCls} value={note} onChange={(e) => setNote(e.target.value)} />
-        </Labelled>
-      )}
-      <ErrorBox message={s.error} />
-      <Buttons busy={s.busy} label={label} onCancel={onCancel} />
     </form>
   );
 }
@@ -237,8 +206,8 @@ export function FgPalletForm({ jc, onDone, onCancel }: { jc: JobCardRow; onDone:
   const scales = useApproved<ScaleRow>('scales', 'ph_equipment', 'id, code, name_ar, name_en, kind, calibration_due_on, verification_status');
   const [f, setF] = useState({ grade: jc.grade_target as string, box_count: '', net_kg: '', scale_id: '' });
   const [created, setCreated] = useState<{ code: string; warnings: PhReason[] } | null>(null);
-  const s = useSubmit(() => rpc<{ id: string; code: string; warnings: PhReason[] }>('ph_create_fg_pallet', {
-    p_jc: jc.id, p: { grade: f.grade, box_count: Number(f.box_count), net_kg: Number(f.net_kg), scale_id: f.scale_id } }), (r) => setCreated(r));
+  const s = useSubmit((rid) => rpc<{ id: string; code: string; warnings: PhReason[] }>('ph_create_fg_pallet', {
+    p_jc: jc.id, p: { grade: f.grade, box_count: Number(f.box_count), net_kg: Number(f.net_kg), scale_id: f.scale_id }, p_request_id: rid }), (r) => setCreated(r));
   const set = (k: keyof typeof f) => (e: { target: { value: string } }) => setF({ ...f, [k]: e.target.value });
   if (created) {
     return (
@@ -308,6 +277,57 @@ export function CompleteJobCardForm({ jc, inputs, onDone, onCancel }: { jc: JobC
       <ErrorBox message={s.error} />
       <Buttons busy={s.busy || open.length === 0} label={t('ph.jc.complete')} onCancel={onCancel} />
     </form>
+  );
+}
+
+/**
+ * MB-01: the balance is computed by the database from what was recorded (issued − returned = consumed; consumed − finished
+ * − weighed waste = variance). Nothing is forced to zero; without an approved tolerance (OD-28) any variance needs a reason.
+ */
+export function ReconcileForm({ jc, onDone, onCancel }: { jc: JobCardRow; onDone: () => void; onCancel: () => void }) {
+  const { t } = useTranslation();
+  const bal = useJcBalance(jc.id, jc.version);
+  const [explanation, setExplanation] = useState('');
+  const s = useSubmit(() => rpc('ph_reconcile_job_card', { p_jc: jc.id, p_explanation: explanation.trim() || null }), () => onDone());
+  const b = bal.data;
+  const variance = b ? Number(b.variance_kg) : 0;
+  const tol = b?.tolerance_pct === null || b?.tolerance_pct === undefined ? null : Number(b.tolerance_pct);
+  const needsReason = !!b && variance !== 0 && (tol === null || Math.abs(Number(b.variance_pct ?? 0)) > tol);
+  return (
+    <form onSubmit={(e) => void s.submit(e)} className="flex flex-col gap-3">
+      <p className="text-sm text-stone-700">{t('ph.mb.hint')}</p>
+      {b && <BalanceTable b={b} />}
+      {b && b.waste_pending > 0 && <p className="rounded border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900">{t('ph.reasons.mb_wastePending', { count: b.waste_pending })}</p>}
+      {tol === null && <p className="text-xs text-stone-600">{t('ph.mb.noTolerance')}</p>}
+      <Labelled label={t('ph.fields.explanation')} required={needsReason} hint={needsReason ? t('ph.mb.explainHint') : undefined}>
+        <input required={needsReason} className={inputCls} value={explanation} onChange={(e) => setExplanation(e.target.value)} />
+      </Labelled>
+      <ErrorBox message={s.error} />
+      <Buttons busy={s.busy || !b} label={t('ph.jcActions.reconcile')} onCancel={onCancel} />
+    </form>
+  );
+}
+
+/** The MB-01 figures of one Job Card, as recorded. */
+export function BalanceTable({ b }: { b: NonNullable<ReturnType<typeof useJcBalance>['data']> }) {
+  const { t } = useTranslation();
+  const rows: [string, string | number | null][] = [
+    ['issued_kg', b.issued_kg], ['returned_kg', b.returned_kg], ['consumed_kg', b.consumed_kg], ['fg_kg', b.fg_kg], ['waste_kg', b.waste_kg],
+  ];
+  const v = Number(b.variance_kg);
+  return (
+    <dl className="grid grid-cols-2 gap-x-4 gap-y-1 rounded border border-stone-200 bg-stone-50 p-2 text-sm sm:grid-cols-3">
+      {rows.map(([k, val]) => (
+        <div key={k} className="flex justify-between gap-2"><dt className="text-stone-600">{t(`ph.mb.${k}`)}</dt><dd className="font-medium"><bdi>{val} kg</bdi></dd></div>
+      ))}
+      <div className={`flex justify-between gap-2 ${v === 0 ? '' : 'text-amber-900'}`}>
+        <dt className="font-semibold">{t('ph.mb.variance')}</dt>
+        <dd className="font-bold"><bdi>{b.variance_kg} kg{b.variance_pct !== null ? ` · ${b.variance_pct} %` : ''}</bdi></dd>
+      </div>
+      <div className="flex justify-between gap-2"><dt className="text-stone-600">{t('ph.mb.tolerance')}</dt>
+        <dd>{b.tolerance_pct !== null ? <bdi>{b.tolerance_pct} %</bdi> : <span className="text-amber-800">{t('ph.mb.tolerancePending')}</span>}</dd></div>
+      {b.waste_pending > 0 && <div className="flex justify-between gap-2 text-amber-900"><dt>{t('ph.mb.wastePending')}</dt><dd><bdi>{b.waste_pending}</bdi></dd></div>}
+    </dl>
   );
 }
 
@@ -428,6 +448,10 @@ export function JobCardActionForm({ action, jc, inputs, onDone, onCancel }: {
     case 'qc2': return <Qc2Form jc={jc} {...p} />;
     case 'create_fg': return <FgPalletForm jc={jc} {...p} />;
     case 'complete': return <CompleteJobCardForm jc={jc} inputs={inputs} {...p} />;
+    case 'record_waste': return <CreateWasteForm source={{ type: 'job_card', ref: jc.id, label: jc.code }} onDone={() => onDone()} onCancel={onCancel} />;
+    case 'reconcile': return <ReconcileForm jc={jc} {...p} />;
+    case 'close': return <ConfirmForm fn="ph_close_job_card" args={(c) => ({ p_jc: jc.id, p_comment: c || null })} label={t('ph.jcActions.close')}
+      hint={t('ph.jc.closeHint')} {...p} />;
     default: return null;
   }
 }
@@ -441,6 +465,9 @@ export function FgActionForm({ action, fg, canOverride, onDone, onCancel }: {
     case 'qc_approve': return <ConfirmForm fn="ph_fg_qc_approve" args={(c) => ({ p_fg: fg.id, p_comment: c || null })} label={t('ph.fgActions.qc_approve')}
       hint={t('ph.fg.qcApproveHint')} onDone={onDone} onCancel={onCancel} />;
     case 'move': return <FgMoveForm fg={fg} canOverride={canOverride} onDone={onDone} onCancel={onCancel} />;
+    case 'split': return <FgSplitForm fg={fg} onDone={onDone} onCancel={onCancel} />;
+    case 'merge': return <FgMergeForm fg={fg} onDone={onDone} onCancel={onCancel} />;
+    case 'record_waste': return <CreateWasteForm source={{ type: 'fg_pallet', ref: fg.id, label: fg.code }} onDone={() => onDone()} onCancel={onCancel} />;
     default: return null;
   }
 }
@@ -483,7 +510,9 @@ export function jobCardStrips(j: JobCardRow, t: (k: string, o?: Record<string, u
       <ActivityStrip icon="■" title={t('ph.jcStrips.completion')} state={completion}
         who={completion === 'waiting' ? queue('LL') : j.completed_by_name ?? '—'}
         detail={completion === 'done' ? t('ph.jc.balanceSummary', { consumed: j.consumed_kg, returned: j.returned_kg }) : undefined} />
-      <ActivityStrip icon="⚖" title={t('ph.jcStrips.reconcile')} state="later" who={t('ph.laterIncrement', { m: 'M2.2' })} />
+      <ActivityStrip icon="⚖" title={t('ph.jcStrips.reconcile')} state={after('reconciled', 'closed') ? 'done' : s === 'completed' ? 'waiting' : 'not_reached'}
+        who={after('reconciled', 'closed') ? t('ph.jc.reconciledBy', { by: j.reconciled_by_name ?? '—' }) : s === 'completed' ? queue('PHM') : '—'}
+        detail={j.reconciled_basis ? t(`ph.mb.basis.${j.reconciled_basis}`) : undefined} attention={j.reconciled_basis === 'outside_tolerance' || j.reconciled_basis === 'no_tolerance_set'} />
     </>
   );
 }
@@ -521,9 +550,11 @@ function jobCardNext(j: JobCardRow): PanelAction[] {
       { key: 'mark_ready', perm: 'job_card.execute' }];
     case 'ready': return [j.line_start_inspection_id ? { key: 'confirm_start', perm: 'line_start.submit' } : { key: 'line_start_check', perm: 'line_start.submit' }];
     case 'line_check_failed': return [{ key: 'line_corrected', perm: 'job_card.execute' }];
-    case 'in_progress': return [{ key: 'qc2', perm: 'qc2.submit' }, { key: 'create_fg', perm: 'fg_pallet.create' }, { key: 'pause', perm: 'job_card.execute' },
-      { key: 'complete', perm: 'job_card.execute' }];
-    case 'paused': return [{ key: 'resume', perm: 'job_card.execute' }];
+    case 'in_progress': return [{ key: 'qc2', perm: 'qc2.submit' }, { key: 'create_fg', perm: 'fg_pallet.create' }, { key: 'record_waste', perm: 'waste.create' },
+      { key: 'pause', perm: 'job_card.execute' }, { key: 'complete', perm: 'job_card.execute' }];
+    case 'paused': return [{ key: 'resume', perm: 'job_card.execute' }, { key: 'record_waste', perm: 'waste.create' }];
+    case 'completed': return [{ key: 'record_waste', perm: 'waste.create' }, { key: 'reconcile', perm: 'job_card.close' }];
+    case 'reconciled': return [{ key: 'close', perm: 'job_card.close' }];
     default: return [];
   }
 }
@@ -569,8 +600,8 @@ export function JobCardPanel({ j, perms }: { j: JobCardRow; perms: Perms }) {
         <Field label={t('ph.fields.planned_date')}><bdi>{j.planned_date}</bdi></Field>
         <Field label={t('ph.fields.issued_kg')}><bdi>{j.issued_kg} kg</bdi></Field>
         <Field label={t('ph.fields.fg_output')}><bdi>{j.fg_count} · {j.fg_kg} kg</bdi></Field>
+        <Field label={t('ph.fields.order_line')}>{j.order_line_code ? <bdi>{j.order_line_code} · {j.customer_name}</bdi> : <span className="text-stone-500">{t('ph.order.stock')}</span>}</Field>
         <Field label={t('ph.fields.customer_spec_ref')}>{j.customer_spec_ref ?? <span className="text-amber-800">{t('ph.jc.noSpec')}</span>}</Field>
-        <Field label={t('ph.fields.attribution')}>{t(`ph.attribution.${j.attribution_method}`)}</Field>
       </div>
       <div className="flex gap-1.5 overflow-x-auto px-3 pb-3">{jobCardStrips(j, t)}</div>
       {error && <div className="px-3 pb-3"><ErrorBox message={error} /></div>}
@@ -589,7 +620,7 @@ function fgNext(f: FgPalletRow): PanelAction[] {
   switch (f.status) {
     case 'created': return [{ key: 'print_label', perm: 'fg_pallet.create' }, { key: 'qc_approve', perm: 'qc2.submit' }];
     case 'qc_approved': return [{ key: 'move', perm: 'stock_move.execute' }, { key: 'move', perm: 'stock_move.override_placement' }, { key: 'print_label', perm: 'fg_pallet.create' }];
-    case 'in_storage': return [{ key: 'move', perm: 'stock_move.execute' }];
+    case 'in_storage': return [{ key: 'move', perm: 'stock_move.execute' }, { key: 'split', perm: 'fg_pallet.split_merge' }, { key: 'merge', perm: 'fg_pallet.split_merge' }];
     default: return [];
   }
 }
@@ -623,7 +654,7 @@ export function FgPalletPanel({ f, perms }: { f: FgPalletRow; perms: Perms }) {
         <Field label={t('ph.fields.net_kg')}><bdi>{f.net_kg} kg</bdi></Field>
         <Field label={t('ph.fields.lot')}><bdi>{f.lot_codes || '—'}</bdi></Field>
         <Field label={t('ph.fields.location')}><bdi>{f.location_code ?? '—'}</bdi></Field>
-        <Field label={t('ph.fields.harvest_at')}><When iso={f.earliest_harvest_at} /></Field>
+        <Field label={t('ph.fields.order_line')}>{f.order_line_code ? <bdi>{f.order_line_code} · {f.customer_name}</bdi> : <span className="text-stone-500">{t('ph.order.stock')}</span>}</Field>
       </div>
       <div className="flex gap-1.5 overflow-x-auto px-3 pb-3">{fgStrips(f, t)}</div>
       {open && (

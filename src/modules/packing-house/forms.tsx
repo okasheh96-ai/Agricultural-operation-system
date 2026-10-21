@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from 'react';
+import { useMemo, useRef, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   localizedName, rpc, uploadPhoto, useInvalidatePh, useLookup,
@@ -17,25 +17,45 @@ export interface LocationRow { id: string; code: string; name_ar: string; name_e
 interface TemplateRow { id: string; inspection_type: string; version_no: number; items: { code: string; en: string; ar: string }[]; note: string | null; evidence: string;
   crop_code: string | null; source: string | null }
 
-export function useSubmit<T>(fn: () => Promise<T>, onDone: (r: T) => void) {
+/** A random request id (RFC 4122 v4); crypto.randomUUID is missing in some embedded browsers. */
+export function newRequestId(): string {
+  if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+  const b = crypto.getRandomValues(new Uint8Array(16));
+  b[6] = ((b[6] ?? 0) & 0x0f) | 0x40;
+  b[8] = ((b[8] ?? 0) & 0x3f) | 0x80;
+  const h = Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
+}
+
+/**
+ * Runs one form submission. The form keeps one request id until a submission succeeds, so a double tap or a retry after
+ * a lost answer reaches the server with the same id and gets the first answer back instead of a second record.
+ */
+export function useSubmit<T>(fn: (requestId: string) => Promise<T>, onDone: (r: T) => void) {
   const { t } = useTranslation();
   const invalidate = useInvalidatePh();
+  const requestId = useRef(newRequestId());
+  const inFlight = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const [reason, setReason] = useState<PhReason | null>(null);
   const [busy, setBusy] = useState(false);
   async function submit(e?: FormEvent) {
     e?.preventDefault();
+    if (inFlight.current) return;
+    inFlight.current = true;
     setBusy(true);
     setError(null);
     setReason(null);
     try {
-      const r = await fn();
+      const r = await fn(requestId.current);
+      requestId.current = newRequestId();
       await invalidate();
       onDone(r);
     } catch (err) {
       setReason(phReason(err));
       setError(phErrorMessage(t, err));
     } finally {
+      inFlight.current = false;
       setBusy(false);
     }
   }
@@ -106,6 +126,41 @@ export function Buttons({ busy, label, onCancel }: { busy: boolean; label: strin
   );
 }
 
+export function ResultChoice({ value, onChange, options }: { value: string; onChange: (v: string) => void; options: { key: string; label: string; good: boolean }[] }) {
+  const { t } = useTranslation();
+  return (
+    <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={t('ph.forms.result')}>
+      {options.map((o) => (
+        <button key={o.key} type="button" role="radio" aria-checked={value === o.key} onClick={() => onChange(o.key)}
+          className={`${btnCls} ${value === o.key ? (o.good ? '!border-green-600 !bg-green-600 !text-white' : '!border-red-600 !bg-red-600 !text-white') : ''}`}>
+          {o.label}</button>
+      ))}
+    </div>
+  );
+}
+
+/** A step with an optional or required comment and nothing else to enter (approve, confirm, correct, pause, cancel, QC stamp). */
+export function ConfirmForm({ fn, args, label, hint, comment = 'optional', onDone, onCancel }: {
+  fn: string; args: (comment: string) => Record<string, unknown>; label: string; hint?: string; comment?: 'optional' | 'required' | 'none';
+  onDone: () => void; onCancel: () => void;
+}) {
+  const { t } = useTranslation();
+  const [note, setNote] = useState('');
+  const s = useSubmit(() => rpc(fn, args(note.trim())), () => onDone());
+  return (
+    <form onSubmit={(e) => void s.submit(e)} className="flex flex-col gap-3">
+      {hint && <p className="text-sm text-stone-700">{hint}</p>}
+      {comment !== 'none' && (
+        <Labelled label={t('ph.fields.comment')} required={comment === 'required'}>
+          <input required={comment === 'required'} className={inputCls} value={note} onChange={(e) => setNote(e.target.value)} />
+        </Labelled>
+      )}
+      <ErrorBox message={s.error} />
+      <Buttons busy={s.busy} label={label} onCancel={onCancel} />
+    </form>
+  );
+}
+
 // ---------------------------------------------------------------------------------------------
 // ST-01 Arrival
 export function CreateArrivalForm({ onDone, onCancel }: { onDone: () => void; onCancel: () => void }) {
@@ -115,7 +170,7 @@ export function CreateArrivalForm({ onDone, onCancel }: { onDone: () => void; on
   const [f, setF] = useState({ source_id: '', variety_id: '', harvest_date: '', harvest_time: '', harvest_supervisor: '', supplier_ref: '',
     vehicle_plate: '', driver_name: '', gate_no: '', dispatch_note_no: '', dispatched_pallets: '', dispatched_boxes: '', late_reason: '', remarks: '' });
   const src = sources.data?.find((s) => s.id === f.source_id);
-  const s = useSubmit(() => rpc('ph_create_arrival', { p: Object.fromEntries(Object.entries(f).filter(([, v]) => v !== '')) }), () => onDone());
+  const s = useSubmit((rid) => rpc('ph_create_arrival', { p: Object.fromEntries(Object.entries(f).filter(([, v]) => v !== '')), p_request_id: rid }), () => onDone());
   const set = (k: keyof typeof f) => (e: { target: { value: string } }) => setF({ ...f, [k]: e.target.value });
   return (
     <form onSubmit={(e) => void s.submit(e)} className="flex flex-col gap-3">
@@ -224,10 +279,10 @@ export function RegisterPalletForm({ arrival, onDone, onCancel }: { arrival: Arr
   const [warnings, setWarnings] = useState<PhReason[]>([]);
   const cropId = f.crop_id || defaultCrop?.id || '';
   const crop = current.find((c) => c.id === cropId);
-  const s = useSubmit(async () => {
+  const s = useSubmit(async (rid) => {
     const r = await rpc<{ code: string; warnings: PhReason[] }>('ph_register_pallet', { p_arrival: arrival.id, p: {
       crop_id: cropId || undefined, box_count: f.box_count ? Number(f.box_count) : undefined, net_kg: f.net_kg,
-      scale_id: f.scale_id, confirm_plausibility: f.confirm_plausibility } });
+      scale_id: f.scale_id, confirm_plausibility: f.confirm_plausibility }, p_request_id: rid });
     setWarnings(r.warnings ?? []);
     return r;
   }, (r) => { setF({ ...f, net_kg: '', box_count: '' }); onDone(r.code); });

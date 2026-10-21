@@ -44,7 +44,8 @@ export default function FgPalletDetailPage() {
   const close = () => setOpen(null);
   // A form that finishes closes itself only, never a form opened after it.
   const done = (key: string) => { setOpen((cur) => (cur === key ? null : cur)); void invalidate(); };
-  const idx = f ? FG_PATH.findIndex((s) => s.statuses.includes(f.status)) : -1;
+  // A split or merged pallet was in storage when it closed: the path shows storage as done.
+  const idx = !f ? -1 : f.status === 'split_merged' ? FG_PATH.findIndex((s) => s.key === 'in_storage') + 1 : FG_PATH.findIndex((s) => s.statuses.includes(f.status));
 
   return (
     <QueryState isLoading={fg.isLoading} error={fg.error} isEmpty={!f} emptyText={t('ph.fg.notFound')} onRetry={() => void fg.refetch()}>
@@ -91,11 +92,23 @@ export default function FgPalletDetailPage() {
                   <Field label={t('ph.fields.harvest_at')}><When iso={f.earliest_harvest_at} /></Field>
                   <Field label={t('ph.fields.created')}>{f.created_by_name ?? '—'} · <When iso={f.created_at} /></Field>
                   <Field label={t('ph.fields.location')}><bdi>{f.location_code ?? '—'}</bdi></Field>
-                  <Field label={t('ph.fg.qcStamp')}>{f.qc_approved_by_name ?? '—'} · <When iso={f.qc_approved_at} /></Field>
+                  <Field label={t('ph.fg.qcStamp')}>{f.qc_approved_by_name ?? '—'} · <When iso={f.qc_approved_at} />
+                    {f.qc_stamp_from_code && <span className="block text-xs text-stone-600">{t('ph.fg.stampFrom', { code: f.qc_stamp_from_code })}</span>}</Field>
+                  <Field label={t('ph.fields.order_line')}>{f.order_line_code ? <bdi>{f.order_line_code} · {f.customer_name}</bdi> : <span className="text-stone-500">{t('ph.order.stock')}</span>}</Field>
                   <Field label={t('ph.fg.validUntil')}><When iso={f.qc_valid_until} /></Field>
                   <Field label={t('ph.fg.labelPrints')}><bdi>{f.label_print_count}</bdi></Field>
                 </div>
               </section>
+
+              {(f.parent_codes.length > 0 || f.child_codes.length > 0) && (
+                <section className="rounded-lg border border-violet-200 bg-violet-50 p-3 text-sm">
+                  <h2 className="mb-1 font-semibold">{t('ph.fg.lineage')}</h2>
+                  {f.parent_codes.length > 0 && <p>{t('ph.fg.madeFrom')} {f.parent_codes.map((c) => (
+                    <Link key={c} className="me-2 font-mono underline" to={`/office/packing-house/trace?ref=${encodeURIComponent(c)}`}><bdi>{c}</bdi></Link>))}</p>}
+                  {f.child_codes.length > 0 && <p>{t('ph.fg.becameInto')} {f.child_codes.map((c) => (
+                    <Link key={c} className="me-2 font-mono underline" to={`/office/packing-house/trace?ref=${encodeURIComponent(c)}`}><bdi>{c}</bdi></Link>))}</p>}
+                </section>
+              )}
 
               <section className="rounded-lg border bg-white p-3">
                 <h2 className="mb-2 font-semibold">{t('ph.fg.composition')}</h2>
