@@ -25,7 +25,7 @@ Date: 2026-10-21 · Spec: PH-OAS-SPEC-001 v0.1 · Follows `packing-house-m2-1.md
 | MB-02 / MB-03 | Lot balance (accepted, consumed, in production, in stock, raw waste, in finished pallets, unexplained) and arrival balance (from the scale; the farm dispatch weight is not captured, OD-01 / CP-02). |
 | Orders (ST-00) | Sales enters order lines (C). The PHM accepts, or rejects with a reason (C). Amend and cancel are proposals (P). A shortage notice goes to Sales and Logistics and records whether the 24 h local / 48 h export notice was met. The customer is free text: there is no customer master (OD-06). |
 | Daily plan (FR-PL-03) | Open order lines; Job Cards by line; raw stock, oldest first; finished stock. |
-| Job Card for an order | Crop and grade come from the accepted line (V-10). Labels carry the customer and the order line. |
+| Job Card for an order | Crop and grade come from the accepted line (V-10). The label content stored with each print carries the customer and order line; **the on-screen label does not draw them yet** (defect found 2026-10-21, see `docs/packing-house/M2_CLOSURE_CHECKLIST.md`). |
 | Split / merge (FR-FG-04/05) | The operator requests (the children must add up), and the PHM, a different person, approves; approval executes. Children keep the QC stamp time (the 24 h validity does not restart) and the location; composition is pro rata. Merge needs the same crop, grade, customer and storage group (V-22) and the same Job Card. |
 | Trace | Through splits and merges, plus the waste and the order line / customer. |
 | Board | Counts for Orders and Waste. Exceptions E-20 (top management overdue), OD-11 (weighed waste waiting) and MB-01. |

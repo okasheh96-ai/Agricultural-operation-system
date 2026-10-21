@@ -129,7 +129,7 @@ Tests: `pgtap:NN` = `supabase/tests/pgtap/NN_*.sql` · `e2e:name` = `tests/e2e/s
 | V-07 | Storage-group match or PHM override | PH-ST | M1 | Done | ph_move_pallet, ph_move_fg_pallet; PHM override with reason | pgtap:15 (T-07), pgtap:16 |  |
 | V-08 | Location capacity warning | PH-ST | M1 | Done | capacity warning (non-blocking) | pgtap:15 |  |
 | V-09 | FG label mandatory fields | PH-FG | M2 | Done | label fields: lot, block/section or supplier, harvest date; refused with the missing fields | pgtap:16 |  |
-| V-10 | Customer pallet needs accepted order line | PH-FG | M2 | Done | Non-order pallet carries Premium / GR1 / GR2; an order Job Card takes crop and grade from an accepted line; label shows customer and order line | pgtap:16, pgtap:18 |  |
+| V-10 | Customer pallet needs accepted order line | PH-FG | M2 | Partial | Non-order pallet carries Premium / GR1 / GR2; an order Job Card takes crop and grade from an accepted line; label content stores customer and order line | pgtap:16, pgtap:18 | The on-screen FG label does not draw the customer and order line yet; customer address and requirements (§7.3) need a customer master (OD-06) |
 | V-11 | QC approval 24 h validity at load | PH-DS | M3 | Planned |  |  |  |
 | V-12 | Age > 48 h reason / > 72 h block | PH-DS | M3 | Planned |  |  |  |
 | V-13 | Seal (and logger) before departure | PH-DS | M3 | Planned |  |  |  |
