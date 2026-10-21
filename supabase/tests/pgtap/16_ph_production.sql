@@ -374,11 +374,12 @@ select is((select sum(consumed_kg + returned_kg) from public.ph_jc_inputs where 
   (select sum(issued_kg) from public.ph_jc_inputs where pallet_id = tests.ph_id('ph_incoming_pallets', :'ip1')), 'T-08: consumed + returned = issued');
 select throws_ok(format($$ select public.ph_issue_to_job_card(%L, %L, 10) $$, :'jc2', :'ip1'), 'P0422', null,
   'a returned pallet needs QC-1 release again before it is issued');
--- Reconciliation and closing follow in M2.2 (MB-01, OD-28)
+-- Reconciliation (MB-01) runs through its own server function (M2.2, tests in 17_ph_waste_reconciliation)
 select tests.as_user(:'phm');
-select is((select a -> 'reason' ->> 'key' from jsonb_array_elements(public.ph_job_card_actions(:'jc1')) a where a ->> 'action' = 'reconcile'),
-  'ph.later', 'reconciliation is labelled as a later increment');
-select throws_ok(format($$ select public.transition_record('ph_job_cards', %L, 'reconciled') $$, :'jc1'), 'P0422', null, 'and refused by the server');
+select is((select (a ->> 'allowed')::boolean from jsonb_array_elements(public.ph_job_card_actions(:'jc1')) a where a ->> 'action' = 'reconcile'),
+  true, 'the PHM may reconcile a completed Job Card');
+select throws_ok(format($$ select public.transition_record('ph_job_cards', %L, 'reconciled') $$, :'jc1'), 'P0422', null,
+  'the generic transition endpoint cannot mark it reconciled without the MB-01 record');
 
 -- ---------------------------------------------------------------------------------------------
 -- Cancel
