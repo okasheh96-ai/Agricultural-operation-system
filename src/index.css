@@ -24,57 +24,159 @@ body { font-size: 1rem; }
    borders, shadows, charts and focus. Amber and red are reserved for operational exceptions; every status colour is
    paired with text or an icon. Contrast of text tokens on their backgrounds is at least 4.5:1.
    --------------------------------------------------------------------------------------------- */
-:root {
-  --ops-bg: #f4f6fb;          /* cool off-white page */
+:root, [data-theme='light'] {
+  color-scheme: light;
+  --ops-bg: #f5f6fa;          /* cool off-white page */
+  --ops-bg-glow-1: rgb(99 102 241 / 10%);
+  --ops-bg-glow-2: rgb(168 85 247 / 7%);
   --ops-surface: #ffffff;     /* opaque work surfaces, forms, tables */
-  --ops-ink: #141a2e;         /* text: 16.9:1 on --ops-bg */
+  --ops-surface-2: #f8f9fc;   /* inset areas, table heads */
+  --ops-elevated: #ffffff;    /* menus, dialogs */
+  --ops-ink: #0f1424;         /* text: 17:1 on --ops-bg */
   --ops-muted: #4f5871;       /* secondary text: 6.9:1 on white */
-  --ops-line: #dde2ee;        /* borders */
+  --ops-line: #e3e7f0;        /* borders */
+  --ops-line-strong: #cfd5e3;
   --ops-accent: #4338ca;      /* indigo: 7.9:1 on white */
-  --ops-accent-2: #6d28d9;    /* violet end of the accent gradient */
+  --ops-accent-2: #7c3aed;    /* violet end of the accent gradient */
   --ops-accent-soft: #eef0fd;
+  --ops-accent-line: #c9cdf7;
+  --ops-on-accent: #ffffff;
   --ops-amber: #8a4b00;       /* exception text: 6.6:1 on --ops-amber-bg */
   --ops-amber-bg: #fff4e0;
+  --ops-amber-line: #f3cf94;
   --ops-red: #b3261e;         /* exception text: 6.1:1 on --ops-red-bg */
   --ops-red-bg: #fdecea;
+  --ops-red-line: #f2b8b3;
   --ops-green: #1d6b3a;       /* 6.6:1 on --ops-green-bg */
   --ops-green-bg: #e7f4ec;
+  --ops-green-line: #b6dfc4;
   --ops-grey-bg: #eef0f5;
-  --ops-focus: #6d28d9;
-  --ops-radius: 14px;
-  --ops-radius-sm: 10px;
-  --ops-shadow: 0 1px 2px rgb(20 26 46 / 6%), 0 4px 16px rgb(20 26 46 / 6%);
-  --ops-glass: rgb(255 255 255 / 72%);
-  --ops-glass-edge: rgb(109 40 217 / 22%);
+  --ops-focus: #7c3aed;
+  --ops-radius: 16px;
+  --ops-radius-sm: 11px;
+  --ops-shadow: 0 1px 2px rgb(15 20 36 / 5%), 0 6px 24px -8px rgb(15 20 36 / 10%);
+  --ops-shadow-hover: 0 2px 4px rgb(15 20 36 / 6%), 0 14px 36px -12px rgb(67 56 202 / 22%);
+  --ops-shadow-pop: 0 24px 64px -16px rgb(15 20 36 / 28%), 0 2px 8px rgb(15 20 36 / 8%);
+  --ops-glass: rgb(255 255 255 / 74%);
+  --ops-glass-edge: rgb(99 102 241 / 16%);
+  --ops-skeleton: #e9ecf3;
+  --ops-skeleton-shine: #f6f7fb;
   --ops-chart-1: #4338ca;
   --ops-chart-2: #0e7490;
   --ops-chart-3: #7c3aed;
   --ops-chart-4: #a16207;
   --ops-gap: 1rem;
-  --ops-motion: 140ms;
+  --ops-motion: 160ms;
+  --ops-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+/* Dark theme: same roles, contrast kept at 4.5:1 or more for text tokens. */
+[data-theme='dark'] {
+  color-scheme: dark;
+  --ops-bg: #0b0e17;
+  --ops-bg-glow-1: rgb(99 102 241 / 16%);
+  --ops-bg-glow-2: rgb(168 85 247 / 10%);
+  --ops-surface: #121726;
+  --ops-surface-2: #0f1320;
+  --ops-elevated: #171d2f;
+  --ops-ink: #e8ebf5;         /* 14:1 on surface */
+  --ops-muted: #9aa3bd;       /* 6.6:1 on surface */
+  --ops-line: #232a3f;
+  --ops-line-strong: #2f3852;
+  --ops-accent: #a5b4fc;      /* 9:1 on surface */
+  --ops-accent-2: #c4b5fd;
+  --ops-accent-soft: #1c2245;
+  --ops-accent-line: #36407a;
+  --ops-on-accent: #0b0e17;
+  --ops-amber: #fbbf6a;
+  --ops-amber-bg: #2a1e0b;
+  --ops-amber-line: #5a3f12;
+  --ops-red: #fca5a1;
+  --ops-red-bg: #2c1214;
+  --ops-red-line: #5b2226;
+  --ops-green: #86efac;
+  --ops-green-bg: #0f2519;
+  --ops-green-line: #1f4a30;
+  --ops-grey-bg: #1a2033;
+  --ops-focus: #c4b5fd;
+  --ops-shadow: 0 1px 2px rgb(0 0 0 / 40%), 0 8px 28px -10px rgb(0 0 0 / 55%);
+  --ops-shadow-hover: 0 2px 6px rgb(0 0 0 / 45%), 0 16px 40px -12px rgb(99 102 241 / 30%);
+  --ops-shadow-pop: 0 28px 72px -16px rgb(0 0 0 / 70%), 0 2px 8px rgb(0 0 0 / 40%);
+  --ops-glass: rgb(18 23 38 / 72%);
+  --ops-glass-edge: rgb(165 180 252 / 14%);
+  --ops-skeleton: #1a2033;
+  --ops-skeleton-shine: #232a40;
+  --ops-chart-1: #a5b4fc;
+  --ops-chart-2: #67e8f9;
+  --ops-chart-3: #c4b5fd;
+  --ops-chart-4: #fcd34d;
 }
 
-.ops-root { background: var(--ops-bg); color: var(--ops-ink); font-feature-settings: 'tnum' 1; }
+.ops-root {
+  background:
+    radial-gradient(1100px 520px at 100% -10%, var(--ops-bg-glow-1), transparent 60%),
+    radial-gradient(900px 480px at -10% 0%, var(--ops-bg-glow-2), transparent 55%),
+    var(--ops-bg);
+  background-attachment: fixed;
+  color: var(--ops-ink); font-feature-settings: 'tnum' 1; -webkit-font-smoothing: antialiased;
+}
 .ops-num { font-variant-numeric: tabular-nums; font-feature-settings: 'tnum' 1; }
-.ops-card { background: var(--ops-surface); border: 1px solid var(--ops-line); border-radius: var(--ops-radius); box-shadow: var(--ops-shadow); }
+.ops-card {
+  background: var(--ops-surface); border: 1px solid var(--ops-line); border-radius: var(--ops-radius); box-shadow: var(--ops-shadow);
+  transition: box-shadow var(--ops-motion) var(--ops-ease), border-color var(--ops-motion) var(--ops-ease), transform var(--ops-motion) var(--ops-ease);
+}
+a.ops-card:hover, .ops-card-hover:hover { box-shadow: var(--ops-shadow-hover); border-color: var(--ops-accent-line); transform: translateY(-1px); }
 .ops-glass {
   background: var(--ops-glass);
-  backdrop-filter: blur(14px) saturate(1.2);
-  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  backdrop-filter: blur(16px) saturate(1.3);
+  -webkit-backdrop-filter: blur(16px) saturate(1.3);
   border-inline-end: 1px solid var(--ops-glass-edge);
 }
 .ops-highlight { position: relative; }
 .ops-highlight::before {
   content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none;
-  background: linear-gradient(120deg, rgb(67 56 202 / 45%), rgb(109 40 217 / 25%), transparent 60%);
+  background: linear-gradient(120deg, var(--ops-accent), color-mix(in srgb, var(--ops-accent-2) 50%, transparent), transparent 60%);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
 }
 .ops-accent-bar { background: linear-gradient(90deg, var(--ops-accent), var(--ops-accent-2)); }
 [dir='rtl'] .ops-accent-bar { background: linear-gradient(270deg, var(--ops-accent), var(--ops-accent-2)); }
+.ops-gradient-text { background: linear-gradient(90deg, var(--ops-accent), var(--ops-accent-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.ops-btn-primary { background-image: linear-gradient(135deg, var(--ops-accent), var(--ops-accent-2)); color: var(--ops-on-accent); box-shadow: 0 6px 18px -8px var(--ops-accent); }
+.ops-btn-primary:hover:not(:disabled) { filter: brightness(1.06); box-shadow: 0 10px 24px -10px var(--ops-accent); }
+.ops-press { transition: transform 120ms var(--ops-ease), background-color var(--ops-motion) ease, box-shadow var(--ops-motion) ease, filter var(--ops-motion) ease; }
+.ops-press:active:not(:disabled) { transform: scale(0.97); }
 .ops-root :focus-visible { outline: 3px solid var(--ops-focus); outline-offset: 2px; border-radius: 6px; }
-.ops-fade { transition: opacity var(--ops-motion) ease, transform var(--ops-motion) ease, background-color var(--ops-motion) ease; }
+.ops-fade { transition: opacity var(--ops-motion) ease, transform var(--ops-motion) ease, background-color var(--ops-motion) ease, color var(--ops-motion) ease; }
+.ops-root input, .ops-root select, .ops-root textarea { color-scheme: inherit; }
+.ops-root input::placeholder, .ops-root textarea::placeholder { color: var(--ops-muted); opacity: 0.8; }
+.ops-field { transition: border-color var(--ops-motion) ease, box-shadow var(--ops-motion) ease; }
+.ops-field:hover { border-color: var(--ops-line-strong); }
+.ops-field:focus { border-color: var(--ops-accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--ops-accent) 16%, transparent); outline: none; }
+
+/* Motion: page enter, list items, skeletons, dialogs and drawers. Short, eased, and off for reduced motion. */
+@keyframes ops-enter { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes ops-pop { from { opacity: 0; transform: translateY(8px) scale(0.98); } to { opacity: 1; transform: none; } }
+@keyframes ops-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ops-drawer-in { from { transform: translateX(100%); } to { transform: none; } }
+@keyframes ops-drawer-in-rtl { from { transform: translateX(-100%); } to { transform: none; } }
+@keyframes ops-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+@keyframes ops-toast { from { opacity: 0; transform: translateY(12px) scale(0.98); } to { opacity: 1; transform: none; } }
+.ops-enter { animation: ops-enter 320ms var(--ops-ease) both; }
+.ops-stagger > * { animation: ops-enter 360ms var(--ops-ease) both; }
+.ops-stagger > *:nth-child(2) { animation-delay: 40ms; } .ops-stagger > *:nth-child(3) { animation-delay: 80ms; }
+.ops-stagger > *:nth-child(4) { animation-delay: 120ms; } .ops-stagger > *:nth-child(5) { animation-delay: 160ms; }
+.ops-stagger > *:nth-child(n + 6) { animation-delay: 200ms; }
+.ops-pop { animation: ops-pop 220ms var(--ops-ease) both; }
+.ops-backdrop { animation: ops-fade-in 180ms ease both; background: rgb(8 10 20 / 45%); backdrop-filter: blur(3px); }
+.ops-drawer { animation: ops-drawer-in 260ms var(--ops-ease) both; }
+[dir='rtl'] .ops-drawer { animation-name: ops-drawer-in-rtl; }
+.ops-skeleton {
+  background: linear-gradient(90deg, var(--ops-skeleton) 25%, var(--ops-skeleton-shine) 37%, var(--ops-skeleton) 63%);
+  background-size: 400% 100%; animation: ops-shimmer 1.4s ease infinite; border-radius: var(--ops-radius-sm);
+}
+.ops-toast { animation: ops-toast 240ms var(--ops-ease) both; }
+.ops-scroll-thin { scrollbar-width: thin; scrollbar-color: var(--ops-line-strong) transparent; }
 @media (prefers-reduced-motion: reduce) {
-  .ops-fade, .ops-root * { transition: none !important; animation: none !important; }
+  .ops-fade, .ops-root *, .ops-root *::before { transition: none !important; animation: none !important; }
 }
 /* Printable management summary: solid white, no navigation. */
 @media print {

@@ -109,7 +109,7 @@ function StopRow({ row, focused }: { row: DowntimeRow; focused: boolean }) {
     catch (e) { setState({ kind: 'failed', message: opsErrorMessage(t, e) }); }
   };
   return (
-    <li id={`stop-${row.id}`} className={`rounded-ops-sm border p-3 ${focused ? 'border-ops-accent ring-2 ring-ops-accent' : row.is_open ? 'border-[#f2b8b3] bg-ops-redbg' : 'border-ops-line'}`}>
+    <li id={`stop-${row.id}`} className={`rounded-ops-sm border p-3 ${focused ? 'border-ops-accent ring-2 ring-ops-accent' : row.is_open ? 'border-ops-redline bg-ops-redbg' : 'border-ops-line'}`}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="font-semibold"><bdi>{row.code}</bdi> · {row.line_codes.join('، ')}</div>
         {row.is_open ? <Pill tone="bad">{t('ops.downtime.open')}</Pill> : <Pill tone="neutral" icon="✓">{t('ops.downtime.restarted')}</Pill>}

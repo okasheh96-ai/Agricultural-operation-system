@@ -3013,6 +3013,31 @@
       "wouldPass": "ستنجح",
       "wouldFail": "ستفشل",
       "waitingFor": "بانتظار أن يسجّل {{role}} هذه الخطوة."
+    },
+    "ui": {
+      "breadcrumbs": "مسار التنقل",
+      "close": "إغلاق",
+      "search": "بحث…",
+      "noMatch": "لا نتائج مطابقة للبحث.",
+      "noRows": "لا شيء للعرض بعد.",
+      "pagination": "الصفحات",
+      "rangeOf": "{{from}}–{{to}} من {{total}}",
+      "prev": "السابق",
+      "next": "التالي",
+      "theme": "المظهر",
+      "themeLight": "فاتح",
+      "themeDark": "داكن",
+      "themeSystem": "حسب الجهاز",
+      "command": "انتقال إلى…",
+      "commandHint": "ابحث في الصفحات والإجراءات",
+      "commandEmpty": "لا صفحة أو إجراء مطابق.",
+      "commandShortcut": "Ctrl K",
+      "signedInAs": "مسجّل الدخول باسم",
+      "sections": {
+        "run": "التشغيل اليومي",
+        "quality": "الشحن والجودة",
+        "config": "الإعدادات"
+      }
     }
   }
 }

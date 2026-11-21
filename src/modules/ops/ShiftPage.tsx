@@ -85,7 +85,7 @@ function Instruction({ item }: { item: Sheet['instructions'][number] }) {
   const inv = useInvalidateOps();
   const [err, setErr] = useState('');
   return (
-    <div role="alert" className="mb-3 rounded-ops-sm border border-[#c9cdf7] bg-ops-soft p-3 text-sm">
+    <div role="alert" className="mb-3 rounded-ops-sm border border-ops-accentline bg-ops-soft p-3 text-sm">
       <div className="font-semibold text-ops-accent">ℹ {t('ops.shift.instruction')} <bdi>{item.code}</bdi></div>
       <p className="my-1">{item.description}</p>
       <button type="button" className={btn} onClick={() => rpc('ph_issue_step', { p_issue: item.id, p_step: 'acknowledge' }).then(inv).catch((e) => setErr(opsErrorMessage(t, e)))}>

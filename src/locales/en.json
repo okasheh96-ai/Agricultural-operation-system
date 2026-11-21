@@ -3013,6 +3013,31 @@
       "wouldPass": "Would pass",
       "wouldFail": "Would fail",
       "waitingFor": "Waiting for {{role}} to record this step."
+    },
+    "ui": {
+      "breadcrumbs": "Breadcrumbs",
+      "close": "Close",
+      "search": "Search…",
+      "noMatch": "Nothing matches the search.",
+      "noRows": "Nothing to show yet.",
+      "pagination": "Pages",
+      "rangeOf": "{{from}}–{{to}} of {{total}}",
+      "prev": "Previous",
+      "next": "Next",
+      "theme": "Theme",
+      "themeLight": "Light",
+      "themeDark": "Dark",
+      "themeSystem": "Device",
+      "command": "Go to…",
+      "commandHint": "Search pages and actions",
+      "commandEmpty": "No page or action matches.",
+      "commandShortcut": "Ctrl K",
+      "signedInAs": "Signed in as",
+      "sections": {
+        "run": "Daily operations",
+        "quality": "Dispatch & quality",
+        "config": "Configuration"
+      }
     }
   }
 }

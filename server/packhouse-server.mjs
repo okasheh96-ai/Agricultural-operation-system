@@ -40,7 +40,16 @@ if (!JWT_SECRET || JWT_SECRET.length < 32) {
   process.exit(2);
 }
 
-const pool = new pg.Pool({ connectionString: env('PH_DB_URL', ''), max: 5 });
+// sslmode as libpq means it: require = encrypted (a private network's self-signed certificate is accepted), verify-full = the
+// certificate is also verified, disable = no TLS. (node-postgres would otherwise treat require as verify-full.)
+function poolConfig(url) {
+  if (!url) return { connectionString: '' };
+  const u = new URL(url);
+  const mode = u.searchParams.get('sslmode') ?? 'disable';
+  u.searchParams.delete('sslmode');
+  return { connectionString: u.toString(), ssl: mode === 'disable' ? false : { rejectUnauthorized: mode === 'verify-full' } };
+}
+const pool = new pg.Pool({ ...poolConfig(env('PH_DB_URL', '')), max: 5 });
 
 // ---------------------------------------------------------------------------------------------
 // Tokens (HS256, verified by PostgREST with the same secret)

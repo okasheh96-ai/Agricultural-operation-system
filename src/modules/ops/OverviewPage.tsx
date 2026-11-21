@@ -159,7 +159,7 @@ export default function OverviewPage() {
                 {d.queue.at_risk.length === 0 && <li className="text-sm text-ops-muted">{t('ops.overview.noneAtRisk')}</li>}
                 {d.queue.at_risk.map((o) => (
                   <li key={o.order_line_id}>
-                    <Link to={`/ops/orders?${qs}&order=${o.order_line_id}`} className="ops-fade block rounded-ops-sm border border-[#f3cf94] bg-ops-amberbg p-2 text-sm hover:border-ops-amber">
+                    <Link to={`/ops/orders?${qs}&order=${o.order_line_id}`} className="ops-fade block rounded-ops-sm border border-ops-amberline bg-ops-amberbg p-2 text-sm hover:border-ops-amber">
                       <div className="flex items-center justify-between gap-2"><bdi className="font-semibold">{o.code}</bdi><bdi>{o.customer}</bdi></div>
                       <div className="text-ops-amber">! {o.reasons.map((r) => t(`ops.risk.${r}`)).join(' · ')}</div>
                       <div className="text-xs text-ops-muted">{t('ops.overview.remainingShort')}: <Num value={o.remaining_kg} unit="kg" digits={0} />
@@ -173,7 +173,7 @@ export default function OverviewPage() {
                 {d.queue.open_stops.length === 0 && <li className="text-sm text-ops-muted">{t('ops.overview.noOpenStops')}</li>}
                 {d.queue.open_stops.map((s) => (
                   <li key={s.id}>
-                    <Link to={`/ops/downtime?${qs}&stop=${s.id}`} className="ops-fade block rounded-ops-sm border border-[#f2b8b3] bg-ops-redbg p-2 text-sm hover:border-ops-red">
+                    <Link to={`/ops/downtime?${qs}&stop=${s.id}`} className="ops-fade block rounded-ops-sm border border-ops-redline bg-ops-redbg p-2 text-sm hover:border-ops-red">
                       <div className="flex items-center justify-between gap-2"><span className="font-semibold text-ops-red">■ <bdi>{s.code}</bdi> · {s.lines.join('، ')}</span>
                         <Num value={s.minutes} unit="min" digits={0} /></div>
                       <div className="truncate">{s.fault}</div>
