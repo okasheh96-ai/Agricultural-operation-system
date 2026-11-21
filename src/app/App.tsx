@@ -49,6 +49,9 @@ const OpsShiftPage = lazy(() => import('@/modules/ops/ShiftPage'));
 const OpsDowntimePage = lazy(() => import('@/modules/ops/DowntimePage'));
 const OpsOrdersPage = lazy(() => import('@/modules/ops/OrdersPage'));
 const OpsReportPage = lazy(() => import('@/modules/ops/ReportPage'));
+const OpsDispatchPage = lazy(() => import('@/modules/ops/DispatchPage'));
+const OpsTracePage = lazy(() => import('@/modules/ops/TracePage'));
+const OpsComplaintsPage = lazy(() => import('@/modules/ops/ComplaintsPage'));
 
 // The in-browser demo runs inside a hosted page (or a local file), where only the part after # is the app's own.
 const Router = __BROWSER_DB__ ? HashRouter : BrowserRouter;
@@ -133,6 +136,9 @@ export function App() {
             <Route path="downtime" element={<OpsDowntimePage />} />
             <Route path="orders" element={<OpsOrdersPage />} />
             <Route path="report" element={<OpsReportPage />} />
+            <Route path="dispatch" element={<OpsDispatchPage />} />
+            <Route path="trace" element={<OpsTracePage />} />
+            <Route path="complaints" element={<OpsComplaintsPage />} />
           </Route>
           <Route path="/field" element={<FieldShell />}>
             <Route index element={<Navigate to="my-day" replace />} />

@@ -191,6 +191,27 @@ begin
           'boxes', 9, 'period_end', t0 - interval '2 hours'));
   perform public.ph_labour_start(ls_tc, array[w[11]], t_team, (t0 - interval '2 hours')::text, null, null, team);
 
+
+  -- Dispatch (demo): the spec leaves the logger / seal (OD-18) and packing-list / departure recording role NYV. On the demo farm
+  -- the data entry clerk holds them as a LABELLED DEMO ASSUMPTION — not a management decision; a real farm stays blocked.
+  update public.ph_permission_cells set state = 'active', basis = 'DEMO ASSUMPTION (not a management decision)',
+         note = coalesce(note, '') || ' Demo farm only.'
+   where farm_id = v_farm and spec_code = 'DEC' and action_key in ('load.logger_seal', 'load.finalise') and state = 'pending_decision';
+  perform set_config('request.jwt.claims', json_build_object('sub', u_pe, 'role', 'authenticated')::text, true);
+  begin
+    -- The accepted order line that has matching finished pallets in storage (from the M2 demo), if any.
+    select o.id into ol_b from public.ph_order_lines o
+     where o.farm_id = v_farm and o.status = 'accepted' and exists (select 1 from public.ph_fifo_proposal(o.id)) order by o.code limit 1;
+    if ol_b is not null then
+      v := (public.ph_create_load(jsonb_build_object('customer_text', (select customer_name from public.ph_order_lines where id = ol_b),
+             'destination', 'السوق المحلي (تجريبي) / Local market (demo)', 'order_line_ids', jsonb_build_array(ol_b), 'vehicle_plate', '10-12345')) ->> 'id')::uuid;
+      perform public.ph_allocate_pallet(v, x.code, ol_b, case when x.rank > 1 then 'Demo allocation' end)
+         from (select * from public.ph_fifo_proposal(ol_b) order by rank limit 2) x;
+    end if;
+  exception when others then
+    raise notice 'Demo load skipped: %', sqlerrm;
+  end;
+
   -- An open stop on line B now; a QC observation routed to the engineer.
   perform set_config('request.jwt.claims', json_build_object('sub', u_pe, 'role', 'authenticated')::text, true);
   perform public.ph_report_stop(jsonb_build_object('line_ids', jsonb_build_array(l_b), 'observed_fault', 'الميزان لا يقرأ' || v_tag,

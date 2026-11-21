@@ -21,3 +21,10 @@ verified, what is next. Branch: `claude/packhouse-ops-system-rrefgr`.
    drill from open stop and back keeps filters; no sideways scroll at 390 px; line-B cannot read line A).
    Screenshots checked at 1440 ar/en and 390 ar. Playwright configs use /opt/pw-browsers/chromium when present.
    Next: increment 3 (dispatch, FG holds, forward trace, complaints).
+5. **Increment 3 (dispatch, holds, trace, complaints):** migration `20261121002200_po_dispatch_trace.sql` (load workflow SM-LD,
+   finished-pallet workflow version with dispatch moves and FG holds, FIFO proposal, V-11 re-inspection at load scan, G8 vehicle
+   check, seal V-13, packing list, departure with hook point `dispatch.before_depart`, forward trace, recall search, people at
+   run/team level, trace timeline, complaints). pgTAP `20_po_dispatch_trace.sql` (58) runs the owner's 1,000 kg scenario:
+   two lots, split across runs, combined run, 3 grades, partial pallet, waste, remaining stock, held stock blocked, dispatch,
+   forward/backward trace, mass = 1,000 kg. Full DB suite **966 pass**. Screens `/ops/dispatch`, `/ops/trace`, `/ops/complaints`.
+   Demo seed adds a demo load (DEC dispatch cells as labelled demo assumption). Next: increment 4 (server + identity + Settings).

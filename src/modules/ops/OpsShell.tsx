@@ -24,7 +24,9 @@ export const OPS_NAV: OpsNavItem[] = [
   { key: 'downtime', to: '/ops/downtime', icon: '⏸', mobile: true },
   { key: 'orders', to: '/ops/orders', icon: '⏱' },
   { key: 'report', to: '/ops/report', icon: '▤', needs: 'report.kpi_view' },
-  { key: 'trace', to: '/office/packing-house/trace', icon: '⇄', mobile: true },
+  { key: 'dispatch', to: '/ops/dispatch', icon: '⛟' },
+  { key: 'trace', to: '/ops/trace', icon: '⇄', mobile: true },
+  { key: 'complaints', to: '/ops/complaints', icon: '✉' },
   { key: 'workflow', to: '/office/packing-house', icon: '⛁' },
 ];
 
