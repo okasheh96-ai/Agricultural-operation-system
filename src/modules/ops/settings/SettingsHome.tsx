@@ -5,11 +5,14 @@ import { useTranslation } from 'react-i18next';
 import { requireSupabase } from '@/core/supabase';
 import { localName, useMyPermissions } from '../api';
 import { btnPrimary, Card, PageTitle, Pill } from '../ui';
+import { Icon } from '../icons';
 
 interface OpenItem { code: string; priority: string; title_ar: string; title_en: string; blocks_ar: string; blocks_en: string; decision_state: string }
 
 /** Operations Settings: every area the Owner configures without code, and the items still waiting for a decision (steps
  *  that depend on them stay blocked on a real farm). */
+const ICONS: Record<string, string> = { people: 'people', operations: 'operations', kpis: 'kpi', master: 'database', tasks: 'tasks', authority: 'shield' };
+
 export default function SettingsHome() {
   const { t, i18n } = useTranslation();
   const perms = useMyPermissions();
@@ -35,11 +38,17 @@ export default function SettingsHome() {
   return (
     <div>
       <PageTitle title={t('ops.settings.title')} sub={t('ops.settings.sub')} />
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="ops-stagger grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {areas.map((a) => (
-          <Link key={a.key} to={a.to} className="ops-card ops-fade block p-4 hover:border-ops-accent">
-            <h2 className="font-semibold">{t(`ops.settings.areas.${a.key}.title`)}</h2>
-            <p className="mt-1 text-sm text-ops-muted">{t(`ops.settings.areas.${a.key}.sub`)}</p>
+          <Link key={a.key} to={a.to} className="ops-card group flex items-start gap-4 p-5">
+            <span aria-hidden="true" className="grid h-11 w-11 shrink-0 place-items-center rounded-[13px] bg-ops-soft text-ops-accent transition-transform duration-300 group-hover:scale-105">
+              <Icon name={ICONS[a.key] ?? 'settings'} className="h-[22px] w-[22px]" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="flex items-center justify-between gap-2"><h2 className="font-semibold">{t(`ops.settings.areas.${a.key}.title`)}</h2>
+                <Icon name="arrow" className="h-4 w-4 text-ops-muted opacity-0 transition-opacity group-hover:opacity-100 rtl:-scale-x-100" /></span>
+              <p className="mt-1 text-sm leading-relaxed text-ops-muted">{t(`ops.settings.areas.${a.key}.sub`)}</p>
+            </span>
           </Link>
         ))}
       </div>

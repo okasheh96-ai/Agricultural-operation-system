@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { requireSupabase } from '@/core/supabase';
 import { localName, opsErrorMessage, rpc, useCustomers, useInvalidateOps, useMyPermissions } from '../api';
-import { btn, btnPrimary, Card, EmptyState, field, PageTitle, Pill, SaveStatus, type SaveState, Loaded } from '../ui';
+import { btn, btnPrimary, Card, EmptyState, field, PageTitle, Pill, SaveStatus, type SaveState, Loaded, Tabs } from '../ui';
 
 type Kind = 'text' | 'number' | 'bool' | 'time' | 'select' | 'customer';
 interface Col { key: string; kind: Kind; required?: boolean; options?: string[]; ltr?: boolean }
@@ -43,12 +43,7 @@ export default function MasterDataPage() {
   return (
     <div>
       <PageTitle title={t('ops.md.title')} sub={t('ops.md.sub')} />
-      <div role="tablist" aria-label={t('ops.md.title')} className="mb-4 flex flex-wrap gap-1 rounded-ops-sm bg-ops-grey p-1">
-        {TABLES.map((d) => (
-          <button key={d.table} type="button" role="tab" aria-selected={tab === d.table} onClick={() => setTab(d.table)}
-            className={`min-h-[44px] rounded-ops-sm px-4 text-sm font-semibold ${tab === d.table ? 'bg-ops-surface text-ops-accent shadow-ops' : 'text-ops-muted'}`}>{t(`ops.md.tables.${d.table}`)}</button>
-        ))}
-      </div>
+      <Tabs label={t('ops.md.title')} value={tab} onChange={setTab} tabs={TABLES.map((d) => ({ key: d.table, label: t(`ops.md.tables.${d.table}`) }))} />
       <Table key={def.table} def={def} />
     </div>
   );

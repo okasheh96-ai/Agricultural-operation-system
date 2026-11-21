@@ -25,7 +25,6 @@ body { font-size: 1rem; }
    paired with text or an icon. Contrast of text tokens on their backgrounds is at least 4.5:1.
    --------------------------------------------------------------------------------------------- */
 :root, [data-theme='light'] {
-  color-scheme: light;
   --ops-bg: #f5f6fa;          /* cool off-white page */
   --ops-bg-glow-1: rgb(99 102 241 / 10%);
   --ops-bg-glow-2: rgb(168 85 247 / 7%);
@@ -71,7 +70,6 @@ body { font-size: 1rem; }
 }
 /* Dark theme: same roles, contrast kept at 4.5:1 or more for text tokens. */
 [data-theme='dark'] {
-  color-scheme: dark;
   --ops-bg: #0b0e17;
   --ops-bg-glow-1: rgb(99 102 241 / 16%);
   --ops-bg-glow-2: rgb(168 85 247 / 10%);
@@ -119,6 +117,7 @@ body { font-size: 1rem; }
   background-attachment: fixed;
   color: var(--ops-ink); font-feature-settings: 'tnum' 1; -webkit-font-smoothing: antialiased;
 }
+[data-theme='dark'] .ops-root, [data-theme='dark'] .ops-root * { color-scheme: dark; }
 .ops-num { font-variant-numeric: tabular-nums; font-feature-settings: 'tnum' 1; }
 .ops-card {
   background: var(--ops-surface); border: 1px solid var(--ops-line); border-radius: var(--ops-radius); box-shadow: var(--ops-shadow);

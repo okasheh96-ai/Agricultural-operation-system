@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { requireSupabase } from '@/core/supabase';
 import { newRequestId, opsErrorMessage, rpc, useInvalidateOps, useLines, useMyPermissions } from './api';
-import { btn, btnPrimary, Card, EmptyState, field, PageTitle, Pill, SaveStatus, useFmt, type SaveState, type Tone, Loaded } from './ui';
+import { btn, btnPrimary, Card, EmptyState, field, PageTitle, Pill, SaveStatus, useFmt, type SaveState, type Tone, Loaded, Tabs } from './ui';
 import { useRoleOptions } from './config/useConfig';
 
 interface TaskRow {
@@ -36,12 +36,8 @@ export default function TasksPage() {
   return (
     <div>
       <PageTitle title={t('ops.tasks.title')} sub={t('ops.tasks.sub')} />
-      <div role="tablist" aria-label={t('ops.tasks.title')} className="mb-4 flex flex-wrap gap-1 rounded-ops-sm bg-ops-grey p-1">
-        {(['mine', 'open', 'done'] as View[]).map((k) => (
-          <button key={k} type="button" role="tab" aria-selected={view === k} onClick={() => setView(k)}
-            className={`min-h-[44px] rounded-ops-sm px-4 text-sm font-semibold ${view === k ? 'bg-ops-surface text-ops-accent shadow-ops' : 'text-ops-muted'}`}>{t(`ops.tasks.views.${k}`)}</button>
-        ))}
-      </div>
+      <Tabs label={t('ops.tasks.title')} value={view} onChange={setView}
+        tabs={(['mine', 'open', 'done'] as View[]).map((k) => ({ key: k, label: t(`ops.tasks.views.${k}`) }))} />
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <Loaded query={tasks}>
           {(rows) => {

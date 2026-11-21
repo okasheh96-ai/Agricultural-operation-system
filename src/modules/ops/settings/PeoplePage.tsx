@@ -5,7 +5,7 @@ import { QueryState } from '@/core/components/QueryState';
 import { useAuth } from '@/core/auth/AuthProvider';
 import { requireSupabase } from '@/core/supabase';
 import { localName, newRequestId, opsErrorMessage, rpc, useInvalidateOps, useLines, useMyPermissions } from '../api';
-import { btn, btnPrimary, Card, EmptyState, field, PageTitle, Pill, SaveStatus, useFmt, type SaveState, type Tone } from '../ui';
+import { btn, btnPrimary, Card, EmptyState, field, PageTitle, Pill, SaveStatus, useFmt, type SaveState, type Tone, Tabs } from '../ui';
 
 interface Account { user_id: string; username: string; full_name: string; email: string | null; status: 'active' | 'suspended' | 'archived';
   must_change_password: boolean; last_sign_in_at: string | null; roles: { code: string; line_id: string | null; line_code: string | null }[];
@@ -47,12 +47,7 @@ export default function PeoplePage() {
   return (
     <div>
       <PageTitle title={t('ops.people.title')} sub={t('ops.people.sub')} />
-      <div role="tablist" aria-label={t('ops.people.title')} className="mb-4 flex flex-wrap gap-1 rounded-ops-sm bg-ops-grey p-1">
-        {tabs.map((k) => (
-          <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
-            className={`min-h-[44px] rounded-ops-sm px-4 text-sm font-semibold ${tab === k ? 'bg-ops-surface text-ops-accent shadow-ops' : 'text-ops-muted'}`}>{t(`ops.people.tab.${k}`)}</button>
-        ))}
-      </div>
+      <Tabs label={t('ops.people.title')} value={tab} onChange={setTab} tabs={tabs.map((k) => ({ key: k, label: t(`ops.people.tab.${k}`) }))} />
       {tab === 'accounts' && <Accounts owner={owner} />}
       {tab === 'roles' && <Roles />}
       {tab === 'delegation' && <Delegation />}

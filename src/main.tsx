@@ -4,12 +4,15 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import '@/core/i18n';
 import './index.css';
+import { applyTheme } from '@/modules/ops/theme';
 import { supabase } from '@/core/supabase';
 import { AuthProvider } from '@/core/auth/AuthProvider';
 import { LanguageToggle } from '@/core/components/LanguageToggle';
 import { App } from '@/app/App';
 import { ErrorBoundary } from '@/core/components/ErrorBoundary';
 import { UpdatePrompt } from '@/core/components/UpdatePrompt';
+
+applyTheme();
 
 const queryClient = new QueryClient({ defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } } });
 

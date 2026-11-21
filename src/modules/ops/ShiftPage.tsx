@@ -6,7 +6,7 @@ import {
   localName, newRequestId, opsErrorMessage, rpc, useInvalidateOps, useMyLineShifts, useOpenOrders, usePackFormats, useSheet,
   useTaskKinds, useWorkers, type Sheet,
 } from './api';
-import { btn, btnPrimary, Card, EmptyState, field, Num, Pill, SaveStatus, useFmt, type SaveState } from './ui';
+import { btn, btnPrimary, Card, EmptyState, field, Num, Pill, SaveStatus, useFmt, type SaveState, Tabs } from './ui';
 
 type Tab = 'output' | 'workers' | 'line';
 const GRADES = ['premium', 'gr1', 'gr2'] as const;
@@ -54,14 +54,7 @@ export default function ShiftPage() {
               )}
             </Card>
 
-            <div role="tablist" aria-label={t('ops.shift.sections')} className="mb-3 grid grid-cols-3 gap-1 rounded-ops-sm bg-ops-grey p-1">
-              {(['output', 'workers', 'line'] as Tab[]).map((k) => (
-                <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
-                  className={`ops-fade min-h-[44px] rounded-ops-sm text-sm font-semibold ${tab === k ? 'bg-ops-surface text-ops-accent shadow-ops' : 'text-ops-muted'}`}>
-                  {t(`ops.shift.tab.${k}`)}
-                </button>
-              ))}
-            </div>
+            <Tabs label={t('ops.shift.sections')} value={tab} onChange={setTab} tabs={(['output', 'workers', 'line'] as Tab[]).map((k) => ({ key: k, label: t(`ops.shift.tab.${k}`) }))} />
 
             <QueryState isLoading={sheet.isLoading} error={sheet.error} isEmpty={!sheet.data} onRetry={() => void sheet.refetch()}>
               {sheet.data && (

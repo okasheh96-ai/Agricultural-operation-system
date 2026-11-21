@@ -36,10 +36,11 @@ export function KpiCardView({ def, result, code }: { def: KpiDef; result: KpiRes
   const target = def.target !== undefined && def.target !== '' ? Number(def.target) : null;
   const off = v !== null && target !== null && (def.target_dir === 'min' ? Number(v) < target : Number(v) > target);
   return (
-    <div className="ops-card min-w-0 p-4">
+    <div className="ops-card relative min-w-0 overflow-hidden p-5">
+      <span aria-hidden="true" className="ops-accent-bar absolute inset-x-0 top-0 h-[3px]" />
       <div className="text-sm font-medium text-ops-muted">{title}</div>
       <div className={`mt-1 text-3xl font-bold leading-tight ${off ? 'text-ops-amber' : 'text-ops-ink'}`}>
-        <Num value={v} unit={unit && unit !== 'count' ? unit : undefined} digits={2} />
+        <Num animate value={v} unit={unit && unit !== 'count' ? unit : undefined} digits={2} />
       </div>
       {target !== null && <div className="mt-1 text-sm text-ops-muted">{t('ops.kpiset.targetIs', { v: target })}{off ? ` · ${t('ops.kpiset.offTarget')}` : ''}</div>}
       <div className="mt-2 border-t border-ops-line pt-2 text-xs text-ops-muted">{formula} · {t(`ops.kpiset.windows.${def.window}`)} · {t('ops.kpiset.records', { n: result.rows[0]?.n ?? 0 })}</div>

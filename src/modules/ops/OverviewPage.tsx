@@ -5,6 +5,7 @@ import { QueryState } from '@/core/components/QueryState';
 import { farmToday, localName, rpc, useCustomers, useLines, useOverview, useTrend, type OverviewFilters, type OverviewLine } from './api';
 import { BarChart, btn, Card, downloadCsv, field, KpiTile, Num, PageTitle, Pill, useFmt, type Tone } from './ui';
 import { KpiCardView, useMyKpiCards } from './config/KpiCards';
+import { Icon } from './icons';
 
 const STATUS_TONE: Record<OverviewLine['status'], Tone> = {
   not_open: 'neutral', open: 'info', overdue: 'warn', submitted: 'good', submitted_zero: 'neutral',
@@ -117,19 +118,19 @@ export default function OverviewPage() {
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div>
                   <div className="text-sm text-ops-muted">{t('ops.overview.packed')}</div>
-                  <div className="text-4xl font-bold"><Num value={d.totals.packed_kg} unit="kg" digits={0} /></div>
+                  <div className="text-4xl font-bold tracking-tight"><Num animate value={d.totals.packed_kg} unit="kg" digits={0} /></div>
                   <div className="text-sm text-ops-muted"><Num value={d.totals.boxes} unit="boxes" digits={0} />
                     {d.totals.nonconforming_boxes > 0 && <> · {t('ops.overview.nonconforming', { n: d.totals.nonconforming_boxes })}</>}</div>
                 </div>
                 <div>
                   <div className="text-sm text-ops-muted">{t('ops.overview.planned')}</div>
-                  <div className="text-4xl font-bold"><Num value={d.totals.planned_kg} unit="kg" digits={0} /></div>
+                  <div className="text-4xl font-bold tracking-tight"><Num animate value={d.totals.planned_kg} unit="kg" digits={0} /></div>
                   <div className="text-sm text-ops-muted">{t('ops.overview.plannedOrders', { n: d.totals.planned_orders })}
                     {d.totals.planned_unknown > 0 && <> · <span className="text-ops-amber">{t('ops.overview.plannedUnknown', { n: d.totals.planned_unknown })}</span></>}</div>
                 </div>
                 <div>
                   <div className="text-sm text-ops-muted">{t('ops.overview.remaining')}</div>
-                  <div className="text-4xl font-bold"><Num value={d.totals.remaining_kg} unit="kg" digits={0} /></div>
+                  <div className="text-4xl font-bold tracking-tight"><Num animate value={d.totals.remaining_kg} unit="kg" digits={0} /></div>
                   <div className="text-sm text-ops-muted">{t('ops.overview.remainingFormula')}</div>
                 </div>
               </div>
@@ -198,16 +199,16 @@ export default function OverviewPage() {
             {/* The three KPIs of the roles and KPI draft (S-04 p.3); each opens its source records. */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:col-span-12">
               <KpiTile label={t('ops.kpi.productivity')} to={`/ops/report?${qs}#productivity`}
-                value={<Num value={d.kpi.productivity.rate} unit="kgPerWorkerHour" digits={1} />}
+                icon={<Icon name="kpi" className="h-[18px] w-[18px]" />} value={<Num animate value={d.kpi.productivity.rate} unit="kgPerWorkerHour" digits={1} />}
                 sub={<><Num value={d.kpi.productivity.kg} unit="kg" digits={0} /> ÷ <Num value={d.kpi.productivity.hours} unit="h" digits={1} /></>}
                 formula={t('ops.kpi.productivityFormula')} />
               <KpiTile label={t('ops.kpi.downtime')} to={`/ops/downtime?${qs}`} tone={d.kpi.downtime.open > 0 ? 'bad' : 'neutral'}
-                value={<Num value={d.kpi.downtime.minutes} unit="min" digits={0} />}
+                icon={<Icon name="downtime" className="h-[18px] w-[18px]" />} value={<Num animate value={d.kpi.downtime.minutes} unit="min" digits={0} />}
                 sub={<>{t('ops.kpi.stops', { n: d.kpi.downtime.stops })}{d.kpi.downtime.open > 0 && <> · <span className="font-semibold text-ops-red">{t('ops.kpi.openStops', { n: d.kpi.downtime.open })}</span></>}
                   {' · '}{t('ops.kpi.siteMinutes')}: <Num value={d.kpi.downtime.site_minutes} unit="min" digits={0} /></>}
                 formula={t('ops.kpi.downtimeFormula')} />
               <KpiTile label={t('ops.kpi.orders')} to={`/ops/orders?${qs}`} tone={d.kpi.orders.over_plan > 0 ? 'warn' : 'neutral'}
-                value={d.kpi.orders.completed > 0 ? <Num value={d.kpi.orders.variance_min} unit="minSigned" digits={0} /> : <span className="text-ops-muted">{t('ops.kpi.noCompleted')}</span>}
+                icon={<Icon name="orders" className="h-[18px] w-[18px]" />} value={d.kpi.orders.completed > 0 ? <Num animate value={d.kpi.orders.variance_min} unit="minSigned" digits={0} /> : <span className="text-ops-muted">{t('ops.kpi.noCompleted')}</span>}
                 sub={t('ops.kpi.ordersSub', { completed: d.kpi.orders.completed, running: d.kpi.orders.running, over: d.kpi.orders.over_plan })}
                 formula={t('ops.kpi.ordersFormula')} />
             </div>

@@ -1,3 +1,4 @@
+import type React from 'react';
 import { useState } from 'react';
 import { useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -20,7 +21,7 @@ export async function signOutAndClear(qc: QueryClient): Promise<void> {
   await requireSupabase().auth.signOut({ scope: 'local' });
 }
 
-export function SignOutButton({ className = '' }: { className?: string }) {
+export function SignOutButton({ className = '', children }: { className?: string; children?: React.ReactNode }) {
   const { t } = useTranslation();
   const qc = useQueryClient();
   const outbox = useOutbox();
@@ -29,9 +30,9 @@ export function SignOutButton({ className = '' }: { className?: string }) {
 
   if (!confirming) {
     return (
-      <button type="button" className={`min-h-touch rounded px-3 underline ${className}`}
+      <button type="button" className={`min-h-touch rounded px-3 ${className.includes('ops-') ? '' : 'underline'} ${className}`} aria-label={t('common.signOut')}
         onClick={() => (pending > 0 ? setConfirming(true) : void signOutAndClear(qc))}>
-        {t('common.signOut')}
+        {children ?? t('common.signOut')}
       </button>
     );
   }
