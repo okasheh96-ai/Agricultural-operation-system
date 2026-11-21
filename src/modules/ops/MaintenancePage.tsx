@@ -46,9 +46,9 @@ function Body({ d }: { d: { plans: Plan[]; items: Item[]; meter?: { hours: strin
   const [hours, setHours] = useState('');
   const [ups, setUps] = useState('');
   const [state, setState] = useState<SaveState>({ kind: 'idle' });
-  const act = async (fn: () => Promise<unknown>) => {
+  const act = async (fn: () => Promise<unknown>, onDone?: () => void) => {
     setState({ kind: 'pending' });
-    try { await fn(); setState({ kind: 'saved', at: new Date().toISOString() }); setHours(''); await invalidate(); }
+    try { await fn(); setState({ kind: 'saved', at: new Date().toISOString() }); onDone?.(); await invalidate(); }
     catch (e) { setState({ kind: 'failed', message: opsErrorMessage(t, e) }); }
   };
   const machine = d.plans[0]?.machine_label ?? '';
@@ -67,7 +67,7 @@ function Body({ d }: { d: { plans: Plan[]; items: Item[]; meter?: { hours: strin
           <Card title={t('ops.pm.record')}>
             <div className="grid gap-2">
               <label className="text-sm">{t('ops.pm.hoursNow')}<input className={field} dir="ltr" inputMode="decimal" value={hours} onChange={(e) => setHours(e.target.value.replace(',', '.'))} /></label>
-              <button type="button" className={btnPrimary} disabled={!hours} onClick={() => act(() => rpc('ph_pm_meter_record', { p_hours: Number(hours) }))}>{t('ops.pm.save')}</button>
+              <button type="button" className={btnPrimary} disabled={!hours} onClick={() => { const sent = hours; void act(() => rpc('ph_pm_meter_record', { p_hours: Number(sent) }), () => setHours((h) => (h === sent ? '' : h))); }}>{t('ops.pm.save')}</button>
               <label className="text-sm">{t('ops.pm.upsDate')}<input type="date" className={field} dir="ltr" value={ups} onChange={(e) => setUps(e.target.value)} /></label>
               <button type="button" className={btn} disabled={!ups} onClick={() => act(() => rpc('ph_pm_meter_record', { p_hours: null, p_ups_installed_on: ups }))}>{t('ops.pm.saveUps')}</button>
               <SaveStatus state={state} />
@@ -94,7 +94,7 @@ function every(t: (k: string, o?: Record<string, unknown>) => string, i: Item): 
   return parts.length ? parts.join(` ${t('ops.pm.or')} `) : t(`ops.pm.trigger.${i.trigger_kind}`);
 }
 
-function PlanCard({ plan, items, canApprove, onAct }: { plan: Plan; items: Item[]; canApprove: boolean; onAct: (fn: () => Promise<unknown>) => Promise<void> }) {
+function PlanCard({ plan, items, canApprove, onAct }: { plan: Plan; items: Item[]; canApprove: boolean; onAct: (fn: () => Promise<unknown>, onDone?: () => void) => Promise<void> }) {
   const { t, i18n } = useTranslation();
   const fmt = useFmt();
   const [note, setNote] = useState('');
