@@ -6,8 +6,8 @@ import { BASE } from './helpers';
 // password → logout → login → reset by the admin → suspend. Runs once per instance (the setup closes after use).
 const SETUP_CODE = process.env.PH_SETUP_CODE ?? '';
 const n = Date.now().toString().slice(-5);
-const ADMIN = `admin${n}`;
-const ADMIN_PW = `Admin-pass-${n}A`;
+const ADMIN = process.env.PH_ADMIN_USER ?? `admin${n}`;
+const ADMIN_PW = process.env.PH_ADMIN_PW ?? `Admin-pass-${n}A`;
 const EMP = `emp${n}`;
 
 async function login(page: Page, user: string, pw: string) {
@@ -22,6 +22,13 @@ const tokenOf = (p: Page) => p.evaluate(() => {
   return k ? (JSON.parse(localStorage.getItem(k) ?? '{}') as { access_token?: string }).access_token ?? '' : '';
 });
 
+async function call(p: Page, path: string, body: unknown, token?: string): Promise<{ status: number; json: Record<string, unknown> & { code?: string; error?: string } }> {
+  return p.evaluate(async ([u, b, tk]) => {
+    const r = await fetch(u as string, { method: 'POST', headers: { 'content-type': 'application/json', ...(tk ? { authorization: `Bearer ${tk as string}` } : {}) }, body: JSON.stringify(b) });
+    return { status: r.status, json: await r.json().catch(() => ({})) };
+  }, [path, body, token] as const) as never;
+}
+
 async function activate(page: Page, user: string, code: string, pw: string) {
   await page.goto('/');
   await page.getByRole('button', { name: 'دخول أول برمز التفعيل' }).click();
@@ -32,10 +39,12 @@ async function activate(page: Page, user: string, code: string, pw: string) {
   await page.getByRole('button', { name: 'تفعيل والدخول' }).click();
 }
 
-test.skip(!SETUP_CODE, 'needs PH_SETUP_CODE for an instance whose Super Admin is not set up');
+const GIVEN_ADMIN = process.env.PH_ADMIN_USER ?? '';
+test.skip(!SETUP_CODE && !GIVEN_ADMIN, 'needs PH_SETUP_CODE (instance not set up) or PH_ADMIN_USER / PH_ADMIN_PW');
 
 test('Super Admin one-time setup, employee account with one-time code, login, logout, reset and suspension', async ({ page, browser }) => {
   test.setTimeout(240_000);
+  if (SETUP_CODE) {
   // 1. The setup page is open; a wrong code is refused.
   await page.goto('/setup');
   await expect(page.getByRole('heading', { name: 'إعداد حساب المدير العام' })).toBeVisible();
@@ -57,8 +66,13 @@ test('Super Admin one-time setup, employee account with one-time code, login, lo
   const other = await (await browser.newContext({ locale: 'ar' })).newPage();
   await other.goto(`${BASE}/setup`);
   await expect(other.getByText('اكتمل الإعداد')).toBeVisible();
-  const reuse = await other.request.post(`${BASE}/api/setup`, { data: { code: SETUP_CODE, username: 'intruder', full_name: 'x', password: 'Intruder-pass-1' } });
-  expect((await reuse.json()).error).toBe('no_pending_setup');
+  const reuse = await call(other, '/api/setup', { code: SETUP_CODE, username: 'intruder', full_name: 'x', password: 'Intruder-pass-1' });
+  expect(reuse.json.error).toBe('no_pending_setup');
+
+  } else {
+    await login(page, ADMIN, ADMIN_PW);
+    await page.waitForURL(/\/(ops|office)/);
+  }
 
   // 4. Full office administration too (System Administrator): departments screen opens.
   await page.goto('/office/admin/departments');
@@ -90,12 +104,10 @@ test('Super Admin one-time setup, employee account with one-time code, login, lo
   await emp.waitForURL(/\/(ops|office|field)/);
 
   // 7. The employee cannot administer accounts.
-  const denied = await emp.request.post(`${BASE}/rest/v1/rpc/ph_admin_create_account`, {
-    headers: { authorization: `Bearer ${await tokenOf(emp)}` },
-    data: { p: { username: `x${n}`, full_name: 'x', roles: [] } } });
+  const denied = await call(emp, '/rest/v1/rpc/ph_admin_create_account', { p: { username: `x${n}`, full_name: 'x', roles: [] } }, await tokenOf(emp));
   expect((await tokenOf(emp)).length).toBeGreaterThan(20); // a real session token, so the refusal below is the server's decision
-  expect(denied.status()).toBeGreaterThanOrEqual(400);
-  expect(((await denied.json()) as { code?: string }).code).toBe('P0403');
+  expect(denied.status).toBeGreaterThanOrEqual(400);
+  expect(denied.json.code).toBe('P0403');
 
   // 8. The Super Admin resets the employee's access: old password stops working, a new one-time code works.
   await page.goto('/ops/settings/people');
@@ -116,8 +128,8 @@ test('Super Admin one-time setup, employee account with one-time code, login, lo
   await row.getByLabel('السبب (إلزامي)').fill('e2e: left the company');
   await row.getByRole('button', { name: 'إيقاف', exact: true }).click();
   await expect.poll(async () => {
-    const r = await page.request.post(`${BASE}/rest/v1/rpc/ph_admin_accounts`, { headers: { authorization: `Bearer ${await tokenOf(page)}` }, data: {} });
-    return ((await r.json()) as { username: string; status: string }[]).find((a) => a.username === EMP)?.status;
+    const r = await call(page, '/rest/v1/rpc/ph_admin_accounts', {}, await tokenOf(page));
+    return (r.json as unknown as { username: string; status: string }[]).find((a) => a.username === EMP)?.status;
   }).toBe('suspended');
   await emp.context().clearCookies(); await emp.evaluate(() => localStorage.clear());
   await login(emp, EMP, 'Employee-pass-2');
@@ -125,6 +137,7 @@ test('Super Admin one-time setup, employee account with one-time code, login, lo
 
   // 10. The Super Admin signs out and back in with the chosen username and password.
   await page.getByRole('button', { name: 'تسجيل الخروج' }).click();
+  await expect(page.getByRole('button', { name: /^دخول$/ })).toBeVisible(); // signed out: back on the sign-in screen
   await login(page, ADMIN, ADMIN_PW);
   await page.waitForURL(/\/ops/);
 });
