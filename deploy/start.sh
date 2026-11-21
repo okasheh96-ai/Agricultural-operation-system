@@ -12,6 +12,16 @@ cd "$(dirname "$0")/.."
 : "${DATABASE_URL:?DATABASE_URL is required}" "${PH_JWT_SECRET:?PH_JWT_SECRET is required}"
 : "${PH_AUTHENTICATOR_PASSWORD:?required}" "${PH_SERVER_DB_PASSWORD:?required}"
 
+# Accept a managed-database URL as its dashboard shows it: a pooled Neon host is switched to its direct host (PostgREST
+# listens for schema reloads, which a transaction pooler cannot carry) and libpq-only parameters the Node driver does not
+# understand are dropped.
+DATABASE_URL=$(node -e '
+  const u = new URL(process.env.DATABASE_URL);
+  u.hostname = u.hostname.replace(/-pooler\./, ".");
+  u.searchParams.delete("channel_binding");
+  process.stdout.write(u.toString());')
+export DATABASE_URL
+
 node deploy/migrate.mjs
 
 # Connection strings for the two runtime roles: same host and database, their own user and password.
