@@ -4,6 +4,7 @@ import { requireSupabase } from '@/core/supabase';
 import { LanguageToggle } from '@/core/components/LanguageToggle';
 import { DEMO_ACCOUNTS, DEMO_PASSWORD, DEMO_PH_ACCOUNTS } from './demoSignIn';
 import { signInErrorKey } from './signInError';
+import { ActivateForm } from './ServerAccess';
 
 /** Real Supabase Auth sign-in (email + password, VR-C09); demo-stack builds add one-tap sign-in for the demo farm. */
 export function SignInPage() {
@@ -13,6 +14,7 @@ export function SignInPage() {
   // Which control started the attempt ('form' or a demo email), so progress and errors show where the user is looking.
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<{ key: string; from: string } | null>(null);
+  const [activating, setActivating] = useState(false);
 
   async function signIn(credentials: { email: string; password: string }, from: string) {
     setBusy(from);
@@ -62,11 +64,12 @@ export function SignInPage() {
           </div>
         </section>
       )}
+      {__PACKHOUSE_SERVER__ && activating ? <ActivateForm onDone={() => setActivating(false)} /> : (
       <form onSubmit={onSubmit} className="flex flex-col gap-4 rounded-lg bg-white p-6 shadow">
         <h2 className="text-lg font-semibold">{t('auth.signInTitle')}</h2>
         <label className="flex flex-col gap-1">
-          <span>{t('auth.email')}</span>
-          <input type="email" required dir="ltr" autoComplete="username" value={email}
+          <span>{__PACKHOUSE_SERVER__ ? t('auth.server.usernameOrEmail') : t('auth.email')}</span>
+          <input type={__PACKHOUSE_SERVER__ ? 'text' : 'email'} required dir="ltr" autoComplete="username" value={email}
             onChange={(e) => setEmail(e.target.value)} className="min-h-touch rounded border border-stone-300 px-3" />
         </label>
         <label className="flex flex-col gap-1">
@@ -79,6 +82,12 @@ export function SignInPage() {
           {busy === 'form' ? t('auth.signingIn') : t('auth.signIn')}
         </button>
       </form>
+      )}
+      {__PACKHOUSE_SERVER__ && (
+        <button type="button" onClick={() => setActivating(!activating)} className="min-h-[44px] text-brand-dark underline">
+          {activating ? t('auth.server.backToSignIn') : t('auth.server.firstSignIn')}
+        </button>
+      )}
     </main>
   );
 }

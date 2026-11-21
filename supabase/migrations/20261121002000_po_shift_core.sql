@@ -629,6 +629,7 @@ create function app.seed_po_shift_core(p_farm uuid) returns void
 language plpgsql
 as $$
 begin
+  perform app.po_categorize_actions(p_farm);
   if exists (select 1 from public.ph_actions where farm_id = p_farm and action_key = 'labour.record') then
     return;
   end if;
@@ -719,18 +720,22 @@ begin
   perform app.seed_po_shift_core(p_farm);
 end $$;
 
--- Existing actions get a category so the access screens can group them.
-update public.ph_actions set category = case
-    when action_key like '%.view' or action_key like '%view%' then 'view'
-    when action_key like 'hold.%' or action_key like 'rma.%' or action_key like 'complaint.%' or action_key like 'capa.%'
-      or action_key in ('load.release_pallet', 'load.qa_findings', 'waste.qc_label') then 'quality'
-    when action_key like '%.approve%' or action_key like '%approve' or action_key like '%.signoff%' or action_key like '%.decide%'
-      or action_key in ('job_card.close', 'arrival.vehicle_exception') then 'approve'
-    when action_key like 'users.%' then 'administer'
-    when action_key like 'md_%.edit' then 'edit'
-    when action_key like '%.assign%' then 'assign'
-    else 'create' end
- where category is null;
+-- Existing actions get a category so the access screens can group them (also run for farms created later, from the seed).
+create function app.po_categorize_actions(p_farm uuid) returns void
+language sql as $$
+  update public.ph_actions set category = case
+      when action_key like '%.view' or action_key like '%view%' then 'view'
+      when action_key like 'hold.%' or action_key like 'rma.%' or action_key like 'complaint.%' or action_key like 'capa.%'
+        or action_key in ('load.release_pallet', 'load.qa_findings', 'waste.qc_label', 'qc2.submit') then 'quality'
+      when action_key like '%.approve%' or action_key like '%approve' or action_key like '%.signoff%' or action_key like '%.decide%'
+        or action_key in ('job_card.close', 'arrival.vehicle_exception') then 'approve'
+      when action_key like 'users.%' then 'administer'
+      when action_key like 'md_%.edit' then 'edit'
+      when action_key like '%.assign%' then 'assign'
+      else 'create' end
+   where farm_id = p_farm and category is null
+$$;
+select app.po_categorize_actions(id) from public.farms;
 
 -- =============================================================================================
 -- 6. Helpers

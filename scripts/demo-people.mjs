@@ -34,4 +34,5 @@ export const USERS = [
   { email: 'demo.ph.lla@demo.local', name: 'مشرف الخط A (تجريبي)', roles: [['ph_ll', null]] },
   { email: 'demo.ph.llb@demo.local', name: 'مشرف الخط B (تجريبي)', roles: [['ph_ll', null]] },
   { email: 'demo.ph.mnt@demo.local', name: 'فني صيانة بيت التعبئة (تجريبي)', roles: [['ph_mnt', null]] },
+  { email: 'demo.owner@demo.local', name: 'المالك (تجريبي)', roles: [['ph_own', null]] },
 ];

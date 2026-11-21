@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/core/auth/AuthProvider';
 import { SignInPage } from '@/core/auth/SignInPage';
 import { SignOutButton } from '@/core/auth/SignOutButton';
+import { ChangePasswordPage } from '@/core/auth/ServerAccess';
 import { hasRole } from '@/core/rbac/access';
 import { LaterPhase } from '@/core/components/LaterPhase';
 import { installAutoSync, syncNow } from '@/core/offline/sync';
@@ -52,6 +53,7 @@ const OpsReportPage = lazy(() => import('@/modules/ops/ReportPage'));
 const OpsDispatchPage = lazy(() => import('@/modules/ops/DispatchPage'));
 const OpsTracePage = lazy(() => import('@/modules/ops/TracePage'));
 const OpsComplaintsPage = lazy(() => import('@/modules/ops/ComplaintsPage'));
+const OpsPeoplePage = lazy(() => import('@/modules/ops/settings/PeoplePage'));
 
 // The in-browser demo runs inside a hosted page (or a local file), where only the part after # is the app's own.
 const Router = __BROWSER_DB__ ? HashRouter : BrowserRouter;
@@ -64,7 +66,7 @@ function Loading() {
 export function App() {
   const { t } = useTranslation();
   const qc = useQueryClient();
-  const { session, ready, access, accessLoading } = useAuth();
+  const { session, ready, access, accessLoading, mustChangePassword } = useAuth();
   const sessionUser = session?.user.id;
   useEffect(() => {
     if (!sessionUser) return undefined;
@@ -75,6 +77,7 @@ export function App() {
 
   if (!ready || (session && accessLoading)) return <Loading />;
   if (!session) return <SignInPage />;
+  if (mustChangePassword) return <ChangePasswordPage />;
   // Never a dead end: whoever is signed in without an active role can sign out and choose another account. No role is
   // granted here; the database decides who has one.
   if (!access) {
@@ -139,6 +142,7 @@ export function App() {
             <Route path="dispatch" element={<OpsDispatchPage />} />
             <Route path="trace" element={<OpsTracePage />} />
             <Route path="complaints" element={<OpsComplaintsPage />} />
+            <Route path="settings/people" element={<OpsPeoplePage />} />
           </Route>
           <Route path="/field" element={<FieldShell />}>
             <Route index element={<Navigate to="my-day" replace />} />

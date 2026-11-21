@@ -34,7 +34,7 @@ select is((select count(*)::int from public.ph_open_decisions where farm_id = te
 select set_eq($$ select code from public.ph_open_decisions where farm_id = tests.farm() and priority = 'critical' $$,
   array['OD-01', 'OD-02', 'OD-03', 'OD-05', 'OD-24', 'OD-25'], 'the critical ones are OD-01, 02, 03, 05, 24, 25');
 select is((select count(*)::int from public.ph_open_decisions where farm_id = tests.farm() and decision_state <> 'open'), 0, 'every decision starts open');
-select is((select count(*)::int from public.ph_roles where farm_id = tests.farm() and spec_code not in ('MNT', 'CLN')), 20, 'role catalogue: 20 spec roles (§6.1)');
+select is((select count(*)::int from public.ph_roles where farm_id = tests.farm() and spec_code not in ('MNT', 'CLN', 'OWN')), 20, 'role catalogue: 20 spec roles (§6.1)');
 select is((select count(*)::int from public.ph_permission_cells where farm_id = tests.farm() and evidence = 'C' and state <> 'active'), 0,
   'confirmed (●) cells are active');
 select is((select count(*)::int from public.ph_permission_cells where farm_id = tests.farm() and evidence = 'P' and state <> 'proposed'), 0,

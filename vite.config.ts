@@ -64,6 +64,8 @@ return {
     __APP_VERSION__: JSON.stringify(pkg.version),
     __DEMO_SIGNIN__: JSON.stringify(browserDb || process.env.VITE_DEMO_SIGNIN === '1'),
     __BROWSER_DB__: JSON.stringify(browserDb),
+    // Built for the packhouse server (scripts/packhouse.sh): username sign-in, one-time codes, first-use password change.
+    __PACKHOUSE_SERVER__: JSON.stringify(process.env.VITE_PACKHOUSE_SERVER === '1'),
     __BROWSER_DB_BUILD__: JSON.stringify(process.env.BROWSER_DB_BUILD ?? 'dev'),
   },
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },

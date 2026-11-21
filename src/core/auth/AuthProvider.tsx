@@ -11,6 +11,8 @@ interface AuthState {
   ready: boolean;
   access: Access | null;
   accessLoading: boolean;
+  /** Packhouse server: a password change is due before anything else works. */
+  mustChangePassword?: boolean;
 }
 
 const AuthContext = createContext<AuthState>({ session: null, ready: false, access: null, accessLoading: false });
@@ -87,19 +89,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const userId = session?.user.id;
+  // Packhouse server accounts: is a password change due? (The server refuses every other call until it is done.)
+  const accountQuery = useQuery({
+    queryKey: ['po-account', userId],
+    enabled: __PACKHOUSE_SERVER__ && !!userId,
+    queryFn: async () => {
+      const { data, error } = await requireSupabase().rpc('po_my_account');
+      if (error) throw error;
+      return data as { must_change_password: boolean } | null;
+    },
+  });
+  const mustChangePassword = __PACKHOUSE_SERVER__ && !!accountQuery.data?.must_change_password;
   // Roles are part of the device's working set: the field app must start and show the right controls offline.
   // The server still enforces every permission at sync.
   const accessQuery = useQuery({
     queryKey: ['access', userId],
     queryFn: () => withDeviceCache(`access:${userId}`, () => loadAccess(userId as string)),
-    enabled: !!userId,
+    enabled: !!userId && (!__PACKHOUSE_SERVER__ || (accountQuery.isSuccess && !mustChangePassword)),
     staleTime: 5 * 60 * 1000,
     networkMode: 'always',
   });
 
   return (
     <AuthContext.Provider
-      value={{ session, ready, access: accessQuery.data ?? null, accessLoading: accessQuery.isLoading }}
+      value={{ session, ready, access: accessQuery.data ?? null, mustChangePassword,
+               accessLoading: accessQuery.isLoading || (__PACKHOUSE_SERVER__ && !!userId && accountQuery.isLoading) }}
     >
       {children}
     </AuthContext.Provider>

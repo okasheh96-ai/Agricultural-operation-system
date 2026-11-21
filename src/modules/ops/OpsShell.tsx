@@ -12,8 +12,8 @@ export interface OpsNavItem {
   key: string;
   to: string;
   icon: string;
-  /** Packing-house action that makes the item useful; the server still decides every call. */
-  needs?: string;
+  /** Packing-house action(s) that make the item useful (any of them); the server still decides every call. */
+  needs?: string | string[];
   mobile?: boolean;
   end?: boolean;
 }
@@ -27,6 +27,7 @@ export const OPS_NAV: OpsNavItem[] = [
   { key: 'dispatch', to: '/ops/dispatch', icon: '⛟' },
   { key: 'trace', to: '/ops/trace', icon: '⇄', mobile: true },
   { key: 'complaints', to: '/ops/complaints', icon: '✉' },
+  { key: 'people', to: '/ops/settings/people', icon: '⚙', needs: ['users.administer', 'delegated.accounts'] },
   { key: 'workflow', to: '/office/packing-house', icon: '⛁' },
 ];
 
@@ -80,7 +81,7 @@ export function OpsShell() {
       return !c;
     });
   };
-  const visible = OPS_NAV.filter((i) => !i.needs || perms.data?.has(i.needs));
+  const visible = OPS_NAV.filter((i) => !i.needs || (Array.isArray(i.needs) ? i.needs : [i.needs]).some((n) => perms.data?.has(n)));
   const mobile = visible.filter((i) => i.mobile);
   const more = visible.filter((i) => !i.mobile);
 

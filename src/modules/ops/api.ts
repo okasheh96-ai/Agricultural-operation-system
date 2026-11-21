@@ -210,11 +210,18 @@ export function useInvalidateOps() {
   return () => qc.invalidateQueries({ queryKey: ['ops'] });
 }
 
+/** Farm-level actions the signed-in user may perform (the server decides every call); 'delegated.accounts' marks a manager
+ *  with a delegation to manage some accounts. */
 export function useMyPermissions() {
   return useQuery({
     queryKey: ['ops', 'my-permissions'],
     staleTime: 60_000,
-    queryFn: async () => new Set((await rpc<{ action_key: string }[]>('ph_my_permissions')).map((r) => r.action_key)),
+    queryFn: async () => {
+      const set = new Set((await rpc<{ action_key: string }[]>('ph_my_permissions')).map((r) => r.action_key));
+      const { data } = await db().from('ph_admin_delegations').select('id').is('voided_at', null).limit(1);
+      if ((data ?? []).length > 0 && !set.has('users.administer')) set.add('delegated.accounts');
+      return set;
+    },
   });
 }
 

@@ -28,3 +28,12 @@ verified, what is next. Branch: `claude/packhouse-ops-system-rrefgr`.
    two lots, split across runs, combined run, 3 grades, partial pallet, waste, remaining stock, held stock blocked, dispatch,
    forward/backward trace, mass = 1,000 kg. Full DB suite **966 pass**. Screens `/ops/dispatch`, `/ops/trace`, `/ops/complaints`.
    Demo seed adds a demo load (DEC dispatch cells as labelled demo assumption). Next: increment 4 (server + identity + Settings).
+6. **Increment 4 (server, identity, Settings → People & access):** migration `20261121002300_po_identity.sql` (accounts with
+   bcrypt in PostgreSQL, sessions, pre-request check, Owner role, custom roles, delegation, overrides, effective access
+   preview, Owner cell decisions, access audit, Owner bootstrap); `server/packhouse-server.mjs`; launcher
+   `scripts/packhouse.sh` (install/start/stop/status/backup/restore/lan); `supabase/appliance/auth.sql`; app built with
+   `VITE_PACKHOUSE_SERVER=1` (username sign-in, first sign-in with code, forced change, sign-out on ended session).
+   pgTAP 21 (65) → full DB **1,031 pass**. Demo instance: `PH_HOME=/home/user/ph-demo PH_HTTP_PORT=8090 PH_PG_PORT=54340
+   PH_REST_PORT=3021 scripts/packhouse.sh install --demo`; `npx playwright test -c playwright.appliance.config.ts` →
+   people-access scenario **pass**. Launcher fix: pg_ctl must not inherit the lock fd (9>&-).
+   Next: configuration engine (increment 5).
