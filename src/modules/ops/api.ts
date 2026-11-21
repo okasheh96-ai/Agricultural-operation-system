@@ -16,7 +16,11 @@ export function opsErrorMessage(t: TFunction, error: unknown): string {
   const reason = phReason(error);
   if (reason && reason.key.startsWith('po.')) {
     const params: Record<string, string> = {};
-    for (const [k, v] of Object.entries(reason)) params[k] = Array.isArray(v) ? v.join('، ') : String(v ?? '');
+    for (const [k, v] of Object.entries(reason)) {
+      params[k] = Array.isArray(v)
+        ? v.map((x) => (typeof x === 'object' && x !== null ? String((x as Record<string, unknown>).label ?? (x as Record<string, unknown>).key ?? '') : String(x))).join('، ')
+        : String(v ?? '');
+    }
     return t(`ops.reasons.${reason.key.slice(3).replace(/\./g, '_')}`, { ...params, defaultValue: t('errors.unknown') });
   }
   if (typeof error === 'object' && error !== null && 'message' in error && /Failed to fetch|NetworkError|Load failed/i.test(String((error as { message: unknown }).message))) {

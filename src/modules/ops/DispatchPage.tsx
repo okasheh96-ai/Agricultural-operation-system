@@ -1,9 +1,10 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { QueryState } from '@/core/components/QueryState';
 import { requireSupabase } from '@/core/supabase';
-import { newRequestId, opsErrorMessage, rpc, useCustomers, useInvalidateOps, useOpenOrders } from './api';
+import { localName, newRequestId, opsErrorMessage, rpc, useCustomers, useInvalidateOps, useOpenOrders } from './api';
 import { btn, btnPrimary, Card, EmptyState, field, Num, PageTitle, Pill, SaveStatus, useFmt, type SaveState, type Tone } from './ui';
 
 interface LoadPallet { fg_pallet_id: string; code: string; status: string; grade: string; net_kg: string; boxes: number; picked_at: string | null;
@@ -116,6 +117,7 @@ function LoadCard({ load, open, onToggle }: { load: LoadRow; open: boolean; onTo
       </button>
       {open && (
         <div className="mt-3 space-y-3 border-t border-ops-line pt-3">
+          <LoadOperations loadId={load.id} live={!['departed', 'cancelled'].includes(load.status)} />
           <div className="text-sm text-ops-muted">{t('ops.dispatch.lines')}: {load.order_lines.map((o) => o.code).join('، ')} · {t('ops.dispatch.plate')}: <bdi>{load.vehicle_plate ?? '—'}</bdi>
             {load.outside_window && <> · <span className="text-ops-amber">! {t('ops.dispatch.outsideWindow')}</span></>}</div>
           {load.order_lines.map((o) => ['planned', 'vehicle_arrived', 'waiting_for_temp', 'loading'].includes(load.status) && (
@@ -195,6 +197,30 @@ function Allocation({ loadId, orderLineId, orderCode, onRun }: { loadId: string;
           </li>
         ))}</ul>
       )}
+    </div>
+  );
+}
+
+interface SubjectOp { id: string; code: string; op_code: string; name_ar: string; name_en: string | null; run_state: string; current_step: string | null; version: number }
+
+/** Owner-defined operations this load needs (e.g. a reinspection before dispatch). Opening the load starts any that apply. */
+function LoadOperations({ loadId, live }: { loadId: string; live: boolean }) {
+  const { t, i18n } = useTranslation();
+  const ops = useQuery({ queryKey: ['ops', 'subject-ops', loadId], queryFn: () => rpc<SubjectOp[]>('ph_subject_ops', { p_kind: 'load', p_id: loadId }) });
+  if (!ops.data || ops.data.length === 0) return null;
+  const tone = (s: string) => (s === 'completed' ? 'good' : s === 'failed' ? 'bad' : s === 'cancelled' ? 'neutral' : 'warn') as 'good' | 'bad' | 'neutral' | 'warn';
+  return (
+    <div className="rounded-ops-sm border border-ops-line p-3">
+      <h3 className="mb-1 text-sm font-semibold">{t('ops.dispatch.operations')}</h3>
+      {live && ops.data.some((o) => o.run_state === 'open' || o.run_state === 'failed') && <p className="mb-2 text-xs text-ops-amber">! {t('ops.dispatch.operationsBlock')}</p>}
+      <ul className="grid gap-1 text-sm">
+        {ops.data.map((o) => (
+          <li key={o.id} className="flex flex-wrap items-center justify-between gap-2">
+            <Link className="font-medium text-ops-accent underline" to={`/ops/run/${o.id}`}>{localName(i18n.language, o.name_ar, o.name_en)} · <bdi>{o.code}</bdi></Link>
+            <Pill tone={tone(o.run_state)}>{t(`ops.run.states.${o.run_state}`)}</Pill>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

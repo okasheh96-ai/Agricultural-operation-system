@@ -178,3 +178,18 @@ export function downloadCsv(name: string, header: string[], rows: (string | numb
   a.remove();
   URL.revokeObjectURL(url);
 }
+
+/** Loading / error / data for one query, in the ops style; the children get the loaded data. */
+export function Loaded<T>({ query, children }: { query: { data: T | undefined; isLoading: boolean; error: unknown; refetch: () => unknown }; children: (data: T) => ReactNode }) {
+  const { t } = useTranslation();
+  if (query.isLoading) return <p role="status" className="p-4 text-sm text-ops-muted">{t('common.loading')}</p>;
+  if (query.error || query.data === undefined) {
+    return (
+      <div role="alert" className="flex flex-wrap items-center gap-3 rounded-ops-sm border border-[#f2b8b3] bg-ops-redbg p-3 text-sm text-ops-red">
+        <span>{t('common.error')}</span>
+        <button type="button" className={btn} onClick={() => void query.refetch()}>{t('common.retry')}</button>
+      </div>
+    );
+  }
+  return <>{children(query.data)}</>;
+}

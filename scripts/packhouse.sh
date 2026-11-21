@@ -7,6 +7,7 @@
 #   scripts/packhouse.sh restore FILE       replace the database with a backup (asks for confirmation; keeps a safety copy)
 #   scripts/packhouse.sh lan on|off         serve staff devices over HTTPS on the private network (local certificate)
 #   scripts/packhouse.sh owner-code         show where the Owner's one-time code is
+#   scripts/packhouse.sh update             after new software arrives: backup, apply new migrations, rebuild, restart
 #
 # Data lives in PH_HOME (default ~/PackhouseData): database, backups, certificates, private config (mode 600).
 # --demo installs the separate DEMO farm with invented data for trying and testing; never use it for real work.
@@ -15,7 +16,11 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PH_HOME="${PH_HOME:-$HOME/PackhouseData}"
 CFG="$PH_HOME/config.json"; RUN="$PH_HOME/run"; DATA="$PH_HOME/pgdata"; BIN="$PH_HOME/bin"
-PG_PORT="${PH_PG_PORT:-54330}"; REST_PORT="${PH_REST_PORT:-3011}"; HTTP_PORT="${PH_HTTP_PORT:-8080}"; HTTPS_PORT="${PH_HTTPS_PORT:-8443}"
+saved_port() { if [ -f "$PH_HOME/ports" ]; then sed -n "s/^$1=//p" "$PH_HOME/ports" | head -1; fi; return 0; }
+PG_PORT="${PH_PG_PORT:-$(saved_port PG)}"; PG_PORT="${PG_PORT:-54330}"
+REST_PORT="${PH_REST_PORT:-$(saved_port REST)}"; REST_PORT="${REST_PORT:-3011}"
+HTTP_PORT="${PH_HTTP_PORT:-$(saved_port HTTP)}"; HTTP_PORT="${HTTP_PORT:-8080}"
+HTTPS_PORT="${PH_HTTPS_PORT:-$(saved_port HTTPS)}"; HTTPS_PORT="${HTTPS_PORT:-8443}"
 DB=packhouse
 OS="$(uname -s)"; ARCH="$(uname -m)"
 
@@ -104,6 +109,7 @@ write_config() {
 }
 JSON
   chmod 600 "$CFG"
+  printf 'PG=%s\nREST=%s\nHTTP=%s\nHTTPS=%s\n' "$PG_PORT" "$REST_PORT" "$HTTP_PORT" "$HTTPS_PORT" > "$PH_HOME/ports"
 }
 
 start_pg() {
@@ -125,8 +131,7 @@ migrate() {
     v=$(basename "$f" .sql)
     if [ -z "$(psql_su -d "$DB" -tAc "select 1 from supabase_migrations.schema_migrations where version = '$v'")" ]; then
       say "  migrate $v"
-      psql_su -d "$DB" -o /dev/null -f "$f"
-      psql_su -d "$DB" -c "insert into supabase_migrations.schema_migrations (version) values ('$v')"
+      psql_su -d "$DB" -1 -o /dev/null -f "$f" -c "insert into supabase_migrations.schema_migrations (version) values ('$v')"
     fi
   done
   psql_su -d "$DB" -o /dev/null -f "$ROOT/supabase/seed/seed.sql"
@@ -295,5 +300,17 @@ case "$cmd" in
       *) die "Usage: $0 lan on|off" ;;
     esac ;;
   owner-code) say "$PH_HOME/OWNER-FIRST-SIGN-IN.txt" ;;
-  *) die "Usage: $0 install [--demo] | start | stop | restart | status | url | backup | restore FILE | lan on|off | owner-code" ;;
+  update)
+    check_deps; [ -f "$CFG" ] || die "Not installed yet: run '$0 install' first."
+    [ -f "$PH_HOME/ports" ] || printf 'PG=%s\nREST=%s\nHTTP=%s\nHTTPS=%s\n' "$PG_PORT" "$REST_PORT" "$HTTP_PORT" "$HTTPS_PORT" > "$PH_HOME/ports"
+    start_pg
+    f="$PH_HOME/backups/packhouse-$(date +%Y-%m-%d-%H-%M)-before-update.dump"
+    "$PGBIN/pg_dump" -Fc -h "$RUN" -p "$PG_PORT" -U postgres -f "$f" "$DB" || die "Backup before update failed; nothing was changed."
+    say "Backup: $f"
+    say "Applying new migrations…"; migrate || die "A migration failed and was rolled back; the database is as before (backup: $f)."
+    write_postgrest_conf
+    psql_su -d "$DB" -c "grant po_auth to po_server"
+    build_app; stop_services; start_services
+    say "Updated: http://127.0.0.1:$HTTP_PORT" ;;
+  *) die "Usage: $0 install [--demo] | start | stop | restart | status | url | backup | restore FILE | lan on|off | owner-code | update" ;;
 esac

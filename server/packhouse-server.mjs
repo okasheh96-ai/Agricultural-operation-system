@@ -104,14 +104,16 @@ async function db(sql, args) {
   return r.rows[0];
 }
 
-// Sign-in throttle per address (the database also locks an account after repeated failures).
-const attempts = new Map();
+// Throttle per address on failed sign-in / activation attempts only (many staff signing in at shift start from one address
+// are never blocked); the database also locks an account after repeated failures.
+const failures = new Map();
 function throttled(ip) {
-  const now = Date.now(); const w = attempts.get(ip) ?? [];
-  const recent = w.filter((t) => now - t < 60_000);
-  recent.push(now); attempts.set(ip, recent);
-  return recent.length > 20;
+  const now = Date.now();
+  const recent = (failures.get(ip) ?? []).filter((t) => now - t < 60_000);
+  failures.set(ip, recent);
+  return recent.length >= 20;
 }
+function noteFailure(ip) { (failures.get(ip) ?? failures.set(ip, []).get(ip)).push(Date.now()); }
 
 // ---------------------------------------------------------------------------------------------
 // Auth endpoints
@@ -126,7 +128,10 @@ async function handleAuth(req, res, url) {
       const login = String(body.email ?? body.username ?? body.phone ?? '').trim();
       const row = await db('select public.po_sign_in($1, $2, $3, $4) as r', [login, String(body.password ?? ''), req.headers['user-agent'] ?? null, clientIp(req)]);
       const r = row.r;
-      if (!r.ok) return authError(res, r.error === 'locked' ? 'user_locked' : 'invalid_credentials', r.error === 'locked' ? 'Account locked for a while' : 'Invalid login credentials');
+      if (!r.ok) {
+        noteFailure(clientIp(req));
+        return authError(res, r.error === 'locked' ? 'user_locked' : 'invalid_credentials', r.error === 'locked' ? 'Account locked for a while' : 'Invalid login credentials');
+      }
       return send(res, 200, sessionBody(r));
     }
     if (url.searchParams.get('grant_type') === 'refresh_token') {
@@ -165,6 +170,7 @@ async function handleApi(req, res, url) {
     const b = await readJson(req);
     try {
       const r = (await db('select public.po_activate($1, $2, $3) as r', [String(b.username ?? ''), String(b.code ?? ''), String(b.new_password ?? '')])).r;
+      if (!r.ok) noteFailure(clientIp(req));
       return send(res, r.ok ? 200 : 400, r);
     } catch (e) {
       return send(res, 400, { ok: false, error: e.code === 'P0422' ? 'weak_password' : 'failed', detail: e.detail ?? null });
@@ -237,6 +243,18 @@ function backupNow() {
   });
 }
 if (BACKUP_DIR && BACKUP_HOURS > 0) setInterval(backupNow, BACKUP_HOURS * 3600_000).unref();
+
+// Scheduler tick: recurring tasks that are due, escalation of overdue tasks, operations that open loads need.
+const TICK_MINUTES = Number(env('PH_TICK_MINUTES', 5));
+async function tick() {
+  try {
+    const r = (await db('select public.po_scheduler_tick() as r')).r;
+    if (r && (r.created || r.escalated)) console.log(new Date().toISOString(), 'scheduler', JSON.stringify(r));
+  } catch (e) {
+    console.error(new Date().toISOString(), 'scheduler failed', e.code ?? '', e.message);
+  }
+}
+if (TICK_MINUTES > 0) { setTimeout(tick, 15_000).unref(); setInterval(tick, TICK_MINUTES * 60_000).unref(); }
 
 http.createServer(handler).listen(HTTP_PORT, HTTP_HOST, () => console.log(`packhouse server: http://${HTTP_HOST}:${HTTP_PORT}`));
 if (TLS_CERT && TLS_KEY && existsSync(TLS_CERT) && existsSync(TLS_KEY)) {

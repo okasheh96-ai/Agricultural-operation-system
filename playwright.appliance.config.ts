@@ -1,4 +1,4 @@
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig } from '@playwright/test';
 import { existsSync } from 'node:fs';
 
 // End-to-end against a packhouse-server instance (scripts/packhouse.sh) holding the DEMO farm, installed separately from any real

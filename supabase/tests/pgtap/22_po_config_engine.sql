@@ -272,6 +272,8 @@ select tests.as_user(:'qcm');
 select throws_ok(format($$ select public.ph_op_record_step(%L, 'release', '{}', 'reject') $$, :'run1'), 'P0422', null, 'a rejection needs a reason');
 select is(public.ph_op_record_step(:'run1', 'release', '{}', 'approve', 'Released (test)') ->> 'completed', 'true', 'QCM releases: the run is completed');
 select is((select completed_at is not null from public.ph_tasks where op_instance_id = :'run1'), true, 'its task is done');
+select is((select string_agg((h ->> 'step') || ':' || (h ->> 'passed'), ',') from public.ph_op_instances i, jsonb_array_elements(i.step_history) h where i.id = :'run1'),
+  'reinspect:false,reinspect:true,release:true', 'every attempt is kept on the run: the failed reinspection, the pass, the release');
 select tests.as_user(:'phm');
 select is((public.ph_my_kpi_cards() -> 0 -> 'result' -> 'rows' -> 0 ->> 'value')::numeric, 0::numeric, 'management card: 0 outstanding');
 select tests.as_user(:'dec');
@@ -338,11 +340,14 @@ select is((select count(*)::int from public.ph_op_instances i join public.ph_op_
 select tests.as_user(:'own');
 select public.ph_op_save_draft('FLOORCHK', jsonb_build_object('name_ar', 'جولة أرضية', 'definition', jsonb_build_object('trigger', jsonb_build_object('hook', 'manual'),
   'steps', jsonb_build_array(jsonb_build_object('key', 'walk', 'kind', 'form', 'role', 'PE', 'name_ar', 'جولة',
-    'fields', jsonb_build_array(jsonb_build_object('key', 'areas', 'type', 'rows', 'label_ar', 'المناطق')))))));
+    'fields', jsonb_build_array(jsonb_build_object('key', 'areas', 'type', 'rows', 'label_ar', 'المناطق', 'required', true)))))));
 select public.ph_op_publish('FLOORCHK');
 select tests.as_user(:'pe');
 select throws_ok($$ select public.ph_op_start('SEALCHK') $$, 'P0422', null, 'an operation tied to a hook is not started by hand');
-select ok((public.ph_op_start('FLOORCHK', 'Morning round (test)') ->> 'code') like 'OP-%', 'a manual operation starts from the menu');
+select (public.ph_op_start('FLOORCHK', 'Morning round (test)') ->> 'id') as floor \gset
+select ok((select code from public.ph_op_instances where id = :'floor') like 'OP-%', 'a manual operation starts from the menu');
+select throws_ok(format($$ select public.ph_op_record_step(%L, 'walk', '{"areas":[]}') $$, :'floor'), 'P0422', null, 'a required list needs at least one row');
+select is(public.ph_op_record_step(:'floor', 'walk', '{"areas":[{"value":"Line A"}]}') ->> 'completed', 'true', 'with one row the round completes');
 select tests.as_user(:'pho');
 select throws_ok($$ select public.ph_op_start('FLOORCHK') $$, 'P0403', null, 'only the step''s role can start it');
 
@@ -416,6 +421,12 @@ select tests.as_user(:'own');
 select public.ph_kpi_retire('OUTSTANDING_INSP', 'Replaced (test)');
 select tests.as_user(:'phm');
 select is(jsonb_array_length(public.ph_my_kpi_cards()), 0, 'a retired card leaves the overview');
+
+select tests.as_user(:'own');
+select ok(public.ph_config_catalog() -> 'hooks' @> '[{"hook":"dispatch.before_depart","subject_kind":"load"}]', 'the editor catalog lists the hook points');
+select ok(public.ph_config_catalog() -> 'units' @> '[{"code":"degC"}]', 'degree Celsius is an approved unit for temperature fields');
+select tests.as_user(tests.create_user('e_nobody'));
+select throws_ok($$ select public.ph_config_catalog() $$, 'P0403', null, 'the catalog is for packhouse users only');
 
 -- Clients have no direct write on the new tables.
 select is((select count(*)::int from information_schema.role_table_grants where grantee = 'authenticated'

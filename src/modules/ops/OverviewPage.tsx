@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { QueryState } from '@/core/components/QueryState';
 import { farmToday, localName, rpc, useCustomers, useLines, useOverview, useTrend, type OverviewFilters, type OverviewLine } from './api';
 import { BarChart, btn, Card, downloadCsv, field, KpiTile, Num, PageTitle, Pill, useFmt, type Tone } from './ui';
+import { KpiCardView, useMyKpiCards } from './config/KpiCards';
 
 const STATUS_TONE: Record<OverviewLine['status'], Tone> = {
   not_open: 'neutral', open: 'info', overdue: 'warn', submitted: 'good', submitted_zero: 'neutral',
@@ -211,6 +212,9 @@ export default function OverviewPage() {
                 formula={t('ops.kpi.ordersFormula')} />
             </div>
 
+            {/* Cards the Owner built in Settings → KPI cards (published, visible to this person's roles). */}
+            <OwnerCards />
+
             <Card className="lg:col-span-7" title={t('ops.overview.trend')}>
               <BarChart title={t('ops.overview.trendChart')} unit="kg" rows={trendRows} />
             </Card>
@@ -270,5 +274,16 @@ export default function OverviewPage() {
         )}
       </QueryState>
     </div>
+  );
+}
+
+function OwnerCards() {
+  const { t } = useTranslation();
+  const cards = useMyKpiCards();
+  if (!cards.data || cards.data.length === 0) return null;
+  return (
+    <section aria-label={t('ops.kpiset.ownerCards')} className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:col-span-12 lg:grid-cols-4">
+      {cards.data.map((c) => <KpiCardView key={c.code} code={c.code} def={c.definition} result={c.result} />)}
+    </section>
   );
 }

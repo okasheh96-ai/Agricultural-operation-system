@@ -37,3 +37,19 @@ verified, what is next. Branch: `claude/packhouse-ops-system-rrefgr`.
    PH_REST_PORT=3021 scripts/packhouse.sh install --demo`; `npx playwright test -c playwright.appliance.config.ts` →
    people-access scenario **pass**. Launcher fix: pg_ctl must not inherit the lock fd (9>&-).
    Next: configuration engine (increment 5).
+7. **Increment 5 (configuration engine + Settings screens):** migrations `20261121002400_po_config_engine.sql` (owner-defined
+   operations: versioned definitions validated before publish, steps registered as matrix actions `op_<code>.<step>` with
+   Owner-decided cells, hook before departure with conditions, approval with segregation of duties, "hold" on failure, retire /
+   rollback, records pinned to their version; task board with escalation and recurring templates; KPI cards over whitelisted
+   datasets with bound parameters) and `20261121002500_po_config_catalog.sql` (editor catalog, append-only step history,
+   required repeatable rows). pgTAP `22_po_config_engine.sql` (97) runs the owner's no-code scenario → full DB **1,128 pass**.
+   Screens: Settings hub with open items, Operations editor (steps, fields, dropdown conditions, live phone preview, validate,
+   publish, versions, rollback, retire), KPI card builder with live value, Master data (maker-checker), Task board, Operations
+   menu and run page, owner cards on the overview, load operations on Dispatch. Server: scheduler tick every 5 min; throttle
+   counts failed attempts only. Launcher: `update` command (backup → migrations each in one transaction → rebuild → restart),
+   ports remembered in `PH_HOME/ports`. Demo instance upgraded with `scripts/packhouse.sh update` (verified). Appliance e2e:
+   `owner-config.spec.ts` (owner scenario through the screens) and `people-access.spec.ts` **2 pass**.
+   Bugs found and fixed on the way: task "mine" check let anyone complete a role task (null comparison); KPI parameter
+   numbering; a blocked departure rolled back the run it started (runs now start at load creation / dispatch screen / tick);
+   `saved_port` made the launcher exit silently under `set -e`.
+   Next: increment 6 (grading spec, AWETA schedules, spreadsheet import, accountability draft).

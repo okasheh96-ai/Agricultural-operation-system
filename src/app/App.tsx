@@ -54,6 +54,13 @@ const OpsDispatchPage = lazy(() => import('@/modules/ops/DispatchPage'));
 const OpsTracePage = lazy(() => import('@/modules/ops/TracePage'));
 const OpsComplaintsPage = lazy(() => import('@/modules/ops/ComplaintsPage'));
 const OpsPeoplePage = lazy(() => import('@/modules/ops/settings/PeoplePage'));
+const OpsSettingsHome = lazy(() => import('@/modules/ops/settings/SettingsHome'));
+const OpsOperationsSettings = lazy(() => import('@/modules/ops/settings/OperationsPage'));
+const OpsKpiSettings = lazy(() => import('@/modules/ops/settings/KpiSettingsPage'));
+const OpsMasterData = lazy(() => import('@/modules/ops/settings/MasterDataPage'));
+const OpsTasksPage = lazy(() => import('@/modules/ops/TasksPage'));
+const OpsRunPage = lazy(() => import('@/modules/ops/OperationsRunPage'));
+const OpsRunsList = lazy(() => import('@/modules/ops/OperationsRunPage').then((m) => ({ default: m.OperationsListPage })));
 
 // The in-browser demo runs inside a hosted page (or a local file), where only the part after # is the app's own.
 const Router = __BROWSER_DB__ ? HashRouter : BrowserRouter;
@@ -143,6 +150,13 @@ export function App() {
             <Route path="trace" element={<OpsTracePage />} />
             <Route path="complaints" element={<OpsComplaintsPage />} />
             <Route path="settings/people" element={<OpsPeoplePage />} />
+            <Route path="settings" element={<OpsSettingsHome />} />
+            <Route path="settings/operations" element={<OpsOperationsSettings />} />
+            <Route path="settings/kpis" element={<OpsKpiSettings />} />
+            <Route path="settings/master" element={<OpsMasterData />} />
+            <Route path="tasks" element={<OpsTasksPage />} />
+            <Route path="operations" element={<OpsRunsList />} />
+            <Route path="run/:id" element={<OpsRunPage />} />
           </Route>
           <Route path="/field" element={<FieldShell />}>
             <Route index element={<Navigate to="my-day" replace />} />

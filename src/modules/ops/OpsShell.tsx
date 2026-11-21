@@ -25,9 +25,12 @@ export const OPS_NAV: OpsNavItem[] = [
   { key: 'orders', to: '/ops/orders', icon: '⏱' },
   { key: 'report', to: '/ops/report', icon: '▤', needs: 'report.kpi_view' },
   { key: 'dispatch', to: '/ops/dispatch', icon: '⛟' },
+  { key: 'tasks', to: '/ops/tasks', icon: '☑', mobile: true },
+  { key: 'operations', to: '/ops/operations', icon: '▶' },
   { key: 'trace', to: '/ops/trace', icon: '⇄', mobile: true },
   { key: 'complaints', to: '/ops/complaints', icon: '✉' },
-  { key: 'people', to: '/ops/settings/people', icon: '⚙', needs: ['users.administer', 'delegated.accounts'] },
+  { key: 'settings', to: '/ops/settings', icon: '⚙', end: true,
+    needs: ['users.administer', 'delegated.accounts', 'settings.edit', 'settings.publish', 'md_operational.edit', 'md_operational.approve', 'md_customer.edit', 'md_customer.approve', 'task.create'] },
   { key: 'workflow', to: '/office/packing-house', icon: '⛁' },
 ];
 
@@ -148,7 +151,7 @@ export function OpsShell() {
             <NavLink to="/office" className={linkCls}><span aria-hidden="true" className="w-5 text-center">⌂</span>{t('ops.nav.office')}</NavLink>
           </div>
         )}
-        <div className="grid grid-cols-4">
+        <div className="grid grid-cols-5">
           {mobile.map((i) => (
             <NavLink key={i.key} to={i.to} end={i.end}
               className={({ isActive }) => `flex min-h-[56px] flex-col items-center justify-center gap-0.5 text-xs font-medium ${isActive ? 'text-ops-accent' : 'text-ops-muted'}`}>
