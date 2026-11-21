@@ -1,10 +1,10 @@
 import { useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { requireSupabase } from '@/core/supabase';
-import { LanguageToggle } from '@/core/components/LanguageToggle';
 import { DEMO_ACCOUNTS, DEMO_PASSWORD, DEMO_PH_ACCOUNTS } from './demoSignIn';
 import { signInErrorKey } from './signInError';
 import { ActivateForm } from './ServerAccess';
+import { AuthShell, authButton, authCard, authInput } from './AuthShell';
 
 /** Real Supabase Auth sign-in (email + password, VR-C09); demo-stack builds add one-tap sign-in for the demo farm. */
 export function SignInPage() {
@@ -29,65 +29,62 @@ export function SignInPage() {
     void signIn({ email, password }, 'form');
   }
 
-  const alert = (shown: boolean) => shown && error && <p role="alert" className="text-red-700">{t(error.key)}</p>;
+  const alert = (shown: boolean) => shown && error && <p role="alert" className="ops-pop rounded-ops-sm border border-ops-redline bg-ops-redbg px-3 py-2 text-sm text-ops-red">{t(error.key)}</p>;
 
   const demoButton = (a: { email: string; labelKey: string }) => (
     <button key={a.email} type="button" disabled={busy !== null} onClick={() => void signIn({ email: a.email, password: DEMO_PASSWORD }, a.email)}
-      className="flex min-h-touch flex-col items-start justify-center rounded bg-white px-4 py-2 text-start shadow-sm hover:bg-stone-50 disabled:opacity-60">
+      className="ops-press flex min-h-touch flex-col items-start justify-center rounded-ops-sm border border-ops-line bg-ops-surface px-4 py-2 text-start hover:border-ops-accentline disabled:opacity-60">
       <span className="font-semibold">{busy === a.email ? t('auth.signingIn') : t(a.labelKey)}</span>
-      <bdi className="text-xs text-stone-500">{a.email}</bdi>
+      <bdi className="text-xs text-ops-muted">{a.email}</bdi>
     </button>
   );
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-6 p-6">
-      <div className="flex items-center justify-between">
-        <h1 className="flex items-center gap-2 text-xl font-bold text-brand-dark">
-          <span aria-hidden="true" className="text-2xl">🌾</span>
-          {t('app.title')}
-        </h1>
-        <LanguageToggle />
-      </div>
+    <AuthShell>
       {__DEMO_SIGNIN__ && (
-        <section aria-labelledby="demo-signin" className="flex flex-col gap-3 rounded-lg border-2 border-brand bg-brand-light p-4">
+        <section aria-labelledby="demo-signin" className="flex flex-col gap-3 rounded-[18px] border border-ops-accentline bg-ops-soft p-4">
           <div>
-            <h2 id="demo-signin" className="text-lg font-semibold text-brand-dark">{t('auth.demoTitle')}</h2>
-            <p className="text-sm text-stone-700">{t('auth.demoHint')}</p>
+            <h2 id="demo-signin" className="text-lg font-semibold text-ops-accent">{t('auth.demoTitle')}</h2>
+            <p className="text-sm text-ops-muted">{t('auth.demoHint')}</p>
           </div>
           {alert(error?.from !== 'form')}
           <div className="flex flex-col gap-2" aria-busy={busy !== null && busy !== 'form'}>
             {DEMO_ACCOUNTS.map((a) => demoButton(a))}
           </div>
-          <h3 className="font-semibold text-brand-dark">{t('auth.demoPhTitle')}</h3>
+          <h3 className="font-semibold text-ops-accent">{t('auth.demoPhTitle')}</h3>
           <div className="grid grid-cols-2 gap-2" aria-busy={busy !== null && busy !== 'form'}>
             {DEMO_PH_ACCOUNTS.map((a) => demoButton(a))}
           </div>
         </section>
       )}
       {__PACKHOUSE_SERVER__ && activating ? <ActivateForm onDone={() => setActivating(false)} /> : (
-      <form onSubmit={onSubmit} className="flex flex-col gap-4 rounded-lg bg-white p-6 shadow">
-        <h2 className="text-lg font-semibold">{t('auth.signInTitle')}</h2>
-        <label className="flex flex-col gap-1">
+      <form onSubmit={onSubmit} className={authCard}>
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-ops-ink">{t('auth.signInTitle')}</h1>
+          <p className="mt-1 text-sm text-ops-muted">{t('auth.shell.signInSub')}</p>
+        </div>
+        <label className="flex flex-col gap-1.5 text-sm font-medium text-ops-ink">
           <span>{__PACKHOUSE_SERVER__ ? t('auth.server.usernameOrEmail') : t('auth.email')}</span>
           <input type={__PACKHOUSE_SERVER__ ? 'text' : 'email'} required dir="ltr" autoComplete="username" value={email}
-            onChange={(e) => setEmail(e.target.value)} className="min-h-touch rounded border border-stone-300 px-3" />
+            onChange={(e) => setEmail(e.target.value)} className={authInput} />
         </label>
-        <label className="flex flex-col gap-1">
+        <label className="flex flex-col gap-1.5 text-sm font-medium text-ops-ink">
           <span>{t('auth.password')}</span>
           <input type="password" required dir="ltr" autoComplete="current-password" value={password}
-            onChange={(e) => setPassword(e.target.value)} className="min-h-touch rounded border border-stone-300 px-3" />
+            onChange={(e) => setPassword(e.target.value)} className={authInput} />
         </label>
         {alert(!__DEMO_SIGNIN__ || error?.from === 'form')}
-        <button type="submit" disabled={busy !== null} className="min-h-touch rounded bg-brand px-4 font-semibold text-white disabled:opacity-60">
+        <button type="submit" disabled={busy !== null} className={authButton}>
           {busy === 'form' ? t('auth.signingIn') : t('auth.signIn')}
         </button>
       </form>
       )}
       {__PACKHOUSE_SERVER__ && (
-        <button type="button" onClick={() => setActivating(!activating)} className="min-h-[44px] text-brand-dark underline">
+        <button type="button" onClick={() => setActivating(!activating)}
+          className="ops-press min-h-[48px] rounded-ops-sm border border-dashed border-ops-linestrong px-4 text-sm font-semibold text-ops-accent hover:border-ops-accent">
           {activating ? t('auth.server.backToSignIn') : t('auth.server.firstSignIn')}
         </button>
       )}
-    </main>
+    </AuthShell>
   );
 }

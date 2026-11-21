@@ -104,6 +104,15 @@
       "current": "Current password",
       "change": "Change",
       "wrongCurrent": "The current password is not correct."
+    },
+    "shell": {
+      "headline": "Every shift, line and load — in one place.",
+      "sub": "Run the packhouse from forecast to dispatch: output, stops, quality, trace and the settings that shape them.",
+      "one": "Personal accounts with role and line scope; every change is recorded.",
+      "two": "Quality decisions stay with the quality team.",
+      "three": "Works on phones on the line and on the office screen.",
+      "private": "Private system — only accounts created by the Owner or an authorised manager can sign in.",
+      "signInSub": "Sign in with the username your manager gave you."
     }
   },
   "nav": {

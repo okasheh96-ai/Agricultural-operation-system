@@ -36,3 +36,11 @@ export async function token(username: string, password = DEMO_PW): Promise<strin
   const j = (await res.json()) as { access_token: string };
   return j.access_token;
 }
+
+/** Read through the REST API as a signed-in person (row-level security applies), for checking what the screens did on any
+ *  instance, including a hosted one whose database is not reachable from the test machine. */
+export async function rest<T = Record<string, unknown>[]>(tok: string, path: string): Promise<T> {
+  const res = await fetch(`${BASE}/rest/v1/${path}`, { headers: { authorization: `Bearer ${tok}` } });
+  if (!res.ok) throw new Error(`GET ${path}: ${res.status} ${await res.text()}`);
+  return (await res.json()) as T;
+}

@@ -2,9 +2,10 @@ import { useState, type FormEvent } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { requireSupabase } from '@/core/supabase';
-import { LanguageToggle } from '@/core/components/LanguageToggle';
+import { AuthShell, authButton, authCard, authInput } from './AuthShell';
 
-const inputCls = 'min-h-[44px] rounded border border-stone-300 px-3';
+const inputCls = authInput;
+const labelCls = 'flex flex-col gap-1.5 text-sm font-medium text-ops-ink';
 
 /** First sign-in with the one-time code from the Owner or a manager: the person chooses their own password (packhouse server). */
 export function ActivateForm({ onDone }: { onDone: (username: string) => void }) {
@@ -30,20 +31,22 @@ export function ActivateForm({ onDone }: { onDone: (username: string) => void })
     }
   }
   return (
-    <form onSubmit={submit} className="flex flex-col gap-3 rounded-lg bg-white p-6 shadow" aria-labelledby="activate-title">
-      <h2 id="activate-title" className="text-lg font-semibold">{t('auth.server.activateTitle')}</h2>
-      <p className="text-sm text-stone-600">{t('auth.server.activateHint')}</p>
-      <label className="flex flex-col gap-1">{t('auth.server.username')}
+    <form onSubmit={submit} className={authCard} aria-labelledby="activate-title">
+      <div>
+        <h2 id="activate-title" className="text-2xl font-bold tracking-tight">{t('auth.server.activateTitle')}</h2>
+        <p className="mt-1 text-sm text-ops-muted">{t('auth.server.activateHint')}</p>
+      </div>
+      <label className={labelCls}>{t('auth.server.username')}
         <input required dir="ltr" autoComplete="username" className={inputCls} value={f.username} onChange={(e) => setF({ ...f, username: e.target.value })} /></label>
-      <label className="flex flex-col gap-1">{t('auth.server.code')}
+      <label className={labelCls}>{t('auth.server.code')}
         <input required dir="ltr" autoComplete="one-time-code" className={inputCls} value={f.code} onChange={(e) => setF({ ...f, code: e.target.value.trim() })} /></label>
-      <label className="flex flex-col gap-1">{t('auth.server.newPassword')}
+      <label className={labelCls}>{t('auth.server.newPassword')}
         <input required type="password" dir="ltr" autoComplete="new-password" className={inputCls} value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} /></label>
-      <label className="flex flex-col gap-1">{t('auth.server.confirm')}
+      <label className={labelCls}>{t('auth.server.confirm')}
         <input required type="password" dir="ltr" autoComplete="new-password" className={inputCls} value={f.confirm} onChange={(e) => setF({ ...f, confirm: e.target.value })} /></label>
-      <p className="text-xs text-stone-600">{t('auth.server.rule')}</p>
-      {msg && <p role="alert" className="text-red-700">{msg}</p>}
-      <button type="submit" disabled={busy} className="min-h-[44px] rounded bg-brand px-4 font-semibold text-white disabled:opacity-60">{t('auth.server.activate')}</button>
+      <p className="text-xs text-ops-muted">{t('auth.server.rule')}</p>
+      {msg && <p role="alert" className="ops-pop rounded-ops-sm border border-ops-redline bg-ops-redbg px-3 py-2 text-sm text-ops-red">{msg}</p>}
+      <button type="submit" disabled={busy} className={authButton}>{t('auth.server.activate')}</button>
     </form>
   );
 }
@@ -62,21 +65,22 @@ export function ChangePasswordPage() {
     await qc.invalidateQueries();
   }
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-6 p-6">
-      <div className="flex justify-end"><LanguageToggle /></div>
-      <form onSubmit={submit} className="flex flex-col gap-3 rounded-lg bg-white p-6 shadow" aria-labelledby="change-title">
-        <h1 id="change-title" className="text-lg font-semibold">{t('auth.server.changeTitle')}</h1>
-        <p className="text-sm text-stone-600">{t('auth.server.changeHint')}</p>
-        <label className="flex flex-col gap-1">{t('auth.server.current')}
+    <AuthShell>
+      <form onSubmit={submit} className={authCard} aria-labelledby="change-title">
+        <div>
+          <h1 id="change-title" className="text-2xl font-bold tracking-tight">{t('auth.server.changeTitle')}</h1>
+          <p className="mt-1 text-sm text-ops-muted">{t('auth.server.changeHint')}</p>
+        </div>
+        <label className={labelCls}>{t('auth.server.current')}
           <input required type="password" dir="ltr" autoComplete="current-password" className={inputCls} value={f.old} onChange={(e) => setF({ ...f, old: e.target.value })} /></label>
-        <label className="flex flex-col gap-1">{t('auth.server.newPassword')}
+        <label className={labelCls}>{t('auth.server.newPassword')}
           <input required type="password" dir="ltr" autoComplete="new-password" className={inputCls} value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} /></label>
-        <label className="flex flex-col gap-1">{t('auth.server.confirm')}
+        <label className={labelCls}>{t('auth.server.confirm')}
           <input required type="password" dir="ltr" autoComplete="new-password" className={inputCls} value={f.confirm} onChange={(e) => setF({ ...f, confirm: e.target.value })} /></label>
-        <p className="text-xs text-stone-600">{t('auth.server.rule')}</p>
-        {msg && <p role="alert" className="text-red-700">{msg}</p>}
-        <button type="submit" className="min-h-[44px] rounded bg-brand px-4 font-semibold text-white">{t('auth.server.change')}</button>
+        <p className="text-xs text-ops-muted">{t('auth.server.rule')}</p>
+        {msg && <p role="alert" className="ops-pop rounded-ops-sm border border-ops-redline bg-ops-redbg px-3 py-2 text-sm text-ops-red">{msg}</p>}
+        <button type="submit" className={authButton}>{t('auth.server.change')}</button>
       </form>
-    </main>
+    </AuthShell>
   );
 }

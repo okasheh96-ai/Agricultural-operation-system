@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { api, signIn, signOut, sql, token } from './helpers';
+import { api, rest, signIn, signOut, token } from './helpers';
 
 // Owner acceptance scenario 1 (no-code), through the normal screens of a packhouse-server instance (DEMO farm, invented data):
 // a new customer and a 6 kg pack (maker-checker), a reinspection before dispatch for that customer only with a temperature
@@ -46,7 +46,8 @@ test('Owner builds a conditional reinspection before dispatch with a release and
   await page.getByLabel(/ملاحظة الاعتماد/).fill('self (e2e)');
   await packRow.getByRole('button', { name: 'اعتماد' }).click();
   await expect(page.getByRole('alert')).toBeVisible(); // segregation of duties: refused
-  expect(sql(`select verification_status from public.ph_pack_formats where code = '${PACK}'`)).not.toBe('verified');
+  const ownerTok = await token('demo.owner');
+  expect((await rest<{ verification_status: string }[]>(ownerTok, `ph_pack_formats?code=eq.${PACK}&select=verification_status`))[0]?.verification_status).not.toBe('verified');
 
   const checker = await browser.newContext({ locale: 'ar' });
   const cp = await checker.newPage();
@@ -125,7 +126,8 @@ test('Owner builds a conditional reinspection before dispatch with a release and
   await expect(page.getByText('المسودة سليمة.').first()).toBeVisible();
   await page.getByRole('button', { name: 'نشر', exact: true }).click();
   await expect(page.getByText('نُشر كإصدار 1.')).toBeVisible();
-  expect(sql(`select string_agg(spec_code, ',' order by spec_code) from public.ph_permission_cells where action_key like 'op\\_${OP.toLowerCase()}.%' and voided_at is null`)).toBe('QCI,QCM');
+  expect((await rest<{ spec_code: string }[]>(ownerTok, `ph_permission_cells?action_key=like.op_${OP.toLowerCase()}.*&voided_at=is.null&select=spec_code&order=spec_code`))
+    .map((c) => c.spec_code).join(',')).toBe('QCI,QCM');
 
   // 3. Settings → KPI cards: outstanding inspections for management, previewed live, then published.
   await page.goto('/ops/settings/kpis');
@@ -150,9 +152,11 @@ test('Owner builds a conditional reinspection before dispatch with a release and
   await expect(page.getByText(/نُشر كإصدار 1/)).toBeVisible();
 
   // 4. A load for the new customer (order and load set up by Sales, the PHM and the PE through the API).
-  const crop = sql(`select c.id from public.ph_crops c join public.farms f on f.id = c.farm_id where f.code = 'DEMO' and c.code = 'cherry_tomato' and c.superseded_at is null`);
-  const custId = sql(`select id from public.ph_customers where code = '${CUST}'`);
-  const packId = sql(`select id from public.ph_pack_formats where code = '${PACK}'`);
+  const id1 = async (path: string) => (await rest<{ id: string }[]>(ownerTok, `${path}&select=id`))[0]?.id ?? '';
+  const crop = await id1('ph_crops?code=eq.cherry_tomato&superseded_at=is.null&voided_at=is.null');
+  const custId = await id1(`ph_customers?code=eq.${CUST}`);
+  const packId = await id1(`ph_pack_formats?code=eq.${PACK}`);
+  const runs = (load: string) => rest<{ id: string; run_state: string }[]>(ownerTok, `ph_op_runs?subject_id=eq.${load}&select=id,run_state`);
   const sal = await token('demo.ph.sal');
   const ol = await api<{ id: string }>(sal, 'ph_create_order_line', { p: { customer_name: CUST, crop_id: crop, pack_spec: '6 kg carton', grade: 'gr1', quantity: 300,
     quantity_unit: 'kg', required_date: new Date(Date.now() + 86_400_000).toISOString().slice(0, 10), market_type: 'export' } });
@@ -162,8 +166,7 @@ test('Owner builds a conditional reinspection before dispatch with a release and
   const pe = await token('demo.ph.pe');
   const ld = await api<{ id: string; code: string }>(pe, 'ph_create_load', { p: { customer_id: custId, destination: 'Test (e2e)', order_line_ids: [ol.body.id], vehicle_plate: 'E2E-1' } });
   expect(ld.status).toBe(200);
-  expect(sql(`select count(*) from public.ph_op_instances where subject_id = '${ld.body.id}'`)).toBe('1');
-  expect(sql(`select app.po_hook_blockers(farm_id, 'dispatch.before_depart', to_jsonb(l)) -> 0 ->> 'state' from public.ph_loads l where id = '${ld.body.id}'`)).toBe('open');
+  expect((await runs(ld.body.id)).map((r) => r.run_state)).toEqual(['open']); // an open run holds the departure (pgTAP 22 proves the block)
 
   // Management sees 1 outstanding inspection on the overview.
   await page.goto('/ops');
@@ -192,7 +195,7 @@ test('Owner builds a conditional reinspection before dispatch with a release and
   await cp.getByRole('article').filter({ hasText: OP_NAME }).getByRole('link', { name: /فتح العملية/ }).click();
   await cp.getByRole('button', { name: 'اعتماد الإفراج' }).click();
   await expect(cp.getByText('اكتملت.')).toBeVisible();
-  expect(sql(`select app.po_hook_blockers(farm_id, 'dispatch.before_depart', to_jsonb(l)) from public.ph_loads l where id = '${ld.body.id}'`)).toBe('[]');
+  expect((await runs(ld.body.id)).map((r) => r.run_state)).toEqual(['completed']);
   await page.reload();
   await expect(page.locator('.ops-card').filter({ hasText: KPI_TITLE }).locator('.text-3xl')).toHaveText('0');
 
@@ -204,8 +207,8 @@ test('Owner builds a conditional reinspection before dispatch with a release and
   await retire.getByRole('button', { name: 'إيقاف' }).click();
   await expect(page.getByText(/أُوقفت؛/)).toBeVisible();
   const ld2 = await api<{ id: string }>(pe, 'ph_create_load', { p: { customer_id: custId, order_line_ids: [ol.body.id], vehicle_plate: 'E2E-2' } });
-  expect(sql(`select count(*) from public.ph_op_instances where subject_id = '${ld2.body.id}'`)).toBe('0');
-  const runId = sql(`select id from public.ph_op_instances where subject_id = '${ld.body.id}'`);
+  expect(await runs(ld2.body.id)).toEqual([]);
+  const runId = (await runs(ld.body.id))[0]?.id ?? '';
   await page.goto(`/ops/run/${runId}`);
   await expect(page.getByText('موقوفة').first()).toBeVisible();
   await expect(page.getByText(/8 °م/)).toBeVisible();

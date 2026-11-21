@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { api, signIn, signOut, sql, token } from './helpers';
+import { api, rest, signIn, signOut, token } from './helpers';
 
 // Owner acceptance scenario 2, through the normal screens of a packhouse-server instance (DEMO farm, invented people).
 const n = Date.now().toString().slice(-6);
@@ -30,7 +30,10 @@ test('Owner creates a username account, a custom role and a line-scoped delegati
   await form.getByRole('button', { name: 'إنشاء الحساب' }).click();
   const code = (await form.locator('p.select-all bdi').textContent())?.trim() ?? '';
   expect(code).toMatch(/^[A-Z0-9]{8}$/);
-  expect(sql(`select email is null from auth.users u join app.po_accounts a on a.user_id = u.id where a.username = '${SUP}'`)).toBe('t');
+  const ownerTok = await token('demo.owner');
+  const account = async (u: string) => (await api<{ user_id: string; username: string; email: string | null; status: string }[]>(ownerTok, 'ph_admin_accounts', {})).body.find((a) => a.username === u);
+  expect((await account(SUP))?.email ?? null).toBeNull();
+  const lineId = async (code: string) => (await rest<{ id: string }[]>(ownerTok, `ph_lines?code=eq.${code}&voided_at=is.null&select=id`))[0]?.id ?? '';
 
   // 2. Owner: custom role cloned from the line supervisor.
   await page.getByRole('tab', { name: 'الأدوار' }).click();
@@ -41,7 +44,7 @@ test('Owner creates a username account, a custom role and a line-scoped delegati
   await page.getByLabel('السبب (إلزامي)').first().fill('Pilot lead role (e2e)');
   await page.getByRole('button', { name: 'إنشاء الدور' }).click();
   await expect(page.getByRole('button', { name: new RegExp(ROLE) })).toBeVisible();
-  expect(Number(sql(`select count(*) from public.ph_permission_cells where spec_code = '${ROLE}' and voided_at is null and evidence = 'O'`))).toBeGreaterThan(0);
+  expect((await rest(ownerTok, `ph_permission_cells?spec_code=eq.${ROLE}&voided_at=is.null&evidence=eq.O&select=id`)).length).toBeGreaterThan(0);
 
   // 3. Owner: delegate account creation for LL on line A to the PHM.
   await page.getByRole('tab', { name: 'التفويض' }).click();
@@ -67,7 +70,7 @@ test('Owner creates a username account, a custom role and a line-scoped delegati
   await addRole(mform, 'LL', /ELIFAB/);
   await mform.getByRole('button', { name: 'إنشاء الحساب' }).click();
   await expect(mform.locator('p.select-all bdi')).toHaveText(/^[A-Z0-9]{8}$/);
-  const lineB = sql(`select l.id from public.ph_lines l join public.farms f on f.id = l.farm_id where f.code = 'DEMO' and l.code = 'B'`);
+  const lineB = await lineId('B');
   const mgrTok = await token('demo.ph.phm');
   const outside = await api<{ code: string }>(mgrTok, 'ph_admin_create_account', { p: { username: `e2e.x${n}`, full_name: 'x', roles: [{ code: 'LL', line_id: lineB }] } });
   expect(outside.status).toBeGreaterThanOrEqual(400); // the server refuses a grant outside the delegated scope, whatever the screen offers
@@ -86,7 +89,7 @@ test('Owner creates a username account, a custom role and a line-scoped delegati
 
   // 6. Access changed while the session is open: revoking it signs the device out at the next action.
   const owner = await token('demo.owner');
-  const supId = sql(`select user_id from app.po_accounts where username = '${SUP}'`);
+  const supId = (await account(SUP))?.user_id ?? '';
   const revoked = await api<{ sessions_revoked: number }>(owner, 'ph_admin_account_step', { p_user: supId, p_step: 'revoke_sessions', p_reason: 'e2e: device lost' });
   expect(revoked.status).toBe(200);
   await supPage.reload();
@@ -94,7 +97,7 @@ test('Owner creates a username account, a custom role and a line-scoped delegati
 
   // 7. A role change applies to the next request of an open session.
   const supTok = await token(SUP, 'Shiftline2026');
-  const lineA = sql(`select l.id from public.ph_lines l join public.farms f on f.id = l.farm_id where f.code = 'DEMO' and l.code = 'A'`);
+  const lineA = await lineId('A');
   const before = await api<{ line_id: string }[]>(supTok, 'ph_my_lines', { p_action: 'labour.record' });
   expect(before.body.map((l) => l.line_id)).toEqual([lineA]);
   await api(owner, 'ph_admin_set_roles', { p_user: supId, p_roles: [{ code: 'LL', line_id: lineB }], p_reason: 'e2e: moved to line B' });
@@ -114,8 +117,8 @@ test('Owner creates a username account, a custom role and a line-scoped delegati
     body: JSON.stringify({ email: SUP, password: 'Shiftline2026' }) })).status).toBe(400);
   page.once('dialog', (d) => void d.accept());
   await row.getByRole('button', { name: 'أرشفة' }).click();
-  await expect.poll(() => sql(`select status from app.po_accounts where username = '${SUP}'`)).toBe('archived');
-  expect(sql(`select full_name from public.user_profiles where id = '${supId}'`)).toBe('مشرف اختبار (e2e)');
+  await expect.poll(async () => (await account(SUP))?.status).toBe('archived');
+  expect((await rest<{ full_name: string }[]>(ownerTok, `user_profiles?id=eq.${supId}&select=full_name`))[0]?.full_name).toBe('مشرف اختبار (e2e)');
   await page.getByRole('tab', { name: 'سجل الصلاحيات' }).click();
   await expect(page.getByText('e2e: moved to line B').first()).toBeVisible();
   await expect(page.getByText('e2e: forgot password').first()).toBeVisible();
