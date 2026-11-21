@@ -79,6 +79,13 @@ export function SignInPage() {
         </button>
       </form>
       )}
+      {__PACKHOUSE_SERVER__ && !activating && (
+        <details className="rounded-ops-sm border border-ops-line bg-ops-surface px-4 py-3 text-sm text-ops-muted">
+          <summary className="cursor-pointer font-semibold text-ops-ink">{t('auth.recovery.title')}</summary>
+          <p className="mt-2">{t('auth.recovery.staff')}</p>
+          <p className="mt-2">{t('auth.recovery.owner')}</p>
+        </details>
+      )}
       {__PACKHOUSE_SERVER__ && (
         <button type="button" onClick={() => setActivating(!activating)}
           className="ops-press min-h-[48px] rounded-ops-sm border border-dashed border-ops-linestrong px-4 text-sm font-semibold text-ops-accent hover:border-ops-accent">

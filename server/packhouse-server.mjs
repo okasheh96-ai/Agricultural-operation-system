@@ -3,6 +3,8 @@
 //   /              the built app (same origin, so no CORS)
 //   /auth/v1/*     sign-in, token refresh, current user, sign-out (the subset of the Supabase Auth API the app uses)
 //   /api/activate  first sign-in with a one-time activation code (the person chooses their password)
+//   /api/setup     one-time Super Admin setup (code from the hosting dashboard; disabled once used)
+//   /api/backup    full backup download (Owner)
 //   /api/health    database + API check
 //   /rest/v1/*     PostgREST (it verifies every token; app.po_pre_request() checks the session on every call)
 //
@@ -200,6 +202,21 @@ async function handleApi(req, res, url) {
     }
   }
   if (url.pathname === '/api/backup' && req.method === 'GET') return backupDownload(req, res);
+  // One-time Super Admin setup: open only while the bootstrap Owner is pending, and only with the setup code from the hosting
+  // dashboard; after use the database has no pending Owner and this answers "not available".
+  if (url.pathname === '/api/setup' && req.method === 'GET') return send(res, 200, (await db('select public.po_setup_status() as r')).r);
+  if (url.pathname === '/api/setup' && req.method === 'POST') {
+    if (throttled(clientIp(req))) return authError(res, 'over_request_rate_limit', 'Too many attempts; wait a minute', 429);
+    const b = await readJson(req);
+    try {
+      const r = (await db('select public.po_owner_setup($1, $2, $3, $4) as r',
+        [String(b.code ?? ''), String(b.username ?? ''), String(b.full_name ?? ''), String(b.password ?? '')])).r;
+      if (!r.ok) noteFailure(clientIp(req));
+      return send(res, r.ok ? 200 : 400, r);
+    } catch (e) {
+      return send(res, 400, { ok: false, error: e.code === 'P0422' ? 'weak_password' : 'failed' });
+    }
+  }
   return send(res, 404, { error: 'not found' });
 }
 

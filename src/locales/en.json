@@ -113,6 +113,31 @@
       "three": "Works on phones on the line and on the office screen.",
       "private": "Private system — only accounts created by the Owner or an authorised manager can sign in.",
       "signInSub": "Sign in with the username your manager gave you."
+    },
+    "setup": {
+      "title": "Set up the Super Admin",
+      "hint": "One time only. Enter the setup code from the hosting dashboard (Render → service → Environment → PH_OWNER_SETUP_CODE), then choose your own username and password.",
+      "code": "Setup code",
+      "username": "Your username",
+      "usernameRule": "3–32 lowercase letters, digits, dot, dash or underscore.",
+      "name": "Your full name",
+      "submit": "Create my Super Admin account",
+      "closed": "Setup is already complete — this page is closed. Sign in with your username and password.",
+      "toSignIn": "Go to sign-in",
+      "err": {
+        "invalid_code": "The setup code is not correct.",
+        "no_pending_setup": "Setup is already complete or the code has expired.",
+        "username": "Usernames are 3–32 lowercase letters, digits, dot, dash or underscore.",
+        "username_taken": "That username is taken.",
+        "name": "Enter your name.",
+        "weak_password": "Password must be 8+ characters with a letter and a digit, and not the username.",
+        "failed": "Setup did not complete. Check the details and try again."
+      }
+    },
+    "recovery": {
+      "title": "Forgot your password?",
+      "staff": "Staff: ask the Owner or your manager to reset your access in Settings → People & access. You will get a one-time code; use “First sign-in with a code” to choose a new password.",
+      "owner": "Owner: set a new value for PH_OWNER_RECOVERY_CODE in the hosting dashboard (Render → service → Environment) and save. After the restart, use “First sign-in with a code” with your username and that value within 24 hours."
     }
   },
   "nav": {

@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/core/auth/AuthProvider';
 import { SignInPage } from '@/core/auth/SignInPage';
+import { SetupPage } from '@/core/auth/SetupPage';
 import { SignOutButton } from '@/core/auth/SignOutButton';
 import { ChangePasswordPage } from '@/core/auth/ServerAccess';
 import { hasRole } from '@/core/rbac/access';
@@ -82,6 +83,7 @@ export function App() {
     return installAutoSync(qc);
   }, [sessionUser, qc]);
 
+  if (__PACKHOUSE_SERVER__ && window.location.pathname === '/setup') return <SetupPage />;
   if (!ready || (session && accessLoading)) return <Loading />;
   if (!session) return <SignInPage />;
   if (mustChangePassword) return <ChangePasswordPage />;
@@ -97,7 +99,8 @@ export function App() {
   }
 
   const fieldFirst = hasRole(access, ...FIELD_ROLES) && !hasRole(access, 'system_admin', 'department_manager', 'operations_manager', 'maintenance_manager');
-  const home = phOnly(access) ? '/ops' : fieldFirst ? '/field' : '/office';
+  const isOwner = (access?.grants ?? []).some((g) => g.roleCode === 'ph_own');
+  const home = phOnly(access) || isOwner ? '/ops' : fieldFirst ? '/field' : '/office';
   // Unbuilt sections (and unbuilt sub-sections of built ones) get an honest "later phase" page.
   const unbuilt = OFFICE_NAV.flatMap((i) => [i, ...(i.children ?? [])]).filter((i) => !i.built);
 

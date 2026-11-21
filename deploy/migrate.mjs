@@ -110,24 +110,36 @@ if (env('PH_DEMO', '') === '1') {
   }
 }
 
-// 5. Owner.
+// 5. Owner (Super Admin). Created once, only while the farm has no Owner at all. The setup code lives only in the hosting
+//    dashboard; only its bcrypt hash is stored (upper-cased, as every code check compares). Codes are never printed.
 const code = env('PH_OWNER_SETUP_CODE', '');
-const username = env('PH_OWNER_USERNAME', 'owner').toLowerCase();
 const farm = (await q("select id from public.farms where code = 'FARM'")).rows[0]?.id;
-const acct = (await q('select user_id, activation_code_hash is not null as pending, app.po_check($2, activation_code_hash) as same from app.po_accounts where username = $1',
-  [username, code || 'x'])).rows[0];
-if (!acct && farm && code) {
+const ownerSql = `select a.user_id, a.username, a.password_hash is null and a.activation_code_hash is not null as pending,
+    app.po_check(upper(trim($1)), a.activation_code_hash) as same
+  from app.po_accounts a join public.user_roles ur on ur.user_id = a.user_id and ur.voided_at is null
+  join public.ph_roles pr on pr.role_id = ur.role_id and pr.spec_code = 'OWN'
+ where a.farm_id = $2 and a.status = 'active' order by a.created_at`;
+const owners = farm ? (await q(ownerSql, [code || 'x', farm])).rows : [];
+if (farm && owners.length === 0 && code) {
   await q('begin');
-  await q('select public.po_bootstrap_owner($1, $2, $3)', [farm, username, 'المالك / Owner']);
-  await q("update app.po_accounts set activation_code_hash = app.po_hash($2), activation_expires_at = now() + interval '30 days' where username = $1", [username, code]);
+  await q('select public.po_bootstrap_owner($1, $2, $3)', [farm, 'owner', 'المالك / Owner']);
+  await q("update app.po_accounts set activation_code_hash = app.po_code_hash($2), activation_expires_at = now() + interval '30 days' where username = $1", ['owner', code]);
   await q('commit');
-  log(`Owner account "${username}" created; first sign-in uses the one-time setup code`);
-} else if (acct?.pending && code && !acct.same) {
-  await q("update app.po_accounts set activation_code_hash = app.po_hash($2), activation_expires_at = now() + interval '30 days' where username = $1", [username, code]);
-  log('Owner has not activated yet: the setup code was replaced');
-} else if (acct) {
-  log(`Owner account "${username}" ${acct.pending ? 'waiting for first sign-in' : 'active'}`);
+  log('Super Admin account created: waiting for setup with the one-time code (open /setup)');
+} else if (owners.length === 1 && owners[0].pending && code && !owners[0].same) {
+  await q("update app.po_accounts set activation_code_hash = app.po_code_hash($2), activation_expires_at = now() + interval '30 days' where user_id = $1",
+    [owners[0].user_id, code]);
+  log('Super Admin not set up yet: the setup code was replaced');
+} else if (owners.length) {
+  log(`Super Admin: ${owners.some((o) => !o.pending) ? 'active' : 'waiting for setup (open /setup)'}`);
 } else {
-  log('no Owner yet: set PH_OWNER_SETUP_CODE to create one');
+  log('no Super Admin yet: set PH_OWNER_SETUP_CODE in the hosting dashboard');
+}
+for (const o of owners.filter((x) => !x.pending)) await q('select app.po_owner_also_admin($1, $2)', [farm, o.user_id]).catch(() => {});
+const recovery = env('PH_OWNER_RECOVERY_CODE', '');
+if (recovery) {
+  const r = (await q('select app.po_owner_recovery($1) as r', [recovery])).rows[0].r;
+  log(r.startsWith('issued:') ? 'Super Admin recovery: one-time code active for 24 hours (sign in with "first sign-in with a code")'
+    : r === 'already_used' ? 'Super Admin recovery code already used; set a new one to recover again' : `Super Admin recovery not applied: ${r}`);
 }
 await client.end();
