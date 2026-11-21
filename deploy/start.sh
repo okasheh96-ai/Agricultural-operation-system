@@ -17,8 +17,8 @@ node deploy/migrate.mjs
 # Connection strings for the two runtime roles: same host and database, their own user and password.
 role_url() { node -e '
   const u = new URL(process.env.DATABASE_URL); u.username = process.argv[1]; u.password = process.argv[2];
-  if (!u.searchParams.has("sslmode") && !["localhost","127.0.0.1"].includes(u.hostname)) u.searchParams.set("sslmode", "require");
-  process.stdout.write(u.toString());' "$1" "$2"; }
+  if (!u.searchParams.has("sslmode")) u.searchParams.set("sslmode", process.argv[3]);
+  process.stdout.write(u.toString());' "$1" "$2" "$(cat "${TMPDIR:-/tmp}/ph-sslmode" 2>/dev/null || echo require)"; }
 REST_DB_URL=$(role_url authenticator "$PH_AUTHENTICATOR_PASSWORD")
 export PH_DB_URL=$(role_url po_server "$PH_SERVER_DB_PASSWORD")
 export PH_DUMP_URL="$DATABASE_URL"

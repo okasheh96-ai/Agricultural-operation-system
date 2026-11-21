@@ -36,7 +36,7 @@ export function ActivateForm({ onDone }: { onDone: (username: string) => void })
       <label className="flex flex-col gap-1">{t('auth.server.username')}
         <input required dir="ltr" autoComplete="username" className={inputCls} value={f.username} onChange={(e) => setF({ ...f, username: e.target.value })} /></label>
       <label className="flex flex-col gap-1">{t('auth.server.code')}
-        <input required dir="ltr" autoComplete="one-time-code" className={inputCls} value={f.code} onChange={(e) => setF({ ...f, code: e.target.value.toUpperCase() })} /></label>
+        <input required dir="ltr" autoComplete="one-time-code" className={inputCls} value={f.code} onChange={(e) => setF({ ...f, code: e.target.value.trim() })} /></label>
       <label className="flex flex-col gap-1">{t('auth.server.newPassword')}
         <input required type="password" dir="ltr" autoComplete="new-password" className={inputCls} value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} /></label>
       <label className="flex flex-col gap-1">{t('auth.server.confirm')}

@@ -8,7 +8,7 @@
 //   5. The Owner: created once with the one-time setup code from PH_OWNER_SETUP_CODE (only its bcrypt hash is stored). While
 //      the Owner has not activated, changing the variable replaces the code; once activated, the variable is ignored.
 // Secrets come from the environment and are never printed.
-import { readdirSync, readFileSync } from 'node:fs';
+import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
@@ -26,12 +26,20 @@ export function sslFor(url) {
   const mode = u.searchParams.get('sslmode') ?? (['localhost', '127.0.0.1'].includes(u.hostname) || u.hostname.startsWith('/') || u.searchParams.get('host') ? 'disable' : 'require');
   return mode === 'disable' ? false : { rejectUnauthorized: mode === 'verify-full' };
 }
-const client = new pg.Client({ connectionString: DATABASE_URL, ssl: sslFor(DATABASE_URL) });
+// Prefer TLS; a private-network database that does not offer TLS is accepted (the start script follows what worked).
+let client = new pg.Client({ connectionString: DATABASE_URL, ssl: sslFor(DATABASE_URL) });
+let sslMode = sslFor(DATABASE_URL) ? 'require' : 'disable';
 const q = (sql, args) => client.query(sql, args);
 const lit = (s) => `'${String(s).replace(/'/g, "''")}'`;
 const log = (m) => console.log(`[migrate] ${m}`);
 
-await client.connect();
+try { await client.connect(); }
+catch (e) {
+  if (!/does not support SSL|SSL off/i.test(String(e.message))) throw e;
+  client = new pg.Client({ connectionString: DATABASE_URL, ssl: false }); sslMode = 'disable';
+  await client.connect();
+}
+writeFileSync(join(process.env.TMPDIR || '/tmp', 'ph-sslmode'), sslMode);
 const who = (await q('select current_user, current_database() as db, (select rolsuper from pg_roles where rolname = current_user) as su')).rows[0];
 log(`connected to ${who.db} as ${who.current_user}${who.su ? ' (superuser)' : ''}`);
 
