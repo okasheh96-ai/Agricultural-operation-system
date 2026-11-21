@@ -53,3 +53,11 @@ verified, what is next. Branch: `claude/packhouse-ops-system-rrefgr`.
    numbering; a blocked departure rolled back the run it started (runs now start at load creation / dispatch screen / tick);
    `saved_port` made the launcher exit silently under `set -e`.
    Next: increment 6 (grading spec, AWETA schedules, spreadsheet import, accountability draft).
+8. **Hosting + UI overhaul (owner instructions 2026-11-22):** Docker image (`Dockerfile`, `deploy/`), migration runner for a
+   non-superuser managed PostgreSQL, Render blueprints (`render.staging.yaml` live; `render.yaml` production waiting for the
+   Owner's Neon `DATABASE_URL`), Owner-only backup download + `deploy/restore.sh`. Verified: fresh installs on PostgreSQL 16 and
+   17 as non-superuser; staging live at https://packhouse-staging.onrender.com (both browser scenarios pass over HTTPS; record
+   counts identical across a redeploy; hosted backup restored into PostgreSQL 17 with the test records). UI: light/dark/device
+   theme, grouped frosted sidebar, command palette (Ctrl/⌘K), breadcrumbs, animated tabs and count-up KPIs, icons, skeletons,
+   new sign-in screens; components Modal, Drawer, Toast, DataTable, Segmented added (not yet adopted on every screen).
+   See `docs/packhouse-ops/HOSTING.md`. Next: production goes live when the Owner pastes the Neon URL; then increment 6.
