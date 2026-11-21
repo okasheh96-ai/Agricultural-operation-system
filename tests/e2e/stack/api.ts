@@ -63,5 +63,5 @@ export async function signIn(page: Page, email: string) {
   await page.getByLabel('البريد الإلكتروني').fill(email);
   await page.getByLabel('كلمة المرور').fill(PASSWORD);
   await page.getByRole('button', { name: 'دخول' }).click();
-  await page.waitForURL(/\/(field|office)\//);
+  await page.waitForURL(/\/(field|office|ops)(\/|$)/);
 }

@@ -30,4 +30,8 @@ export const USERS = [
   { email: 'demo.ph.sal@demo.local', name: 'المبيعات (تجريبي)', roles: [['ph_sal', null]] },
   { email: 'demo.ph.adm@demo.local', name: 'مسؤول نظام بيت التعبئة (تجريبي)', roles: [['ph_adm', null]] },
   { email: 'demo.ph.aud@demo.local', name: 'مدقق (تجريبي)', roles: [['ph_aud', null]] },
+  // Packhouse operations (2026-11-21): line supervisors scoped to one line each (scope set by demo_packhouse_ops.sql), maintenance.
+  { email: 'demo.ph.lla@demo.local', name: 'مشرف الخط A (تجريبي)', roles: [['ph_ll', null]] },
+  { email: 'demo.ph.llb@demo.local', name: 'مشرف الخط B (تجريبي)', roles: [['ph_ll', null]] },
+  { email: 'demo.ph.mnt@demo.local', name: 'فني صيانة بيت التعبئة (تجريبي)', roles: [['ph_mnt', null]] },
 ];

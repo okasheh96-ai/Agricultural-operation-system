@@ -1,3 +1,7 @@
+@import '@fontsource/ibm-plex-sans-arabic/400.css';
+@import '@fontsource/ibm-plex-sans-arabic/500.css';
+@import '@fontsource/ibm-plex-sans-arabic/600.css';
+@import '@fontsource/ibm-plex-sans-arabic/700.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -13,4 +17,68 @@ body { font-size: 1rem; }
   body:has(.ph-print-area) .ph-print-area * { visibility: visible; }
   body:has(.ph-print-area) .ph-print-area { position: absolute; inset-block-start: 0; inset-inline-start: 0; }
   .no-print { display: none !important; }
+}
+
+/* ---------------------------------------------------------------------------------------------
+   Packhouse operations theme tokens (owner design brief 2026-11-21). One source for colours, spacing, type, radii,
+   borders, shadows, charts and focus. Amber and red are reserved for operational exceptions; every status colour is
+   paired with text or an icon. Contrast of text tokens on their backgrounds is at least 4.5:1.
+   --------------------------------------------------------------------------------------------- */
+:root {
+  --ops-bg: #f4f6fb;          /* cool off-white page */
+  --ops-surface: #ffffff;     /* opaque work surfaces, forms, tables */
+  --ops-ink: #141a2e;         /* text: 16.9:1 on --ops-bg */
+  --ops-muted: #4f5871;       /* secondary text: 6.9:1 on white */
+  --ops-line: #dde2ee;        /* borders */
+  --ops-accent: #4338ca;      /* indigo: 7.9:1 on white */
+  --ops-accent-2: #6d28d9;    /* violet end of the accent gradient */
+  --ops-accent-soft: #eef0fd;
+  --ops-amber: #8a4b00;       /* exception text: 6.6:1 on --ops-amber-bg */
+  --ops-amber-bg: #fff4e0;
+  --ops-red: #b3261e;         /* exception text: 6.1:1 on --ops-red-bg */
+  --ops-red-bg: #fdecea;
+  --ops-green: #1d6b3a;       /* 6.6:1 on --ops-green-bg */
+  --ops-green-bg: #e7f4ec;
+  --ops-grey-bg: #eef0f5;
+  --ops-focus: #6d28d9;
+  --ops-radius: 14px;
+  --ops-radius-sm: 10px;
+  --ops-shadow: 0 1px 2px rgb(20 26 46 / 6%), 0 4px 16px rgb(20 26 46 / 6%);
+  --ops-glass: rgb(255 255 255 / 72%);
+  --ops-glass-edge: rgb(109 40 217 / 22%);
+  --ops-chart-1: #4338ca;
+  --ops-chart-2: #0e7490;
+  --ops-chart-3: #7c3aed;
+  --ops-chart-4: #a16207;
+  --ops-gap: 1rem;
+  --ops-motion: 140ms;
+}
+
+.ops-root { background: var(--ops-bg); color: var(--ops-ink); font-feature-settings: 'tnum' 1; }
+.ops-num { font-variant-numeric: tabular-nums; font-feature-settings: 'tnum' 1; }
+.ops-card { background: var(--ops-surface); border: 1px solid var(--ops-line); border-radius: var(--ops-radius); box-shadow: var(--ops-shadow); }
+.ops-glass {
+  background: var(--ops-glass);
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  border-inline-end: 1px solid var(--ops-glass-edge);
+}
+.ops-highlight { position: relative; }
+.ops-highlight::before {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none;
+  background: linear-gradient(120deg, rgb(67 56 202 / 45%), rgb(109 40 217 / 25%), transparent 60%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
+}
+.ops-accent-bar { background: linear-gradient(90deg, var(--ops-accent), var(--ops-accent-2)); }
+[dir='rtl'] .ops-accent-bar { background: linear-gradient(270deg, var(--ops-accent), var(--ops-accent-2)); }
+.ops-root :focus-visible { outline: 3px solid var(--ops-focus); outline-offset: 2px; border-radius: 6px; }
+.ops-fade { transition: opacity var(--ops-motion) ease, transform var(--ops-motion) ease, background-color var(--ops-motion) ease; }
+@media (prefers-reduced-motion: reduce) {
+  .ops-fade, .ops-root * { transition: none !important; animation: none !important; }
+}
+/* Printable management summary: solid white, no navigation. */
+@media print {
+  .ops-root { background: #fff !important; }
+  .ops-card { box-shadow: none !important; border-color: #999 !important; }
+  .ops-noprint { display: none !important; }
 }

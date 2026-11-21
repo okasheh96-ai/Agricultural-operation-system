@@ -1,5 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
+
+// A machine whose preinstalled Chromium does not match this Playwright version sets PW_CHROMIUM (or has /opt/pw-browsers/chromium).
+const executablePath = process.env.PW_CHROMIUM || (existsSync('/opt/pw-browsers/chromium') ? '/opt/pw-browsers/chromium' : undefined);
 
 // End-to-end against the local Supabase-equivalent stack (scripts/dev-stack.sh): real Auth, RLS,
 // transition engine and offline sync, in Arabic RTL at phone size (§8.1). Demo farm only.
@@ -15,7 +18,7 @@ export default defineConfig({
   testDir: 'tests/e2e/stack',
   timeout: 90_000,
   workers: 1,
-  use: { baseURL: 'http://127.0.0.1:4174', trace: 'retain-on-failure' },
+  use: { launchOptions: { executablePath }, baseURL: 'http://127.0.0.1:4174', trace: 'retain-on-failure' },
   projects: [{ name: 'phone-rtl', use: { ...devices['Pixel 7'], viewport: { width: 390, height: 844 } } }],
   // One server: bring the stack up first, then build and serve the app against it (sequential — two
   // parallel `dev-stack.sh up` runs on a fresh machine would race on secrets and demo data).

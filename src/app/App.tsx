@@ -43,6 +43,12 @@ const PhJobCardDetailPage = lazy(() => import('@/modules/packing-house/JobCardDe
 const PhFgPalletDetailPage = lazy(() => import('@/modules/packing-house/FgPalletDetailPage'));
 const PhWasteDetailPage = lazy(() => import('@/modules/packing-house/WasteDetailPage'));
 const PhPlanPage = lazy(() => import('@/modules/packing-house/PlanPage'));
+const OpsShell = lazy(() => import('@/modules/ops/OpsShell').then((m) => ({ default: m.OpsShell })));
+const OpsIndex = lazy(() => import('@/modules/ops/OpsIndex'));
+const OpsShiftPage = lazy(() => import('@/modules/ops/ShiftPage'));
+const OpsDowntimePage = lazy(() => import('@/modules/ops/DowntimePage'));
+const OpsOrdersPage = lazy(() => import('@/modules/ops/OrdersPage'));
+const OpsReportPage = lazy(() => import('@/modules/ops/ReportPage'));
 
 // The in-browser demo runs inside a hosted page (or a local file), where only the part after # is the app's own.
 const Router = __BROWSER_DB__ ? HashRouter : BrowserRouter;
@@ -78,7 +84,7 @@ export function App() {
   }
 
   const fieldFirst = hasRole(access, ...FIELD_ROLES) && !hasRole(access, 'system_admin', 'department_manager', 'operations_manager', 'maintenance_manager');
-  const home = phOnly(access) ? '/office/packing-house' : fieldFirst ? '/field' : '/office';
+  const home = phOnly(access) ? '/ops' : fieldFirst ? '/field' : '/office';
   // Unbuilt sections (and unbuilt sub-sections of built ones) get an honest "later phase" page.
   const unbuilt = OFFICE_NAV.flatMap((i) => [i, ...(i.children ?? [])]).filter((i) => !i.built);
 
@@ -120,6 +126,13 @@ export function App() {
               <Route key={i.key} path={i.path.replace('/office/', '')}
                 element={<LaterPhase titleKey={i.labelKey} phase={i.phase} notVerified={i.notVerified} />} />
             ))}
+          </Route>
+          <Route path="/ops" element={<OpsShell />}>
+            <Route index element={<OpsIndex />} />
+            <Route path="shift" element={<OpsShiftPage />} />
+            <Route path="downtime" element={<OpsDowntimePage />} />
+            <Route path="orders" element={<OpsOrdersPage />} />
+            <Route path="report" element={<OpsReportPage />} />
           </Route>
           <Route path="/field" element={<FieldShell />}>
             <Route index element={<Navigate to="my-day" replace />} />

@@ -358,5 +358,41 @@ select tests.as_user(:'ll_b');
 select throws_ok(format($$ select public.ph_labour_start(%L, array[%L::uuid], tests.task('packing')) $$, :'ls_b', :'w5'),
   'P0422', null, 'shift: no labour entry on a closed shift');
 
+
+-- ---------------------------------------------------------------------------------------------
+-- Read models: management overview, at-risk orders, supervisor sheet
+select tests.as_user(:'phm');
+select is((public.ph_ops_overview(app.ph_local_date() - 3) -> 'totals' ->> 'packed_kg')::numeric,
+  (select round(sum(kg), 3) from public.ph_output_entries where farm_id = tests.farm() and conforming and voided_at is null
+      and period_end >= tests.at(0, '00:00') and period_end < tests.at(1, '00:00')),
+  'overview: packed kg = conforming kg recorded in the window');
+select is((select x ->> 'status' from jsonb_array_elements(public.ph_ops_overview(app.ph_local_date() - 3, :'shift') -> 'lines') x where x ->> 'code' = 'C'),
+  'submitted_zero', 'overview: a submitted zero is shown as such');
+select is((select x ->> 'status' from jsonb_array_elements(public.ph_ops_overview(app.ph_local_date() - 3, :'shift') -> 'lines') x where x ->> 'code' = 'WASHER'),
+  'not_open', 'overview: a line with no sheet is "not open", not zero');
+select is((select x ->> 'packed_kg' from jsonb_array_elements(public.ph_ops_overview(app.ph_local_date() - 3, :'shift') -> 'lines') x where x ->> 'code' = 'WASHER'),
+  null, 'overview: unknown output stays null, never 0');
+select is((public.ph_ops_overview(app.ph_local_date() - 3, null, jsonb_build_object('line_id', tests.ph_line('B'))) -> 'totals' ->> 'packed_kg')::numeric,
+  (select round(sum(o.kg), 3) from public.ph_output_entries o join public.ph_line_shifts ls on ls.id = o.line_shift_id
+    where ls.line_id = tests.ph_line('B') and o.conforming and o.voided_at is null and o.period_end >= tests.at(0, '00:00') and o.period_end < tests.at(1, '00:00')),
+  'overview: the line filter narrows the totals');
+select ok(jsonb_array_length(public.ph_ops_overview(app.ph_local_date()) -> 'queue' -> 'open_stops') >= 1, 'overview: the open stop is in the queue');
+select tests.as_user(:'ll_a');
+select throws_ok($$ select public.ph_ops_overview() $$, 'P0403', null, 'overview: a supervisor without KPI access cannot open it');
+select ok((public.ph_line_shift_sheet(:'ls_a2') -> 'line_shift' ->> 'can_record')::boolean, 'sheet: the supervisor may record on their line');
+select tests.as_user(:'ll_b');
+select throws_ok(format($$ select public.ph_line_shift_sheet(%L) $$, :'ls_a2'), 'P0403', null, 'sheet: another line''s sheet is refused');
+select is((select count(*)::int from public.ph_my_line_shifts() where line_code = 'A'), 0, 'my lines: a line-B supervisor is not offered line A');
+
+-- At risk: an accepted order with no plan, due tomorrow
+select tests.as_user(:'sal');
+select (public.ph_create_order_line(jsonb_build_object('customer_name', 'Customer R (test)', 'crop_id', tests.ph_crop('cherry_tomato'),
+          'pack_spec', '7 kg carton', 'grade', 'gr1', 'quantity', 100, 'quantity_unit', 'pc', 'required_date', app.ph_local_date() + 1,
+          'market_type', 'local')) ->> 'id') as ol_r \gset
+select tests.as_user(:'phm');
+select public.ph_decide_order_line(:'ol_r', 'accept');
+select ok((select reasons @> array['no_plan', 'quantity_unknown'] from public.ph_orders_at_risk() where order_line_id = :'ol_r'),
+  'at risk: no plan and boxes without a pack weight are reasons');
+
 select * from finish();
 rollback;

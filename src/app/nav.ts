@@ -61,6 +61,7 @@ export const OFFICE_NAV: NavItem[] = [
     key: 'packingHouse', path: '/office/packing-house', labelKey: 'nav.packingHouse', icon: '🏭', phase: 'PH-M1', built: true,
     visible: hasPhRole,
     children: [
+      { key: 'phOps', path: '/ops', labelKey: 'nav.ph.ops', phase: 'PO-1', built: true },
       { key: 'phWorkflow', path: '/office/packing-house', labelKey: 'nav.ph.workflow', phase: 'PH-M1', built: true },
       { key: 'phPlan', path: '/office/packing-house/plan', labelKey: 'nav.ph.plan', phase: 'PH-M2', built: true },
       { key: 'phExceptions', path: '/office/packing-house/exceptions', labelKey: 'nav.ph.exceptions', phase: 'PH-M1', built: true },

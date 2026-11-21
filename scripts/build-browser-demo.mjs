@@ -62,6 +62,7 @@ await check.exec(sqlFile('supabase/seed/demo_tasks.sql'));
 await check.exec(sqlFile('supabase/seed/demo_packing_house.sql'));
 await check.exec(sqlFile('supabase/seed/demo_packing_house_production.sql'));
 await check.exec(sqlFile('supabase/seed/demo_packing_house_m2.sql'));
+await check.exec(sqlFile('supabase/seed/demo_packhouse_ops.sql'));
 const counts = (await check.query(`select (select count(*)::int from public.tasks) as tasks, (select count(*)::int from public.ph_arrivals) as arrivals,
   (select count(*)::int from public.ph_incoming_pallets) as pallets, (select count(*)::int from auth.users) as people,
   (select count(*)::int from public.ph_job_cards) as job_cards, (select count(*)::int from public.ph_fg_pallets) as fg_pallets,

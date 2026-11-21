@@ -970,7 +970,9 @@ begin
   if v_seen is not null then return v_seen; end if;
   perform app.ph_authorize_line(ls.farm_id, 'labour.record', ls.line_id);
   perform app.ph_open_line_shift_guard(ls);
-  k := app.ph_check_task_kind(ls.farm_id, p_task_kind);
+  if p_team_session is null then
+    k := app.ph_check_task_kind(ls.farm_id, p_task_kind);
+  end if;
   if coalesce(cardinality(p_workers), 0) = 0 then
     raise exception 'Choose at least one worker' using errcode = 'P0422', detail = jsonb_build_object('key', 'po.labour.noWorker')::text;
   end if;
@@ -1140,12 +1142,15 @@ begin
   if (p ->> 'team_session_id') is not null then
     select * into tm from public.ph_team_sessions where id = (p ->> 'team_session_id')::uuid and line_shift_id = ls.id and voided_at is null;
     if not found then raise exception 'Team session not found on this line' using errcode = 'P0404'; end if;
+    -- Each grade and pack is counted separately for the same period (S-04 p.3: Grade 1 and Grade 2 boxes separately).
     v_start := coalesce(v_start, (select max(period_end) from public.ph_output_entries
-                                   where team_session_id = tm.id and voided_at is null), tm.started_at);
+                                   where team_session_id = tm.id and voided_at is null and grade = p ->> 'grade' and pack_format_id = pf.id),
+                        tm.started_at);
     if v_end <= v_start then
       raise exception 'The period end must be after its start' using errcode = 'P0422', detail = jsonb_build_object('key', 'po.output.period')::text;
     end if;
     if exists (select 1 from public.ph_output_entries where team_session_id = tm.id and voided_at is null
+                and grade = p ->> 'grade' and pack_format_id = pf.id
                 and tstzrange(period_start, period_end) && tstzrange(v_start, v_end)) then
       raise exception 'Team output already recorded for part of this period' using errcode = 'P0409',
         detail = jsonb_build_object('key', 'po.output.periodOverlap')::text;

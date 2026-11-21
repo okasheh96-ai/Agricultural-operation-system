@@ -17,8 +17,11 @@ test('receiving: DEC creates an arrival, inspects the vehicle, passes G1 and reg
   const variety = await one<{ id: string }>(dec, 'ph_varieties?verification_status=eq.verified&voided_at=is.null&select=id&limit=1');
   const scale = await one<{ id: string }>(dec, 'ph_equipment?kind=eq.scale&verification_status=eq.verified&select=id&limit=1');
 
-  // Someone who holds only a packing-house role starts on the packing-house board, in Arabic RTL.
+  // Someone who holds only a packing-house role starts in packhouse operations (owner instruction 2026-11-21); the receiving
+  // board is one tap away, in Arabic RTL.
   await signIn(page, 'demo.ph.dec@demo.local');
+  await expect(page).toHaveURL(/\/ops/);
+  await page.goto('/office/packing-house');
   await expect(page).toHaveURL(/\/office\/packing-house$/);
   await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
   await expect(page.getByRole('navigation', { name: 'مراحل سير العمل' })).toContainText('فحص الوصول');
@@ -78,6 +81,7 @@ test('receiving: DEC creates an arrival, inspects the vehicle, passes G1 and reg
 test('board counts come from the database and the board reads in English too', async ({ page }) => {
   const qao = await login('demo.ph.qao@demo.local');
   await signIn(page, 'demo.ph.qao@demo.local');
+  await page.goto('/office/packing-house');
   const counts = await rpc<{ stage: string; total: number }[]>(qao, 'ph_stage_counts', {});
   const qa = counts.find((c) => c.stage === 'qa_acceptance')?.total ?? 0;
   const tab = page.getByRole('navigation', { name: 'مراحل سير العمل' }).getByRole('button', { name: /قبول ضمان الجودة/ });
@@ -100,7 +104,7 @@ test('an auditor has read access only; a signer is not offered a signature twice
   await expect(page.getByRole('button', { name: '＋ وصول جديد' })).toHaveCount(0);
   const aud = await login('demo.ph.aud@demo.local');
   const perms = await rpc<{ action_key: string }[]>(aud, 'ph_my_permissions', {});
-  expect(perms.every((p) => p.action_key.endsWith('.view') || p.action_key.startsWith('audit'))).toBe(true);
+  expect(perms.every((p) => p.action_key.endsWith('view') || p.action_key.startsWith('audit'))).toBe(true); // .view, kpi_view: read only
 
   // PHM already signed the demo vehicle exception: the board no longer offers PHM the signature.
   await switchUser(page, 'demo.ph.phm@demo.local');

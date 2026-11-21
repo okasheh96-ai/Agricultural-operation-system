@@ -1,4 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
+import { existsSync } from 'node:fs';
+
+// A machine whose preinstalled Chromium does not match this Playwright version sets PW_CHROMIUM (or has /opt/pw-browsers/chromium).
+const executablePath = process.env.PW_CHROMIUM || (existsSync('/opt/pw-browsers/chromium') ? '/opt/pw-browsers/chromium' : undefined);
 
 // The in-browser demo (scripts/build-browser-demo.mjs): app + PostgreSQL in the browser, demo farm only. Served the way the
 // artifact host serves it (page wrapped in a document, files beside it) with a Content-Security-Policy like the host's,
@@ -7,7 +11,7 @@ export default defineConfig({
   testDir: 'tests/e2e/browserdb',
   timeout: 240_000,
   workers: 1,
-  use: { baseURL: 'http://127.0.0.1:4176', trace: 'retain-on-failure', locale: 'ar' },
+  use: { launchOptions: { executablePath }, baseURL: 'http://127.0.0.1:4176', trace: 'retain-on-failure', locale: 'ar' },
   projects: [{ name: 'iphone-size', use: { ...devices['iPhone 13'], browserName: 'chromium' } }],
   webServer: {
     command: 'BROWSER_DEMO_CSP=artifact-wasm node scripts/serve-browser-demo.mjs 4176',

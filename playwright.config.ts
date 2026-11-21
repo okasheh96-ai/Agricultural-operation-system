@@ -1,10 +1,14 @@
 import { defineConfig, devices } from '@playwright/test';
+import { existsSync } from 'node:fs';
+
+// A machine whose preinstalled Chromium does not match this Playwright version sets PW_CHROMIUM (or has /opt/pw-browsers/chromium).
+const executablePath = process.env.PW_CHROMIUM || (existsSync('/opt/pw-browsers/chromium') ? '/opt/pw-browsers/chromium' : undefined);
 
 // Phone (390×844) and desktop (1440×900), Arabic RTL default (Master Prompt §8.1).
 export default defineConfig({
   testDir: 'tests/e2e',
   testIgnore: ['stack/**', 'browserdb/**'],
-  use: { baseURL: 'http://127.0.0.1:4173' },
+  use: { launchOptions: { executablePath }, baseURL: 'http://127.0.0.1:4173' },
   projects: [
     { name: 'phone', use: { ...devices['Pixel 7'], viewport: { width: 390, height: 844 } } },
     { name: 'desktop', use: { viewport: { width: 1440, height: 900 } } },
