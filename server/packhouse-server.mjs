@@ -316,6 +316,8 @@ async function tick() {
   try {
     const r = (await db('select public.po_scheduler_tick() as r')).r;
     await db('select public.po_run_escalations() as n').catch((e) => console.error('escalations failed', e.code ?? '', e.message));
+    const pm = (await db('select public.po_pm_tick() as r').catch((e) => { console.error('maintenance schedule failed', e.code ?? '', e.message); return { r: null }; })).r;
+    if (pm?.created) console.log(new Date().toISOString(), 'maintenance/cleaning tasks', pm.created);
     if (r && (r.created || r.escalated)) console.log(new Date().toISOString(), 'scheduler', JSON.stringify(r));
   } catch (e) {
     console.error(new Date().toISOString(), 'scheduler failed', e.code ?? '', e.message);

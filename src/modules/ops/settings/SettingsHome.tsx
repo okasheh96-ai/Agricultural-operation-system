@@ -11,7 +11,7 @@ interface OpenItem { code: string; priority: string; title_ar: string; title_en:
 
 /** Operations Settings: every area the Owner configures without code, and the items still waiting for a decision (steps
  *  that depend on them stay blocked on a real farm). */
-const ICONS: Record<string, string> = { people: 'people', operations: 'operations', kpis: 'kpi', master: 'database', tasks: 'tasks', authority: 'shield' };
+const ICONS: Record<string, string> = { people: 'people', operations: 'operations', kpis: 'kpi', master: 'database', tasks: 'tasks', authority: 'shield', import: 'upload', accountability: 'scale' };
 
 export default function SettingsHome() {
   const { t, i18n } = useTranslation();
@@ -32,6 +32,8 @@ export default function SettingsHome() {
     { key: 'kpis', to: '/ops/settings/kpis', show: has('settings.edit') || has('settings.publish') },
     { key: 'master', to: '/ops/settings/master', show: has('md_operational.edit') || has('md_customer.edit') || has('md_operational.approve') || has('md_customer.approve') },
     { key: 'tasks', to: '/ops/tasks', show: has('task.create') },
+    { key: 'import', to: '/ops/settings/import', show: has('import.run') },
+    { key: 'accountability', to: '/ops/settings/accountability', show: has('acc.view') || has('acc.record') || has('acc.hr_decide') || has('settings.authority') },
     { key: 'authority', to: '/office/packing-house/matrix', show: has('settings.authority') || has('users.administer') },
   ].filter((a) => a.show);
   const pr: Record<string, 'bad' | 'warn' | 'info' | 'neutral'> = { critical: 'bad', high: 'warn', medium: 'info', low: 'neutral' };

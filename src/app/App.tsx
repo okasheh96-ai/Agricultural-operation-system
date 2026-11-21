@@ -60,6 +60,10 @@ const OpsOperationsSettings = lazy(() => import('@/modules/ops/settings/Operatio
 const OpsKpiSettings = lazy(() => import('@/modules/ops/settings/KpiSettingsPage'));
 const OpsMasterData = lazy(() => import('@/modules/ops/settings/MasterDataPage'));
 const OpsTasksPage = lazy(() => import('@/modules/ops/TasksPage'));
+const OpsSpecsPage = lazy(() => import('@/modules/ops/SpecsPage'));
+const OpsMaintenancePage = lazy(() => import('@/modules/ops/MaintenancePage'));
+const OpsImportPage = lazy(() => import('@/modules/ops/settings/ImportPage'));
+const OpsAccountabilityPage = lazy(() => import('@/modules/ops/settings/AccountabilityPage'));
 const OpsRunPage = lazy(() => import('@/modules/ops/OperationsRunPage'));
 const OpsRunsList = lazy(() => import('@/modules/ops/OperationsRunPage').then((m) => ({ default: m.OperationsListPage })));
 
@@ -158,6 +162,10 @@ export function App() {
             <Route path="settings/kpis" element={<OpsKpiSettings />} />
             <Route path="settings/master" element={<OpsMasterData />} />
             <Route path="tasks" element={<OpsTasksPage />} />
+            <Route path="specs" element={<OpsSpecsPage />} />
+            <Route path="maintenance" element={<OpsMaintenancePage />} />
+            <Route path="settings/import" element={<OpsImportPage />} />
+            <Route path="settings/accountability" element={<OpsAccountabilityPage />} />
             <Route path="operations" element={<OpsRunsList />} />
             <Route path="run/:id" element={<OpsRunPage />} />
           </Route>

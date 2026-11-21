@@ -1,0 +1,909 @@
+{
+ "spec": "S-07",
+ "title": "Produce Grading — Standards & Specifications (Master SOP for Quality Inspectors)",
+ "dated": "October 2026",
+ "approval": "none stated (no revision, approver, signature or effective date) — imported awaiting QA approval (OD-43)",
+ "grades": {
+  "premium_g1": "Premium / Grade 1 (G1)",
+  "g2": "Grade 2 (G2)"
+ },
+ "customers": [
+  "Tesco",
+  "Thanet Earth",
+  "LSS",
+  "Abay",
+  "DBS",
+  "Export",
+  "DC"
+ ],
+ "override_note": "Any override of the maximum defect tolerance per consignment will be communicated between Commercial and Packing House management (p.3, pp.7–19) — OD-47.",
+ "procedure": [
+  {
+   "step": 1,
+   "en": "Check packaging: food-grade, clean, intact and carefully stacked; labels present",
+   "page": 4
+  },
+  {
+   "step": 2,
+   "en": "Assess appearance: colour, gloss, skin, stem/calyx and shape against the product description",
+   "page": 4
+  },
+  {
+   "step": 3,
+   "en": "Cut & taste: internal flesh and seeds; sensory check for flavour, texture and aroma",
+   "page": 4
+  },
+  {
+   "step": 4,
+   "en": "Measure size: diameter, length or weight against the grade and customer ranges",
+   "page": 4
+  },
+  {
+   "step": 5,
+   "en": "Sort defects: classify each defective unit as Minor, Major or Unacceptable",
+   "page": 4
+  },
+  {
+   "step": 6,
+   "en": "Grade or reject: compare defect % with grade tolerances",
+   "page": 4
+  }
+ ],
+ "rule": "A lot meets a grade only if each defect category is within that grade's maximum tolerance. Any unacceptable defect above the limit means rejection. Exception: for Tomato and Cherry Tomato, live insects are evaluated internally and are not an automatic rejection (p.4, C-05).",
+ "common": {
+  "packaging": [
+   "As per order requirement",
+   "Food-grade material, delivered clean and intact",
+   "Carefully stacked so product beneath is not damaged",
+   "Peppers: 5 kg carton with lid recommended"
+  ],
+  "chemicals": [
+   "Pre- and post-harvest chemicals must be registered and approved for use in Jordan",
+   "Residues: Jordan and Codex standards (tomatoes, peppers)",
+   "Residues: Global GAP standards (eggplant, mini cucumber)"
+  ],
+  "food_safety": [
+   "All products may be eaten raw without peeling",
+   "Product may therefore be periodically tested for bacteria",
+   "Cherry tomato is also tested for chemical residue"
+  ],
+  "page": 5
+ },
+ "tomato_scale": {
+  "page": 6,
+  "en": "Stage 1 = fully green → stage 6 = fully red-ripe; accepted stage 3–5; stage 6 accepted with conditions"
+ },
+ "inspector_checklist": {
+  "page": 21,
+  "items": [
+   "Draw a representative sample from every consignment",
+   "Check packaging first: dirty, collapsed or unsuitable packaging is an unacceptable defect",
+   "Grade colour / maturity and size (or weight) into Premium / G1 or G2",
+   "Confirm the product meets its quality description: appearance, internal, sensory, shape",
+   "Record each defect as Minor, Major or Unacceptable and calculate % per category",
+   "Accept the grade only if every defect category is within tolerance",
+   "When packing for Tesco, Thanet Earth, LSS, Abay, DBS, Export or DC, apply that customer's limits"
+  ]
+ },
+ "products": [
+  {
+   "code": "regular_tomato",
+   "name_en": "Tomato",
+   "pages": [
+    7,
+    8
+   ],
+   "summary": "Round shape, colour maturity stage 3–5 (G2 up to stage 6)",
+   "attributes": {
+    "Description": "Glossy red; graded evenly for colour within each package",
+    "Internal": "Yellow/green seeds in a clear reddish gel",
+    "Sensory": "Predominantly sweet; may be slightly acidic",
+    "Shape": "Uniformly round to round–slightly squat; not ridged or deformed",
+    "Maturity": "Firm texture, juicy flesh; not excessively soft, wrinkly or bladdery (over-mature)"
+   },
+   "rules": [
+    {
+     "grade": "premium_g1",
+     "criterion": "colour_stage",
+     "min": 3,
+     "max": 5,
+     "unit": "stage",
+     "page": 7,
+     "note": "Stage 6 only when packed for the DC and there is no softness"
+    },
+    {
+     "grade": "premium_g1",
+     "criterion": "colour_stage",
+     "min": 3,
+     "max": 6,
+     "unit": "stage",
+     "customer": "DC",
+     "page": 7,
+     "note": "DC: stage 3–6 (stage 6 only with no softness) — p.7"
+    },
+    {
+     "grade": "g2",
+     "criterion": "colour_stage",
+     "min": 3,
+     "max": 6,
+     "unit": "stage",
+     "page": 7,
+     "note": "Stage 6 accepted for every destination, soft or not"
+    },
+    {
+     "grade": "premium_g1",
+     "criterion": "diameter",
+     "min": 6,
+     "max": 10,
+     "unit": "cm",
+     "page": 7
+    },
+    {
+     "grade": "g2",
+     "criterion": "diameter",
+     "min": 3,
+     "max": 6,
+     "unit": "cm",
+     "page": 7,
+     "band": 1
+    },
+    {
+     "grade": "g2",
+     "criterion": "diameter",
+     "min": 10,
+     "max": 15,
+     "unit": "cm",
+     "page": 7,
+     "band": 2
+    },
+    {
+     "grade": "any",
+     "criterion": "weight",
+     "min": 60,
+     "max": 100,
+     "unit": "g",
+     "customer": "LSS",
+     "page": 7,
+     "note": "LSS Mixed (band 1)",
+     "band": 1
+    },
+    {
+     "grade": "any",
+     "criterion": "weight",
+     "min": 150,
+     "max": 300,
+     "unit": "g",
+     "customer": "LSS",
+     "page": 7,
+     "note": "LSS Mixed (band 2)",
+     "band": 2
+    },
+    {
+     "grade": "any",
+     "criterion": "weight",
+     "min": 100,
+     "max": 150,
+     "unit": "g",
+     "customer": "LSS",
+     "page": 7,
+     "note": "LSS Medium"
+    },
+    {
+     "grade": "any",
+     "criterion": "weight",
+     "min": 100,
+     "max": 250,
+     "unit": "g",
+     "customer": "Export",
+     "page": 7
+    }
+   ],
+   "tolerances": {
+    "premium": {
+     "colour": 3
+    },
+    "premium_g1": {
+     "colour": 10,
+     "minor": 5,
+     "major": 0,
+     "unacceptable": 0
+    },
+    "g2": {
+     "colour": 20,
+     "minor": 25,
+     "major": 3,
+     "unacceptable": 2
+    },
+    "page": 8
+   },
+   "defects": {
+    "colour": [
+     "Premium / G1: outside stage 3–5 (stage 6 allowed for DC if not soft)",
+     "G2: outside stage 3–6"
+    ],
+    "minor": [
+     "Incorrect size, shape, colour or maturity that detracts from appearance",
+     "Over 10% of surface with abnormal colour, healed injury, scar or blemish",
+     "Cracking wider than 3 mm or longer than 2 cm"
+    ],
+    "major": [
+     "Injury breaking the skin; excessive softness; shrivel; abnormal texture or internal tissue; soiling over 30%",
+     "Physiological disorders: puffiness, internal white tissue, sunscald, blotchy ripening, gold flecking, catface",
+     "Rot or mould on stalk or calyx; pests, internal rot; musty flavours or aromas"
+    ],
+    "unacceptable": [
+     "Rot or mould growth on the body of the fruit",
+     "Evidence of live insects (will be evaluated internally)",
+     "Evidence of non-organic foreign bodies",
+     "Foreign, chemical or musty deposits, powders, flavours or aromas",
+     "Dirty, collapsed or unsuitable packaging"
+    ]
+   },
+   "flags": [
+    "C-05: live insects evaluated internally, not automatic rejection",
+    "C-04/OD-45: band limits touch (e.g. 6 cm, 10 cm)"
+   ]
+  },
+  {
+   "code": "cherry_tomato",
+   "name_en": "Cherry Tomato (Balahi)",
+   "pages": [
+    9,
+    10
+   ],
+   "summary": "Round, oval or plum-shaped; colour maturity stage 3–6",
+   "attributes": {
+    "Description": "Glossy red; graded evenly for colour within each package",
+    "Internal": "Yellow/green seeds in a clear reddish gel",
+    "Sensory": "Predominantly sweet; may be slightly acidic",
+    "Shape": "Round, oval or plum-shaped; not pointed, ridged or otherwise deformed",
+    "Maturity": "Firm texture, juicy flesh; not soft, wrinkly or bladdery (over-mature)",
+    "Food safety": "Periodically tested for bacteria and chemical residue"
+   },
+   "rules": [
+    {
+     "grade": "premium_g1",
+     "criterion": "colour_stage",
+     "min": 3,
+     "max": 6,
+     "unit": "stage",
+     "page": 9,
+     "note": "Stage 6 only with no softness; stage 6 not allowed for long-distance shipping (OD-48)"
+    },
+    {
+     "grade": "g2",
+     "criterion": "colour_stage",
+     "min": 3,
+     "max": 6,
+     "unit": "stage",
+     "page": 9,
+     "note": "Stage 6 only with no softness; stage 6 not allowed for long-distance shipping (OD-48)"
+    },
+    {
+     "grade": "premium_g1",
+     "criterion": "diameter",
+     "min": 2,
+     "max": 2.5,
+     "unit": "cm",
+     "page": 9
+    },
+    {
+     "grade": "premium_g1",
+     "criterion": "length",
+     "min": 2.5,
+     "max": 5,
+     "unit": "cm",
+     "page": 9
+    },
+    {
+     "grade": "g2",
+     "criterion": "diameter",
+     "text": "Not specified",
+     "unit": "cm",
+     "page": 9
+    },
+    {
+     "grade": "g2",
+     "criterion": "length",
+     "min": 5,
+     "max_exclusive": true,
+     "unit": "cm",
+     "page": 9,
+     "note": "More than 5 cm",
+     "band": 1,
+     "min_exclusive": true
+    },
+    {
+     "grade": "g2",
+     "criterion": "length",
+     "min": 1.5,
+     "max": 2.5,
+     "unit": "cm",
+     "page": 9,
+     "band": 2
+    }
+   ],
+   "tolerances": {
+    "premium": {
+     "colour": 3
+    },
+    "premium_g1": {
+     "colour": 10,
+     "minor": 5,
+     "major": 0,
+     "unacceptable": 0
+    },
+    "g2": {
+     "colour": 20,
+     "minor": 25,
+     "major": 3,
+     "unacceptable": 1
+    },
+    "page": 10
+   },
+   "defects": {
+    "colour": [
+     "Outside colour stage 3–6, or stage 6 with softness"
+    ],
+    "minor": [
+     "Over 10% of surface with dry or healed scar or blemish",
+     "Cracking wider than 1 mm or longer than 1 cm",
+     "Incorrect size, shape, colour or maturity that detracts from appearance"
+    ],
+    "major": [
+     "Injury breaking the skin; softness from over-maturity; shrivel; soiling over 10%",
+     "Physiological disorders: puffiness, internal white tissue, sunscald, blotchy ripening, gold flecking, catface",
+     "Dehydration, rot or mould on the stalk or calyx"
+    ],
+    "unacceptable": [
+     "Rot or mould growth on the body of the fruit",
+     "Evidence of live insects (will be evaluated internally)",
+     "Evidence of non-organic foreign bodies",
+     "Foreign, chemical or musty deposits, powders, flavours or aromas",
+     "Dirty, collapsed or unsuitable packaging"
+    ]
+   },
+   "flags": [
+    "C-05: live insects evaluated internally",
+    "OD-48: long-distance shipping not defined",
+    "G2 unacceptable tolerance is 1% (p.10, p.20)"
+   ]
+  },
+  {
+   "code": "blocky",
+   "name_en": "Colour Pepper (Blocky)",
+   "pages": [
+    11,
+    12
+   ],
+   "summary": "Blocky bell shape; red, yellow or orange",
+   "attributes": {
+    "Description": "Smooth, glossy red, yellow or orange skin; intact calyx and neatly trimmed stem",
+    "Internal": "Clean, open seed cavity",
+    "Sensory": "Peppery, sweet flavour",
+    "Shape": "Typical bell / blocky shape",
+    "Maturity": "Firm, glossy, crisp and juicy flesh; faint green background tinge acceptable",
+    "Packaging": "5 kg carton"
+   },
+   "rules": [
+    {
+     "grade": "premium_g1",
+     "criterion": "colour_coverage",
+     "min": 70,
+     "max": 100,
+     "unit": "%",
+     "page": 11
+    },
+    {
+     "grade": "g2",
+     "criterion": "colour_coverage",
+     "min": 50,
+     "max": 70,
+     "unit": "%",
+     "page": 11
+    },
+    {
+     "grade": "premium_g1",
+     "criterion": "diameter",
+     "min": 7,
+     "max": 11,
+     "unit": "cm",
+     "page": 11
+    },
+    {
+     "grade": "premium_g1",
+     "criterion": "length",
+     "min": 7,
+     "max": 13,
+     "unit": "cm",
+     "page": 11
+    },
+    {
+     "grade": "g2",
+     "criterion": "diameter",
+     "min": 5,
+     "unit": "cm",
+     "page": 11,
+     "note": "Min 5 cm"
+    },
+    {
+     "grade": "g2",
+     "criterion": "length",
+     "min": 5,
+     "unit": "cm",
+     "page": 11,
+     "note": "Min 5 cm"
+    }
+   ],
+   "tolerances": {
+    "premium_g1": {
+     "minor": 5,
+     "major": 0,
+     "unacceptable": 0
+    },
+    "g2": {
+     "minor": 25,
+     "major": 3,
+     "unacceptable": 2
+    },
+    "page": 12
+   },
+   "defects": {
+    "minor": [
+     "Over 10% of surface with dry or healed scar or blemish not breaking the skin",
+     "Incorrect size, shape, colour or maturity that detracts from appearance"
+    ],
+    "major": [
+     "Fresh or wet injury, cut, puncture or damage breaking the skin",
+     "Softness from over-maturity; shrivelled or wrinkled skin",
+     "Soiling over 30% of surface; rot or mould on the stalk"
+    ],
+    "unacceptable": [
+     "Rot or mould growth on the body of the fruit",
+     "Evidence of live insects",
+     "Evidence of non-organic foreign bodies",
+     "Foreign, chemical or musty deposits, powders, flavours or aromas",
+     "Dirty, collapsed or unsuitable packaging"
+    ]
+   },
+   "flags": [
+    "C-04/OD-45: colour 70% is both G1 and G2 limit"
+   ]
+  },
+  {
+   "code": "sweetbite",
+   "name_en": "Sweet Bite Mini Pepper",
+   "pages": [
+    13,
+    14
+   ],
+   "summary": "Small cone-shaped snack pepper; red, yellow or orange",
+   "attributes": {
+    "Description": "Smooth, glossy red, yellow or orange skin; intact calyx and neatly trimmed stem",
+    "Internal": "Clean, open seed cavity",
+    "Sensory": "Peppery, sweet flavour",
+    "Shape": "Typical cone shape",
+    "Maturity": "Firm, glossy, crisp and juicy flesh; faint green background tinge acceptable",
+    "Packaging": "5 kg carton"
+   },
+   "rules": [
+    {
+     "grade": "premium_g1",
+     "criterion": "colour_coverage",
+     "min": 70,
+     "max": 100,
+     "unit": "%",
+     "page": 13
+    },
+    {
+     "grade": "g2",
+     "criterion": "colour_coverage",
+     "min": 50,
+     "max": 70,
+     "unit": "%",
+     "page": 13
+    },
+    {
+     "grade": "any",
+     "criterion": "weight",
+     "min": 25,
+     "max": 45,
+     "unit": "g",
+     "customer": "Thanet Earth",
+     "page": 13
+    },
+    {
+     "grade": "any",
+     "criterion": "weight",
+     "min": 25,
+     "max": 45,
+     "unit": "g",
+     "customer": "Tesco",
+     "page": 13
+    },
+    {
+     "grade": "any",
+     "criterion": "colour_coverage",
+     "min": 90,
+     "max": 100,
+     "unit": "%",
+     "customer": "DBS",
+     "page": 13
+    },
+    {
+     "grade": "premium_g1",
+     "criterion": "weight",
+     "min": 19,
+     "max": 45,
+     "unit": "g",
+     "page": 13,
+     "inactive": true,
+     "note": "19–45 g will be added as G1 upon customer approval (R-GR-05) — inactive"
+    }
+   ],
+   "tolerances": {
+    "premium_g1": {
+     "minor": 5,
+     "major": 0,
+     "unacceptable": 0
+    },
+    "g2": {
+     "minor": 25,
+     "major": 3,
+     "unacceptable": 2
+    },
+    "page": 14
+   },
+   "defects": {
+    "minor": [
+     "Over 10% of surface with dry or healed scar or blemish not breaking the skin",
+     "Incorrect size, shape, colour or maturity that detracts from appearance"
+    ],
+    "major": [
+     "Fresh or wet injury, cut, puncture or damage breaking the skin",
+     "Softness from over-maturity; shrivelled or wrinkled skin",
+     "Soiling over 30% of surface; rot or mould on the stalk"
+    ],
+    "unacceptable": [
+     "Rot or mould growth on the body of the fruit",
+     "Evidence of live insects",
+     "Evidence of non-organic foreign bodies",
+     "Foreign, chemical or musty deposits, powders, flavours or aromas",
+     "Dirty, collapsed or unsuitable packaging"
+    ]
+   },
+   "flags": [
+    "Size not specified in the standard grading (p.20)"
+   ]
+  },
+  {
+   "code": "mini_cucumber",
+   "name_en": "Mini Cucumber",
+   "pages": [
+    15,
+    16
+   ],
+   "summary": "Straight cylindrical, uniform mid-dark green",
+   "attributes": {
+    "Description": "Uniform mid-dark green skin, no pale green; firm, smooth, may be slightly ridged but not wrinkled",
+    "Internal": "Whitish to pale green crisp flesh; small white seeds; not watery or gelatinous",
+    "Sensory": "Crisp, juicy; mild watery flavour; fresh aroma",
+    "Shape": "Straight cylindrical, rounded ends; no banana-shaped, beaked or bottle-necked fruit",
+    "Maturity": "Firm-bodied, glossy, crisp; not softening or springy; no pale or yellowed skin"
+   },
+   "rules": [
+    {
+     "grade": "premium_g1",
+     "criterion": "colour_coverage",
+     "min": 100,
+     "max": 100,
+     "unit": "%",
+     "page": 15
+    },
+    {
+     "grade": "g2",
+     "criterion": "colour_coverage",
+     "min": 90,
+     "max": 100,
+     "unit": "%",
+     "page": 15
+    },
+    {
+     "grade": "premium_g1",
+     "criterion": "diameter",
+     "min": 1,
+     "max": 2.5,
+     "unit": "cm",
+     "customer": "Abay",
+     "page": 15
+    },
+    {
+     "grade": "premium_g1",
+     "criterion": "diameter",
+     "min": 1,
+     "max": 2.5,
+     "unit": "cm",
+     "customer": "Tesco",
+     "page": 15
+    },
+    {
+     "grade": "premium_g1",
+     "criterion": "diameter",
+     "min": 1,
+     "max": 2.5,
+     "unit": "cm",
+     "customer": "Thanet Earth",
+     "page": 15
+    },
+    {
+     "grade": "premium_g1",
+     "criterion": "diameter",
+     "min": 1,
+     "max": 3,
+     "unit": "cm",
+     "customer": "DC",
+     "page": 15
+    },
+    {
+     "grade": "premium_g1",
+     "criterion": "length",
+     "min": 7,
+     "max": 10,
+     "unit": "cm",
+     "customer": "Abay",
+     "page": 15
+    },
+    {
+     "grade": "premium_g1",
+     "criterion": "length",
+     "min": 7,
+     "max": 13,
+     "unit": "cm",
+     "customer": "Thanet Earth",
+     "page": 15
+    },
+    {
+     "grade": "premium_g1",
+     "criterion": "length",
+     "min": 7,
+     "max": 12,
+     "unit": "cm",
+     "customer": "Tesco",
+     "page": 15
+    },
+    {
+     "grade": "premium_g1",
+     "criterion": "length",
+     "min": 6,
+     "max": 13,
+     "unit": "cm",
+     "customer": "DC",
+     "page": 15
+    },
+    {
+     "grade": "g2",
+     "criterion": "diameter",
+     "max": 3.5,
+     "unit": "cm",
+     "page": 15,
+     "note": "Max 3.5 cm"
+    },
+    {
+     "grade": "g2",
+     "criterion": "length",
+     "min": 13,
+     "min_exclusive": true,
+     "unit": "cm",
+     "page": 15,
+     "note": "More than 13 cm"
+    }
+   ],
+   "tolerances": {
+    "premium_g1": {
+     "minor": 5,
+     "major": 0,
+     "unacceptable": 0
+    },
+    "g2": {
+     "minor": 25,
+     "major": 3,
+     "unacceptable": 2
+    },
+    "page": 16
+   },
+   "defects": {
+    "minor": [
+     "More than 10% of surface area non-green",
+     "Over 10% of surface with dry or healed scar or blemish not breaking the skin",
+     "Incorrect size, shape, colour or maturity that detracts from appearance"
+    ],
+    "major": [
+     "Fresh or wet injury, cut, puncture or damage breaking the skin",
+     "Shrivelled or wrinkled skin (age or dehydration)",
+     "Excessive soiling over 10% of surface area"
+    ],
+    "unacceptable": [
+     "Rot or mould growth on the body of the fruit",
+     "Evidence of live insects",
+     "Evidence of non-organic foreign bodies",
+     "Foreign, chemical or musty deposits, powders, flavours or aromas",
+     "Dirty, collapsed or unsuitable packaging"
+    ]
+   },
+   "flags": [
+    "G1 size is per customer only; no customer-free G1 size is stated (p.15, p.20 note †)"
+   ]
+  },
+  {
+   "code": "eggplant",
+   "name_en": "Eggplant",
+   "pages": [
+    17,
+    18
+   ],
+   "summary": "Elongated pear / oval shape, glossy dark purple",
+   "attributes": {
+    "Description": "Deep, uniform purplish-black glossy skin; fresh green stem and calyx",
+    "Internal": "White to cream flesh with predominantly white seeds",
+    "Sensory": "Firm to slightly spongy; little natural aroma before cooking",
+    "Shape": "Elongated pear to oval, tapering to cylindrical at stem end; no curvature",
+    "Maturity": "No dark brown seeds; not soft, wrinkled or bladdery; calyx not brown, yellow or rotting"
+   },
+   "rules": [
+    {
+     "grade": "premium_g1",
+     "criterion": "colour_coverage",
+     "min": 100,
+     "max": 100,
+     "unit": "%",
+     "page": 17
+    },
+    {
+     "grade": "g2",
+     "criterion": "colour_coverage",
+     "min": 90,
+     "max": 100,
+     "unit": "%",
+     "page": 17
+    },
+    {
+     "grade": "premium_g1",
+     "criterion": "diameter",
+     "min": 8,
+     "max": 10,
+     "unit": "cm",
+     "page": 17
+    },
+    {
+     "grade": "premium_g1",
+     "criterion": "length",
+     "min": 15,
+     "max": 20,
+     "unit": "cm",
+     "page": 17
+    },
+    {
+     "grade": "g2",
+     "criterion": "diameter",
+     "min": 5,
+     "unit": "cm",
+     "page": 17,
+     "note": "Min 5 cm"
+    },
+    {
+     "grade": "g2",
+     "criterion": "length",
+     "min": 10,
+     "unit": "cm",
+     "page": 17,
+     "note": "Min 10 cm"
+    },
+    {
+     "grade": "any",
+     "criterion": "weight",
+     "min": 350,
+     "max": 700,
+     "unit": "g",
+     "customer": "LSS",
+     "page": 17
+    }
+   ],
+   "tolerances": {
+    "premium_g1": {
+     "minor": 5,
+     "major": 0,
+     "unacceptable": 0
+    },
+    "g2": {
+     "minor": 25,
+     "major": 3,
+     "unacceptable": 2
+    },
+    "page": 18
+   },
+   "defects": {
+    "minor": [
+     "Healed scar or blemish over 10% of surface or longer than 5 cm",
+     "Incorrect size, shape, colour or maturity that detracts from appearance",
+     "Bruising over 10 mm affecting the flesh; soiling over 20% of surface",
+     "Non-organic foreign bodies"
+    ],
+    "major": [
+     "Fresh or wet injury breaking the skin; shrivelled or wrinkled skin",
+     "Excessive soiling over 15% of surface area",
+     "Brown spots on over 10% of the surface"
+    ],
+    "unacceptable": [
+     "Rot or mould growth on the head",
+     "Evidence of live insects",
+     "Foreign, chemical or musty deposits, powders, flavours or aromas",
+     "Dirty, collapsed or unsuitable packaging"
+    ]
+   },
+   "flags": [
+    "C-03: non-organic foreign bodies listed as Minor here, Unacceptable for every other product"
+   ]
+  },
+  {
+   "code": "chestnut_pumpkin",
+   "name_en": "Chestnut Pumpkin",
+   "pages": [
+    19
+   ],
+   "summary": "Round ribbed shape, graded by weight",
+   "attributes": {},
+   "rules": [
+    {
+     "grade": "premium_g1",
+     "criterion": "colour_coverage",
+     "min": 100,
+     "max": 100,
+     "unit": "%",
+     "page": 19
+    },
+    {
+     "grade": "g2",
+     "criterion": "colour_coverage",
+     "min": 90,
+     "max": 100,
+     "unit": "%",
+     "page": 19
+    },
+    {
+     "grade": "premium_g1",
+     "criterion": "weight",
+     "min": 150,
+     "max": 500,
+     "unit": "g",
+     "page": 19
+    },
+    {
+     "grade": "g2",
+     "criterion": "weight",
+     "min": 70,
+     "unit": "g",
+     "page": 19,
+     "note": "Min 70 g"
+    }
+   ],
+   "tolerances": {
+    "premium_g1": {
+     "minor": 5,
+     "major": 0,
+     "unacceptable": 0
+    },
+    "g2": {
+     "minor": 25,
+     "major": 3,
+     "unacceptable": 2
+    },
+    "page": 20,
+    "note": "General tolerances from the summary (p.20); the specification has no product-specific defect page"
+   },
+   "defects": {},
+   "flags": [
+    "No quality-description or defect page for this product; tolerances from the p.20 general note"
+   ]
+  }
+ ]
+}

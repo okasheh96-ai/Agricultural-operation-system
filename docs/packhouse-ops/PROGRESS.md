@@ -61,3 +61,19 @@ verified, what is next. Branch: `claude/packhouse-ops-system-rrefgr`.
    theme, grouped frosted sidebar, command palette (Ctrl/⌘K), breadcrumbs, animated tabs and count-up KPIs, icons, skeletons,
    new sign-in screens; components Modal, Drawer, Toast, DataTable, Segmented added (not yet adopted on every screen).
    See `docs/packhouse-ops/HOSTING.md`. Next: production goes live when the Owner pastes the Neon URL; then increment 6.
+9. **Production on Neon + Super Admin setup (2026-11-22):** Neon free project (eu-central-1, PostgreSQL 17) provisioned and
+   `DATABASE_URL` set on the production Render service through the provider APIs; production https://packhouse-abkr.onrender.com
+   healthy, `/setup` pending for the Owner (one-time code only in Render → Environment → `PH_OWNER_SETUP_CODE`; never read or
+   consumed by the build). Safe production checks only (no records created, setup not consumed); full flows verified on staging.
+10. **Increment 6 (grading spec, AWETA maintenance/cleaning, spreadsheet import, accountability draft):** migration
+   `20261122002900_po_specs_maintenance_accountability_import.sql` with the supplied S-07 / S-08 / S-09 content as reference
+   JSON (`supabase/seed/reference/`, page refs and conflicts C-03, C-04, C-05, OD-48 kept). Nothing new is in force on a real farm
+   until decided: S-07 awaits QA approval (OD-43) and grade checks are advisory; S-08/S-09 generate tasks only once approved
+   (OD-44), hours-or-calendar from running-hours readings via the scheduler tick; accountability is a draft (C-02 / OD-42) until
+   the Owner decides the scope; HR decision authority has no cell (nobody can record HR decisions until assigned). Import
+   saves rows through the same maker step as typing (Not Yet Verified, second-person approval) and only offers tables the person
+   may edit; refused rows go to an exception queue (retry after correction / dismiss with reason). Screens: Grading specs,
+   Maintenance & cleaning, Settings → Spreadsheet import, Settings → Accountability. pgTAP `24_po_increment6.sql` → full DB
+   **1,205 pass**; Vitest 80 pass; appliance e2e on a fresh demo install **6 pass, 1 skipped** (one-time setup scenario,
+   verified on staging earlier). Arabic RTL and 390 px checked on the four screens (no overflow, no page errors). Spec text
+   stays in English as supplied (no machine translation of grading rules).

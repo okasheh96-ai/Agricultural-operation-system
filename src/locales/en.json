@@ -1902,7 +1902,9 @@
       "people": "People & access",
       "tasks": "Tasks",
       "operations": "Operations",
-      "settings": "Operations Settings"
+      "settings": "Operations Settings",
+      "specs": "Grading specs",
+      "maintenance": "Maintenance & cleaning"
     },
     "units": {
       "kg": "kg",
@@ -2318,7 +2320,14 @@
       "task_byOperation": "This task completes when its operation is recorded.",
       "kpi_invalid": "The card definition has problems.",
       "kpi_code": "Card codes are capital letters, digits or _.",
-      "kpi_eval": "The card could not be calculated."
+      "kpi_eval": "The card could not be calculated.",
+      "acc_inactive": "The accountability policy is a draft and not in force (OD-42).",
+      "acc_outOfScope": "The policy does not cover this person's role.",
+      "acc_scope": "Choose who the policy applies to.",
+      "import_rows": "Send between 1 and 2,000 rows.",
+      "import_table": "This table cannot be imported.",
+      "pm_hoursDown": "The hour meter cannot go below the last reading.",
+      "pm_notApproved": "This schedule is not approved yet (OD-44)."
     },
     "dispatch": {
       "title": "Dispatch and loading",
@@ -2582,6 +2591,14 @@
         "authority": {
           "title": "Authority matrix",
           "sub": "Every role × action cell with its evidence label."
+        },
+        "import": {
+          "title": "Spreadsheet import",
+          "sub": "Load master data from CSV or Excel; each row still needs a second person's approval."
+        },
+        "accountability": {
+          "title": "Accountability",
+          "sub": "Warning process for supervisors — a draft until the Owner decides who it covers."
         }
       },
       "openItems": "Open items",
@@ -3072,6 +3089,166 @@
         "quality": "Dispatch & quality",
         "config": "Configuration"
       }
+    },
+    "specs": {
+      "title": "Grading specifications",
+      "sub": "S-07 as supplied, product by product, with the page each rule comes from.",
+      "none": "No grading specification is loaded.",
+      "approved": "Approved {{when}}",
+      "awaiting": "Awaiting QA approval (OD-43)",
+      "awaitingHelp": "This specification is shown as supplied. Until the QA manager approves it, grade checks are advisory only.",
+      "approvalNote": "Approval note",
+      "approve": "Approve specification",
+      "products": "Products",
+      "pages": "pages {{p}}",
+      "criterion": "Criterion",
+      "inactive": "not in force",
+      "tolerances": "Defect tolerances (max %)",
+      "quality": "Quality attributes",
+      "defects": "Defects",
+      "procedure": "Inspection procedure",
+      "check": "Grade check",
+      "checkHelp": "Enter the measurements of a sample. The result is a suggestion for the inspector — QA decides the grade.",
+      "customer": "Customer",
+      "standard": "Standard (no customer rule)",
+      "soft": "Soft fruit",
+      "defectCounts": "Defect counts in the sample",
+      "runCheck": "Check grades",
+      "boundaryHelp": "On the boundary between two grades — the inspector decides (OD-45).",
+      "crit": {
+        "colour_stage": "Colour stage",
+        "colour_coverage": "Colour coverage (%)",
+        "diameter": "Diameter (mm)",
+        "length": "Length (cm)",
+        "weight": "Weight (g)"
+      },
+      "cat": {
+        "colour": "Colour defects",
+        "minor": "Minor defects",
+        "major": "Major defects",
+        "unacceptable": "Unacceptable",
+        "sample": "Sample size",
+        "live_insects": "Live insects"
+      },
+      "result": {
+        "meets": "Meets",
+        "fails": "Does not meet",
+        "boundary": "Boundary",
+        "qa_review": "QA review"
+      },
+      "fail": {
+        "stage6_soft": "Stage 6 and soft",
+        "stage6_dc_not_soft": "Stage 6 is accepted only for DC and firm fruit",
+        "live_insects": "Live insects",
+        "defect_colour": "Too many colour defects",
+        "defect_minor": "Too many minor defects",
+        "defect_major": "Too many major defects",
+        "defect_unacceptable": "Unacceptable defects over the limit"
+      }
+    },
+    "pm": {
+      "title": "Maintenance & cleaning",
+      "sub": "AWETA preventive maintenance (S-08) and cleaning (S-09) as supplied. Tasks are generated only after approval.",
+      "machineSub": "Running hours drive the hour-based items (hours or calendar, whichever comes first).",
+      "hours": "Running hours",
+      "readAt": "Read {{when}}",
+      "noReading": "No reading yet",
+      "record": "Record a reading",
+      "hoursNow": "Hour meter now",
+      "save": "Save reading",
+      "upsDate": "UPS battery installed on",
+      "saveUps": "Save UPS date",
+      "preseason": "Pre-season service",
+      "preseasonHelp": "Creates the pre-season tasks of the approved schedules.",
+      "startPreseason": "Start pre-season tasks",
+      "everyHours": "every {{n}} h",
+      "everyDays": "every {{n}} days",
+      "everyMonths": "every {{n}} months",
+      "or": "or",
+      "trigger": {
+        "daily_before_start": "Daily, before start",
+        "before_start_and_8h": "Before start and every 8 h",
+        "daily": "Daily",
+        "daily_end": "Daily, end of production",
+        "hours_or_calendar": "Hours or calendar",
+        "hours": "By running hours",
+        "pre_season": "Before the season",
+        "age_months": "By age"
+      },
+      "team": "Done by: {{role}}",
+      "approved": "Approved {{when}}",
+      "pending": "Awaiting approval (OD-44)",
+      "pendingHelp": "No tasks are generated until this schedule is approved.",
+      "approvalNote": "Approval note",
+      "approve": "Approve schedule",
+      "openTask": "Open task",
+      "lastDone": "Done {{when}}",
+      "neverDone": "Not done yet"
+    },
+    "import": {
+      "title": "Spreadsheet import",
+      "sub": "CSV or Excel (.xlsx). The first row holds the column names. Rows are saved awaiting approval, like rows typed in.",
+      "table": "Table",
+      "columns": "Columns: {{cols}}",
+      "template": "Download template",
+      "file": "File (.csv or .xlsx)",
+      "update": "Update records whose code already exists",
+      "empty": "The file has no data rows.",
+      "tooMany": "At most {{n}} rows per file.",
+      "preview": "{{n}} rows read from {{file}} (first 10 shown).",
+      "unknownCols": "Ignored columns: {{cols}}",
+      "problems": "{{n}} problems — fix the file and choose it again.",
+      "rowNo": "Row {{n}}",
+      "run": "Import {{n}} rows",
+      "done": "{{saved}} saved, {{skipped}} already existed, {{failed}} sent to the exception queue.",
+      "status": {
+        "exists": "Already exists",
+        "duplicate": "Duplicate in file",
+        "failed": "Refused"
+      },
+      "approvalNote": "Imported rows are Not Yet Verified until a different person approves them in Master data.",
+      "queue": "Exception queue",
+      "queueEmpty": "No rows waiting.",
+      "fix": "Row data (edit and retry)",
+      "retry": "Retry",
+      "reason": "Reason to dismiss",
+      "dismiss": "Dismiss",
+      "badJson": "The row data is not valid JSON.",
+      "noTables": "You may not edit any master-data table, so there is nothing you can import. Importing uses the same rights as typing records in."
+    },
+    "acc": {
+      "title": "Accountability",
+      "sub": "The warning process from S-04 p.4 and S-06 p.2.",
+      "none": "No accountability policy is loaded.",
+      "policy": "Policy v{{v}}",
+      "active": "In force",
+      "draft": "Draft — not in force",
+      "warnings": "Verbal warnings before referral to HR: {{n}}",
+      "decided": "In force since {{when}} for: {{scope}}",
+      "conflict": "The sources disagree on who this covers (C-02). Nothing can be recorded until the Owner decides (OD-42).",
+      "appliesTo": "Applies to",
+      "scope": {
+        "LL": "Line supervisors",
+        "PE": "Production engineers"
+      },
+      "note": "Decision note",
+      "activate": "Put the policy in force",
+      "record": "Record a violation",
+      "person": "Person",
+      "date": "Date",
+      "description": "What happened",
+      "save": "Record",
+      "outcome": {
+        "verbal_warning": "Verbal warning",
+        "hr_referred": "Referred to HR"
+      },
+      "register": "Register",
+      "registerSub": "Restricted: visible only to those allowed to view or decide.",
+      "registerEmpty": "No violations recorded.",
+      "by": "Recorded by {{name}}",
+      "hrDecision": "HR decision",
+      "saveDecision": "Save decision",
+      "awaitingHr": "Waiting for an HR decision. Who decides is not yet configured."
     }
   }
 }

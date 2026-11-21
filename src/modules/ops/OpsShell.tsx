@@ -22,7 +22,7 @@ export interface OpsNavItem {
   section: 'run' | 'quality' | 'config';
 }
 
-const SETTINGS_NEEDS = ['users.administer', 'delegated.accounts', 'settings.edit', 'settings.publish', 'md_operational.edit', 'md_operational.approve',
+const SETTINGS_NEEDS = ['import.run', 'acc.view', 'acc.record', 'acc.hr_decide', 'settings.authority', 'users.administer', 'delegated.accounts', 'settings.edit', 'settings.publish', 'md_operational.edit', 'md_operational.approve',
   'md_customer.edit', 'md_customer.approve', 'task.create'];
 
 export const OPS_NAV: OpsNavItem[] = [
@@ -34,6 +34,8 @@ export const OPS_NAV: OpsNavItem[] = [
   { key: 'operations', to: '/ops/operations', icon: 'operations', section: 'run' },
   { key: 'report', to: '/ops/report', icon: 'report', needs: 'report.kpi_view', section: 'run' },
   { key: 'dispatch', to: '/ops/dispatch', icon: 'dispatch', section: 'quality' },
+  { key: 'specs', to: '/ops/specs', icon: 'ruler', section: 'quality' },
+  { key: 'maintenance', to: '/ops/maintenance', icon: 'wrench', section: 'run' },
   { key: 'trace', to: '/ops/trace', icon: 'trace', mobile: true, section: 'quality' },
   { key: 'complaints', to: '/ops/complaints', icon: 'complaints', section: 'quality' },
   { key: 'workflow', to: '/office/packing-house', icon: 'workflow', section: 'quality' },
@@ -46,6 +48,8 @@ const SETTINGS_PAGES = [
   { key: 'operations', to: '/ops/settings/operations', icon: 'operations', needs: ['settings.edit', 'settings.publish'] },
   { key: 'kpis', to: '/ops/settings/kpis', icon: 'kpi', needs: ['settings.edit', 'settings.publish'] },
   { key: 'master', to: '/ops/settings/master', icon: 'database', needs: ['md_operational.edit', 'md_customer.edit', 'md_operational.approve', 'md_customer.approve'] },
+  { key: 'import', to: '/ops/settings/import', icon: 'upload', needs: ['import.run'] },
+  { key: 'accountability', to: '/ops/settings/accountability', icon: 'scale', needs: ['acc.view', 'acc.record', 'acc.hr_decide', 'settings.authority'] },
 ];
 
 const RAIL_KEY = 'ops.rail.collapsed';
