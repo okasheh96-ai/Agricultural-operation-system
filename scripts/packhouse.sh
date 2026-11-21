@@ -32,9 +32,9 @@ die() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
 # ---------------------------------------------------------------------------------------------
 find_pgbin() {
   local c
-  for c in "${PH_PGBIN:-}" "$(pg_config --bindir 2>/dev/null || true)" /usr/lib/postgresql/16/bin /opt/homebrew/opt/postgresql@16/bin \
+  for c in "${PH_PGBIN:-}" "$(pg_config --bindir 2>/dev/null || true)" /usr/lib/postgresql/16/bin /usr/lib/postgresql/17/bin /opt/homebrew/opt/postgresql@16/bin \
            /usr/local/opt/postgresql@16/bin /Applications/Postgres.app/Contents/Versions/16/bin; do
-    if [ -n "$c" ] && [ -x "$c/initdb" ] && "$c/postgres" --version 2>/dev/null | grep -q ' 16\.'; then echo "$c"; return 0; fi
+    if [ -n "$c" ] && [ -x "$c/initdb" ] && "$c/postgres" --version 2>/dev/null | grep -Eq ' (16|17)\.'; then echo "$c"; return 0; fi
   done
   return 1
 }
@@ -47,7 +47,7 @@ check_deps() {
     if [ "$OS" = Darwin ] && command -v brew >/dev/null; then
       say "Installing PostgreSQL 16 with Homebrew…"; brew install postgresql@16 >/dev/null; PGBIN=$(find_pgbin) || die "PostgreSQL 16 not found after install."
     else
-      die "PostgreSQL 16 is required. Linux: sudo apt-get install postgresql-16. macOS: install Homebrew (https://brew.sh), then run this again."
+      die "PostgreSQL 16 or 17 is required. Linux: sudo apt-get install postgresql-16. macOS: install Homebrew (https://brew.sh), then run this again."
     fi
   fi
   export PGBIN

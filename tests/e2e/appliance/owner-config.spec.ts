@@ -26,7 +26,7 @@ test('Owner builds a conditional reinspection before dispatch with a release and
   await signIn(page, 'demo.owner');
   await md(page, 'العملاء');
   await page.getByRole('button', { name: /سجل جديد/ }).click();
-  let ed = page.getByRole('region', { name: 'سجل جديد' });
+  let ed = page.getByRole('dialog', { name: 'سجل جديد' });
   await ed.getByRole('textbox', { name: 'الرمز', exact: true }).fill(CUST);
   await ed.getByRole('textbox', { name: 'الاسم (إنجليزي)', exact: true }).fill('New customer (e2e)');
   await ed.getByRole('combobox', { name: 'السوق', exact: true }).selectOption('export');
@@ -34,7 +34,7 @@ test('Owner builds a conditional reinspection before dispatch with a release and
   await expect(page.getByRole('row').filter({ hasText: CUST })).toContainText('بانتظار الاعتماد');
   await md(page, 'أشكال التعبئة');
   await page.getByRole('button', { name: /سجل جديد/ }).click();
-  ed = page.getByRole('region', { name: 'سجل جديد' });
+  ed = page.getByRole('dialog', { name: 'سجل جديد' });
   await ed.getByRole('textbox', { name: 'الرمز', exact: true }).fill(PACK);
   await ed.getByRole('textbox', { name: 'الاسم (عربي)', exact: true }).fill('كرتونة 6 كغ (e2e)');
   await ed.getByRole('combobox', { name: 'النوع', exact: true }).selectOption('carton');

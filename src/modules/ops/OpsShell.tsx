@@ -9,7 +9,7 @@ import { DemoBanner } from '@/core/components/DemoBanner';
 import { localName, useMyPermissions } from './api';
 import { Icon } from './icons';
 import { useTheme, type ThemePref } from './theme';
-import { Breadcrumbs, ToastProvider, type Crumb } from './ui';
+import { Breadcrumbs, ToastProvider, useDialog, type Crumb } from './ui';
 
 export interface OpsNavItem {
   key: string;
@@ -22,7 +22,7 @@ export interface OpsNavItem {
   section: 'run' | 'quality' | 'config';
 }
 
-const SETTINGS_NEEDS = ['users.administer', 'delegated.accounts', 'settings.edit', 'settings.publish', 'md_operational.edit', 'md_operational.approve',
+const SETTINGS_NEEDS = ['settings.authority', 'users.administer', 'delegated.accounts', 'settings.edit', 'settings.publish', 'md_operational.edit', 'md_operational.approve',
   'md_customer.edit', 'md_customer.approve', 'task.create'];
 
 export const OPS_NAV: OpsNavItem[] = [
@@ -42,6 +42,7 @@ export const OPS_NAV: OpsNavItem[] = [
 
 /** Settings sub-pages (command palette and breadcrumbs). */
 const SETTINGS_PAGES = [
+  { key: 'departments', to: '/ops/settings/departments', icon: 'workflow', needs: ['settings.authority'] },
   { key: 'people', to: '/ops/settings/people', icon: 'people', needs: ['users.administer', 'delegated.accounts'] },
   { key: 'operations', to: '/ops/settings/operations', icon: 'operations', needs: ['settings.edit', 'settings.publish'] },
   { key: 'kpis', to: '/ops/settings/kpis', icon: 'kpi', needs: ['settings.edit', 'settings.publish'] },
@@ -95,9 +96,10 @@ function Clock() {
   );
 }
 
-function ThemeSwitch() {
+type ThemeControls = {pref: ThemePref; setPref: (v: ThemePref) => void};
+
+function ThemeSwitch({pref, setPref}: ThemeControls) {
   const { t } = useTranslation();
-  const [pref, setPref] = useTheme();
   const opts: { v: ThemePref; icon: string; label: string }[] = [
     { v: 'light', icon: 'sun', label: t('ops.ui.themeLight') }, { v: 'dark', icon: 'moon', label: t('ops.ui.themeDark') }, { v: 'system', icon: 'monitor', label: t('ops.ui.themeSystem') },
   ];
@@ -121,20 +123,23 @@ function CommandPalette({ open, onClose, commands }: { open: boolean; onClose: (
   const [q, setQ] = useState('');
   const [i, setI] = useState(0);
   const input = useRef<HTMLInputElement>(null);
-  useEffect(() => { if (open) { setQ(''); setI(0); window.setTimeout(() => input.current?.focus(), 10); } }, [open]);
+  const dialog = useDialog(open, onClose);
+  useEffect(() => { if (open) { setQ(''); setI(0); input.current?.focus(); } }, [open]);
   const list = useMemo(() => {
     const n = q.trim().toLowerCase();
     return n ? commands.filter((c) => `${c.label} ${c.hint ?? ''}`.toLowerCase().includes(n)) : commands;
   }, [q, commands]);
+  useEffect(() => {
+    if (open && list[i]) document.getElementById('cmd-' + list[i]?.id)?.scrollIntoView({block:'nearest'});
+  }, [open, i, list]);
   if (!open) return null;
   const go = (c: Cmd | undefined) => { if (c) { onClose(); c.run(); } };
   return (
     <div className="fixed inset-0 z-[85] flex items-start justify-center p-4 pt-[12vh]" role="presentation">
       <div className="ops-backdrop absolute inset-0" onClick={onClose} aria-hidden="true" />
-      <div role="dialog" aria-modal="true" aria-label={t('ops.ui.command')} className="ops-pop relative w-full max-w-xl overflow-hidden rounded-[20px] border border-ops-line bg-ops-elevated shadow-ops-pop"
+      <div ref={dialog} role="dialog" aria-modal="true" aria-label={t('ops.ui.command')} className="ops-pop relative w-full max-w-xl overflow-hidden rounded-[20px] border border-ops-line bg-ops-elevated shadow-ops-pop"
         onKeyDown={(e) => {
-          if (e.key === 'Escape') onClose();
-          else if (e.key === 'ArrowDown') { e.preventDefault(); setI((x) => Math.min(list.length - 1, x + 1)); }
+          if (e.key === 'ArrowDown') { e.preventDefault(); setI((x) => Math.max(0, Math.min(list.length - 1, x + 1))); }
           else if (e.key === 'ArrowUp') { e.preventDefault(); setI((x) => Math.max(0, x - 1)); }
           else if (e.key === 'Enter') { e.preventDefault(); go(list[i]); }
         }}>
@@ -174,7 +179,7 @@ export function OpsShell() {
   const [collapsed, setCollapsed] = useState(readCollapsed);
   const [menu, setMenu] = useState(false);
   const [cmd, setCmd] = useState(false);
-  const [, setTheme] = useTheme();
+  const [theme, setTheme] = useTheme();
   useEffect(() => setMenu(false), [loc.pathname]);
   useEffect(() => {
     const on = (e: KeyboardEvent) => { if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); setCmd((c) => !c); } };
@@ -267,7 +272,7 @@ export function OpsShell() {
                 )}
               </div>
               <div className={`mt-1 flex items-center ${collapsed ? 'flex-col gap-1' : 'justify-between'}`}>
-                <NavLink to="/office" className="inline-flex min-h-[36px] items-center gap-1 rounded-ops-sm px-2 text-xs text-ops-muted hover:text-ops-ink">
+                <NavLink aria-label={t('ops.nav.office')} to="/office" className="inline-flex min-h-[36px] items-center gap-1 rounded-ops-sm px-2 text-xs text-ops-muted hover:text-ops-ink">
                   <Icon name="home" className="h-4 w-4" />{!collapsed && t('ops.nav.office')}
                 </NavLink>
                 <button type="button" onClick={toggle} className="grid h-9 w-9 place-items-center rounded-ops-sm text-ops-muted hover:bg-ops-grey hover:text-ops-ink"
@@ -293,8 +298,8 @@ export function OpsShell() {
                   className="grid h-10 w-10 place-items-center rounded-full border border-ops-line bg-ops-surface text-ops-muted hover:text-ops-ink lg:hidden">
                   <Icon name="search" className="h-[18px] w-[18px]" />
                 </button>
-                <ThemeSwitch />
-                <button type="button" onClick={() => void i18n.changeLanguage(i18n.language === 'ar' ? 'en' : 'ar')}
+                <ThemeSwitch pref={theme} setPref={setTheme} />
+                <button type="button" aria-label={t('common.language')} onClick={() => void i18n.changeLanguage(i18n.language === 'ar' ? 'en' : 'ar')}
                   className="ops-press inline-flex min-h-[40px] items-center gap-1.5 rounded-full border border-ops-line bg-ops-surface px-3 text-sm font-semibold text-ops-accent hover:border-ops-linestrong">
                   <Icon name="globe" className="h-4 w-4" /><span className="hidden sm:inline">{t('common.language')}</span>
                 </button>
@@ -322,7 +327,7 @@ export function OpsShell() {
                 ))}
                 <NavLink to="/office" className={linkCls}><Icon name="home" className="h-[18px] w-[18px]" />{t('ops.nav.office')}</NavLink>
               </div>
-              <div className="mt-2 flex justify-center sm:hidden"><MobileTheme /></div>
+              <div className="mt-2 flex justify-center sm:hidden"><MobileTheme pref={theme} setPref={setTheme} /></div>
             </div>
           )}
           <div className="grid grid-cols-5">
@@ -349,9 +354,8 @@ export function OpsShell() {
   );
 }
 
-function MobileTheme() {
+function MobileTheme({pref, setPref}: ThemeControls) {
   const { t } = useTranslation();
-  const [pref, setPref] = useTheme();
   return (
     <div role="radiogroup" aria-label={t('ops.ui.theme')} className="inline-flex rounded-full border border-ops-line bg-ops-surface p-0.5">
       {(['light', 'dark', 'system'] as const).map((v) => (

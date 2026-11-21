@@ -1,3 +1,4 @@
+import { AccountPolicy } from './AccountPolicy';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -11,7 +12,7 @@ interface OpenItem { code: string; priority: string; title_ar: string; title_en:
 
 /** Operations Settings: every area the Owner configures without code, and the items still waiting for a decision (steps
  *  that depend on them stay blocked on a real farm). */
-const ICONS: Record<string, string> = { people: 'people', operations: 'operations', kpis: 'kpi', master: 'database', tasks: 'tasks', authority: 'shield' };
+const ICONS: Record<string, string> = { departments: 'workflow', people: 'people', operations: 'operations', kpis: 'kpi', master: 'database', tasks: 'tasks', authority: 'shield' };
 
 export default function SettingsHome() {
   const { t, i18n } = useTranslation();
@@ -23,10 +24,12 @@ export default function SettingsHome() {
       db.from('ph_permission_cells').select('id', { count: 'exact', head: true }).is('voided_at', null).in('state', ['proposed', 'pending_decision']),
     ]);
     if (d.error) throw d.error;
+    if (cells.error) throw cells.error;
     return { decisions: (d.data ?? []) as OpenItem[], cells: cells.count ?? null };
   } });
   const has = (k: string) => !!perms.data?.has(k);
   const areas = [
+    { key: 'departments', to: '/ops/settings/departments', show: has('settings.authority') },
     { key: 'people', to: '/ops/settings/people', show: has('users.administer') || has('delegated.accounts') },
     { key: 'operations', to: '/ops/settings/operations', show: has('settings.edit') || has('settings.publish') },
     { key: 'kpis', to: '/ops/settings/kpis', show: has('settings.edit') || has('settings.publish') },
@@ -52,10 +55,13 @@ export default function SettingsHome() {
           </Link>
         ))}
       </div>
+      {has('settings.authority') && <AccountPolicy />}
       {has('backup.download') && <BackupCard />}
       <Card title={t('ops.settings.openItems')} className="mt-4" highlight={(open.data?.decisions.length ?? 0) > 0}>
         <p className="mb-2 text-sm text-ops-muted">{t('ops.settings.openHelp')}</p>
         {open.data && open.data.cells !== null && <p className="mb-2 text-sm">{t('ops.settings.cellsWaiting', { n: open.data.cells })}</p>}
+        {open.isLoading && <p role="status">{t('common.loading')}</p>}
+        {open.error && <button className={btnPrimary} onClick={() => void open.refetch()}>{t('common.error')} · {t('common.retry')}</button>}
         <ul className="grid gap-2">
           {(open.data?.decisions ?? []).map((d) => (
             <li key={d.code} className="rounded-ops-sm border border-ops-line p-2 text-sm">

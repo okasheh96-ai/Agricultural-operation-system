@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { QueryState } from '@/core/components/QueryState';
 import { localName, rpc, useKpis, useLines, useOverview } from './api';
 import { useOpsFilters } from './OverviewPage';
-import { btn, Card, downloadCsv, Num, PageTitle, Pill, useFmt } from './ui';
+import { btn, Card, downloadCsv, Num, PageTitle, Pill, useFmt, useToast } from './ui';
 
 /**
  * Daily KPI report (S-04 p.3, draft): the three KPIs with their formula, denominator and source records. Worker-level rows
@@ -13,6 +13,7 @@ import { btn, Card, downloadCsv, Num, PageTitle, Pill, useFmt } from './ui';
 export default function ReportPage() {
   const { t, i18n } = useTranslation();
   const fmt = useFmt();
+  const toast = useToast();
   const loc = useLocation();
   const [f] = useOpsFilters();
   const ov = useOverview(f);
@@ -43,7 +44,7 @@ export default function ReportPage() {
         sub={ov.data ? <>{t('ops.overview.window', { from: fmt.dateTime(ov.data.from), to: fmt.dateTime(ov.data.to) })} · {t('ops.report.cutoff', { time: fmt.dateTime(ov.data.cutoff) })}</> : null}
         actions={<>
           <button type="button" className={btn} onClick={() => window.print()}>{t('ops.print')}</button>
-          <button type="button" className={btn} onClick={() => void exportCsv().catch(() => window.alert(t('ops.report.exportDenied')))}>{t('ops.exportCsv')}</button>
+          <button type="button" className={btn} disabled={!k.data} onClick={() => void exportCsv().catch(() => toast(t('ops.report.exportDenied'), 'bad'))}>{t('ops.exportCsv')}</button>
         </>} />
       <p className="mb-4 rounded-ops-sm border border-ops-line bg-ops-surface p-3 text-sm text-ops-muted">{t('ops.report.draftNote')}</p>
       <QueryState isLoading={k.isLoading || ov.isLoading} error={k.error ?? ov.error} isEmpty={!k.data} onRetry={() => void k.refetch()}>

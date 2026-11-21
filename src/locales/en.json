@@ -7,6 +7,40 @@
     "screenFailed": "This screen could not open",
     "screenFailedBody": "Check the connection and reload. Changes saved on this device are not lost."
   },
+    "org": {
+      "new": "Add department",
+      "kind": {
+        "production": "Production",
+        "production_support": "Production support",
+        "service": "Service",
+        "quality": "Quality",
+        "coordination": "Coordination"
+      }
+    },
+    "imports": {
+      "title": "Import CSV",
+      "help": "Download the {{table}} template and enter one new record per row. Review the file before submitting it for approval.",
+      "template": "Download template",
+      "file": "CSV file",
+      "format": "Check the column headings, commas and number of fields in each row.",
+      "limit": "Choose a file with 1–200 data rows, up to 512 KB.",
+      "preview": "Import preview",
+      "row": "Row",
+      "duplicate": "Duplicate code",
+      "invalid": "Check required values and field types",
+      "summary": "{{total}} rows reviewed. {{problems}} need correction.",
+      "ready": "Ready",
+      "pending": "Awaiting approval",
+      "apply": "Submit records for approval",
+      "saved": "Saved {{count}} records for approval."
+    },
+  "policy": {
+    "title": "Account policy",
+    "po_lockout_attempts": "Failed sign-ins before lockout",
+    "po_lockout_minutes": "Lockout duration (minutes)",
+    "po_session_hours": "Session lifetime (hours)",
+    "po_activation_hours": "Activation code lifetime (hours)"
+  },
   "common": {
     "loading": "Loading…",
     "empty": "No records yet.",
@@ -2534,6 +2568,7 @@
       "title": "Operations Settings",
       "sub": "Configure people, operations, KPI cards, tasks and master data without code. Every change is versioned and audited.",
       "areas": {
+        "departments": {"title": "Departments", "sub": "Manage department names and organizational categories."},
         "people": {
           "title": "People & access",
           "sub": "Accounts, roles, delegation, authority and the access log."
@@ -2845,6 +2880,7 @@
       "title": "Settings → Master data",
       "sub": "One person enters, a different person approves; only approved records can be used.",
       "tables": {
+        "ph_lines": "Production lines",
         "ph_customers": "Customers",
         "ph_pack_formats": "Pack formats",
         "ph_shift_templates": "Shifts",
@@ -2867,6 +2903,8 @@
         "starts_at": "Starts",
         "ends_at": "Ends",
         "sort_order": "Order",
+        "nominal_rate": "Documented operating rate",
+        "crop_codes": "Crop codes, comma separated",
         "counts_as_packing": "Counts as packing time",
         "is_shared": "Shared (team) task",
         "category": "Category"
@@ -2877,6 +2915,9 @@
         "retail": "Retail",
         "lss": "LSS",
         "carton": "Carton",
+        "washer": "Washer",
+        "machine_grading": "Machine grading",
+        "manual": "Manual",
         "punnet_carton": "Punnet carton",
         "black_box": "Black box",
         "loose": "Loose",

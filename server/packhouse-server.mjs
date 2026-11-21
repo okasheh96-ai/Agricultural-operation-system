@@ -214,16 +214,24 @@ async function backupDownload(req, res) {
   if (!dumpUrl) return send(res, 503, { error: 'backup not configured' });
   const stamp = new Date().toISOString().replace(/[:T]/g, '-').slice(0, 16);
   const p = spawn(PGBIN ? join(PGBIN, 'pg_dump') : 'pg_dump', ['-Fc', '--no-owner', dumpUrl], { stdio: ['ignore', 'pipe', 'pipe'] });
-  let started = false; let err = '';
-  p.stderr.on('data', (d) => { err += d; });
+  let failed = false;
+  const abort = () => {
+    if (failed) return;
+    failed = true;
+    if (res.destroyed) return;
+    if (res.headersSent) res.destroy();
+    else send(res, 500, { error: 'backup failed' });
+  };
+  p.stderr.resume();
+  p.on('error', abort);
+  res.on('close', () => { if (!res.writableEnded) p.kill(); });
   p.stdout.once('data', () => {
-    started = true;
     res.writeHead(200, { 'content-type': 'application/octet-stream', 'content-disposition': `attachment; filename="packhouse-${stamp}.dump"`, 'cache-control': 'no-store', ...SECURITY_HEADERS });
   });
-  p.stdout.on('data', (d) => res.write(d));
-  p.on('close', (code) => {
-    if (code !== 0) { console.error('backup download failed', err.trim()); if (!started) return send(res, 500, { error: 'backup failed' }); }
-    res.end();
+  p.stdout.pipe(res, { end: false });
+  p.on('close', code => {
+    if (code !== 0 || !res.headersSent) abort();
+    else if (!failed) res.end();
   });
 }
 
@@ -236,7 +244,7 @@ function proxyRest(req, res, url) {
   if ((headers.authorization ?? '').replace(/^Bearer\s+/i, '') === ANON_PLACEHOLDER) delete headers.authorization;
   const up = http.request({ host: REST_URL.hostname, port: REST_URL.port, method: req.method, path: url.pathname.replace(/^\/rest\/v1/, '') + url.search,
                             headers, agent: false }, (r) => {
-    res.writeHead(r.statusCode ?? 502, { ...r.headers, ...SECURITY_HEADERS });
+    res.writeHead(r.statusCode ?? 502, { ...r.headers, 'cache-control': 'private, no-store', ...SECURITY_HEADERS });
     r.pipe(res);
   });
   up.on('error', () => send(res, 502, { message: 'API unavailable' }));

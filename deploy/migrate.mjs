@@ -35,13 +35,19 @@ const log = (m) => console.log(`[migrate] ${m}`);
 
 try { await client.connect(); }
 catch (e) {
-  if (!/does not support SSL|SSL off/i.test(String(e.message))) throw e;
+  const target = new URL(DATABASE_URL);
+  // Render's internal Postgres endpoints use a single-label dpg- hostname. An explicit SSL mode always wins.
+  if (target.searchParams.has('sslmode') || !/^dpg-[a-z0-9-]+$/.test(target.hostname) ||
+      !/does not support SSL|SSL off/i.test(String(e.message))) throw e;
   client = new pg.Client({ connectionString: DATABASE_URL, ssl: false }); sslMode = 'disable';
   await client.connect();
 }
 writeFileSync(join(process.env.TMPDIR || '/tmp', 'ph-sslmode'), sslMode);
 const who = (await q('select current_user, current_database() as db, (select rolsuper from pg_roles where rolname = current_user) as su')).rows[0];
 log(`connected to ${who.db} as ${who.current_user}${who.su ? ' (superuser)' : ''}`);
+
+// Serialize starts of this release against the same database, including role setup and first-owner bootstrap.
+await q("select pg_advisory_lock(hashtext(current_database()), hashtext('packhouse-deploy'))");
 
 // 1. Roles.
 async function ensureRole(name, opts) {
@@ -102,10 +108,17 @@ if (env('PH_DEMO', '') === '1') {
   const loaded = (await q("select 1 from public.farms where code = 'DEMO'")).rowCount > 0;
   if (!loaded) {
     log('loading the DEMO farm (staging only: invented data)');
-    await q(readFileSync(join(ROOT, 'supabase/seed/demo.sql'), 'utf8'));
-    await q(execFileSync('node', [join(ROOT, 'scripts/appliance-demo-users.mjs')], { encoding: 'utf8' }));
-    for (const s of ['demo_tasks', 'demo_packing_house', 'demo_packing_house_production', 'demo_packing_house_m2', 'demo_packhouse_ops']) {
-      await q(readFileSync(join(ROOT, `supabase/seed/${s}.sql`), 'utf8'));
+    await q('begin');
+    try {
+      await q(readFileSync(join(ROOT, 'supabase/seed/demo.sql'), 'utf8'));
+      await q(execFileSync('node', [join(ROOT, 'scripts/appliance-demo-users.mjs')], { encoding: 'utf8' }));
+      for (const s of ['demo_tasks', 'demo_packing_house', 'demo_packing_house_production', 'demo_packing_house_m2', 'demo_packhouse_ops']) {
+        await q(readFileSync(join(ROOT, `supabase/seed/${s}.sql`), 'utf8'));
+      }
+      await q('commit');
+    } catch (e) {
+      await q('rollback');
+      throw e;
     }
   }
 }

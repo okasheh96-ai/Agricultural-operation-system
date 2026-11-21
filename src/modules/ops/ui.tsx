@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+import { matchesSearch } from '@/core/i18n/normalizeArabic';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
@@ -254,8 +255,9 @@ export function gradeLabel(t: (k: string) => string, g: string) {
 /** CSV download built in the browser from rows the server returned to this user (exports respect the same permissions). */
 export function downloadCsv(name: string, header: string[], rows: (string | number | null | undefined)[][]) {
   const esc = (v: string | number | null | undefined) => {
-    const s = v === null || v === undefined ? '' : String(v);
-    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    const raw = v == null ? '' : String(v);
+    const s = typeof v === 'string' && /^[=+@\t\r-]/.test(raw) && !/^-?\d+(?:\.\d+)?$/.test(raw) ? "'" + raw : raw;
+    return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
   const text = '﻿' + [header, ...rows].map((r) => r.map(esc).join(',')).join('\r\n');
   const url = URL.createObjectURL(new Blob([text], { type: 'text/csv;charset=utf-8' }));
@@ -346,7 +348,9 @@ export function Segmented<V extends string>({ value, onChange, options, label }:
 // ---------------------------------------------------------------------------------------------------------------------
 // Dialogs: modal and side drawer (Escape closes, focus moves in and returns, background is inert to pointer)
 // ---------------------------------------------------------------------------------------------------------------------
-function useDialog(open: boolean, onClose: () => void) {
+export function useDialog(open: boolean, onClose: () => void) {
+  const close = useRef(onClose);
+  useEffect(() => { close.current = onClose; }, [onClose]);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!open) return;
@@ -354,7 +358,7 @@ function useDialog(open: boolean, onClose: () => void) {
     const first = ref.current?.querySelector<HTMLElement>('input, select, textarea, button, [href], [tabindex]:not([tabindex="-1"])');
     (first ?? ref.current)?.focus();
     const key = (e: globalThis.KeyboardEvent) => {
-      if (e.key === 'Escape') { e.stopPropagation(); onClose(); }
+      if (e.key === 'Escape') { e.stopPropagation(); close.current(); }
       if (e.key === 'Tab' && ref.current) {
         const f = [...ref.current.querySelectorAll<HTMLElement>('input, select, textarea, button, [href], [tabindex]:not([tabindex="-1"])')].filter((x) => !x.hasAttribute('disabled'));
         const a = f[0]; const z = f[f.length - 1];
@@ -365,7 +369,7 @@ function useDialog(open: boolean, onClose: () => void) {
     document.addEventListener('keydown', key);
     const overflow = document.body.style.overflow; document.body.style.overflow = 'hidden';
     return () => { document.removeEventListener('keydown', key); document.body.style.overflow = overflow; prev?.focus?.(); };
-  }, [open, onClose]);
+  }, [open]);
   return ref;
 }
 
@@ -452,7 +456,7 @@ export function DataTable<R extends { id: string }>({ rows, columns, pageSize = 
   const [page, setPage] = useState(0);
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
-    let out = needle ? rows.filter((r) => columns.some((c) => (c.search?.(r) ?? String(c.sort?.(r) ?? '')).toLowerCase().includes(needle))) : rows;
+    let out = needle ? rows.filter((r) => columns.some((c) => matchesSearch(c.search?.(r) ?? String(c.sort?.(r) ?? ''), needle))) : rows;
     const col = sort && columns.find((c) => c.key === sort.key);
     if (sort && col?.sort) {
       const f = col.sort;

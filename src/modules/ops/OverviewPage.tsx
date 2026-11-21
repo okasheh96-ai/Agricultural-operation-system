@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { QueryState } from '@/core/components/QueryState';
 import { farmToday, localName, rpc, useCustomers, useLines, useOverview, useTrend, type OverviewFilters, type OverviewLine } from './api';
-import { BarChart, btn, Card, downloadCsv, field, KpiTile, Num, PageTitle, Pill, useFmt, type Tone } from './ui';
+import { BarChart, btn, Card, downloadCsv, field, KpiTile, Num, PageTitle, Pill, useFmt, useToast, type Tone } from './ui';
 import { KpiCardView, useMyKpiCards } from './config/KpiCards';
 import { Icon } from './icons';
 
@@ -34,6 +34,7 @@ export function useOpsFilters(): [OverviewFilters, (patch: Partial<OverviewFilte
 export default function OverviewPage() {
   const { t, i18n } = useTranslation();
   const fmt = useFmt();
+  const toast = useToast();
   const [f, setF, qs] = useOpsFilters();
   const ov = useOverview(f);
   const trend = useTrend(ov.data?.from, ov.data?.to);
@@ -68,7 +69,7 @@ export default function OverviewPage() {
         sub={d ? <>{t('ops.overview.window', { from: fmt.dateTime(d.from), to: fmt.dateTime(d.to) })} · {t('ops.overview.updated', { time: fmt.time(d.generated_at) })}</> : null}
         actions={<>
           <button type="button" className={btn} onClick={() => window.print()}>{t('ops.print')}</button>
-          <button type="button" className={btn} onClick={() => void exportCsv().catch(() => undefined)}>{t('ops.exportCsv')}</button>
+          <button type="button" className={btn} disabled={!d} onClick={() => void exportCsv().catch(() => toast(t('ops.report.exportDenied'), 'bad'))}>{t('ops.exportCsv')}</button>
         </>} />
 
       {/* Filters */}
@@ -151,6 +152,11 @@ export default function OverviewPage() {
                 <div><dt className="text-ops-muted">{t('ops.overview.engineer')}</dt><dd className="font-medium">{d.shift?.engineer_name ?? '—'}</dd></div>
                 <div><dt className="text-ops-muted">{t('ops.overview.issuesOpen')}</dt><dd className="font-medium"><Num value={d.queue.issues_open} digits={0} /></dd></div>
               </dl>
+              <div className="mt-5 border-t border-ops-line pt-4">
+                <QueryState isLoading={trend.isLoading} error={trend.error} isEmpty={false} onRetry={() => void trend.refetch()}>
+                  <BarChart title={t('ops.overview.trendChart')} unit="kg" rows={trendRows} />
+                </QueryState>
+              </div>
             </Card>
 
             {/* Exceptions queue */}
@@ -216,10 +222,7 @@ export default function OverviewPage() {
             {/* Cards the Owner built in Settings → KPI cards (published, visible to this person's roles). */}
             <OwnerCards />
 
-            <Card className="lg:col-span-7" title={t('ops.overview.trend')}>
-              <BarChart title={t('ops.overview.trendChart')} unit="kg" rows={trendRows} />
-            </Card>
-            <Card className="lg:col-span-5" title={t('ops.overview.byCropGrade')}>
+            <Card className="lg:col-span-12" title={t('ops.overview.byCropGrade')}>
               {d.by_crop_grade.length === 0 ? <p className="text-sm text-ops-muted">{t('ops.overview.noOutput')}</p> : (
                 <table className="w-full text-sm">
                   <thead><tr className="text-ops-muted"><th className="py-1 text-start font-medium">{t('ops.filters.crop')}</th><th className="text-start font-medium">{t('ops.filters.grade')}</th>

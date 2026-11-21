@@ -35,9 +35,9 @@ export const hasPhRole = (a: Access | null) => !!a?.grants.some((g) => g.roleCod
 export const phOnly = (a: Access | null) => !!a && a.grants.length > 0 && a.grants.every((g) => g.roleCode.startsWith('ph_'));
 
 export const OFFICE_NAV: NavItem[] = [
-  { key: 'command', path: '/office/command-center', labelKey: 'nav.commandCenter', icon: '🧭', phase: '2', built: true },
+  { key: 'command', path: '/office/command-center', labelKey: 'nav.commandCenter', icon: 'overview', phase: '2', built: true },
   {
-    key: 'operations', path: '/office/operations', labelKey: 'nav.operations', icon: '📋', phase: '2', built: true,
+    key: 'operations', path: '/office/operations', labelKey: 'nav.operations', icon: 'tasks', phase: '2', built: true,
     children: [
       { key: 'board', path: '/office/operations', labelKey: 'nav.board', phase: '2', built: true },
       { key: 'plan', path: '/office/operations/plan', labelKey: 'nav.plan', phase: '2', built: true, visible: canDo('task', 'plan') },
@@ -45,20 +45,20 @@ export const OFFICE_NAV: NavItem[] = [
       { key: 'exceptions', path: '/office/operations/exceptions', labelKey: 'nav.exceptions', phase: '2', built: true },
     ],
   },
-  { key: 'agriculture', path: '/office/agriculture', labelKey: 'nav.agriculture', icon: '🌱', phase: '3', built: false },
+  { key: 'agriculture', path: '/office/agriculture', labelKey: 'nav.agriculture', icon: 'leaf', phase: '3', built: false },
   {
-    key: 'irrigation', path: '/office/irrigation', labelKey: 'nav.irrigation', icon: '💧', phase: '4', built: true,
+    key: 'irrigation', path: '/office/irrigation', labelKey: 'nav.irrigation', icon: 'water', phase: '4', built: true,
     children: [
       { key: 'wells', path: '/office/irrigation/wells', labelKey: 'nav.wells', phase: '4', built: true },
       { key: 'irrigationRuns', path: '/office/irrigation/runs', labelKey: 'nav.irrigationRuns', phase: '4', built: false },
     ],
   },
-  { key: 'maintenance', path: '/office/maintenance', labelKey: 'nav.maintenance', icon: '🔧', phase: '5', built: false },
-  { key: 'maintenanceWarehouse', path: '/office/maintenance-warehouse', labelKey: 'nav.maintenanceWarehouse', icon: '🧰', phase: '6', built: false },
-  { key: 'fleet', path: '/office/fleet', labelKey: 'nav.fleet', icon: '🚜', phase: '7', built: false },
-  { key: 'mainWarehouse', path: '/office/main-warehouse', labelKey: 'nav.mainWarehouse', icon: '📦', phase: '2–3', built: false },
+  { key: 'maintenance', path: '/office/maintenance', labelKey: 'nav.maintenance', icon: 'tool', phase: '5', built: false },
+  { key: 'maintenanceWarehouse', path: '/office/maintenance-warehouse', labelKey: 'nav.maintenanceWarehouse', icon: 'package', phase: '6', built: false },
+  { key: 'fleet', path: '/office/fleet', labelKey: 'nav.fleet', icon: 'dispatch', phase: '7', built: false },
+  { key: 'mainWarehouse', path: '/office/main-warehouse', labelKey: 'nav.mainWarehouse', icon: 'package', phase: '2–3', built: false },
   {
-    key: 'packingHouse', path: '/office/packing-house', labelKey: 'nav.packingHouse', icon: '🏭', phase: 'PH-M1', built: true,
+    key: 'packingHouse', path: '/office/packing-house', labelKey: 'nav.packingHouse', icon: 'workflow', phase: 'PH-M1', built: true,
     visible: hasPhRole,
     children: [
       { key: 'phOps', path: '/ops', labelKey: 'nav.ph.ops', phase: 'PO-1', built: true },
@@ -72,12 +72,12 @@ export const OFFICE_NAV: NavItem[] = [
       { key: 'phMaster', path: '/office/packing-house/master', labelKey: 'nav.ph.master', phase: 'PH-M1', built: true },
     ],
   },
-  { key: 'qc', path: '/office/qc', labelKey: 'nav.qc', icon: '🔬', phase: '9', built: false },
-  { key: 'qa', path: '/office/qa', labelKey: 'nav.qa', icon: '✅', phase: '9', built: false, tone: 'qa' },
-  { key: 'cattle', path: '/office/cattle', labelKey: 'nav.cattle', icon: '🐄', phase: '—', built: false, notVerified: true },
-  { key: 'reports', path: '/office/reports', labelKey: 'nav.reports', icon: '📊', phase: '10', built: false },
+  { key: 'qc', path: '/office/qc', labelKey: 'nav.qc', icon: 'sliders', phase: '9', built: false },
+  { key: 'qa', path: '/office/qa', labelKey: 'nav.qa', icon: 'shield', phase: '9', built: false, tone: 'qa' },
+  { key: 'cattle', path: '/office/cattle', labelKey: 'nav.cattle', icon: 'leaf', phase: '—', built: false, notVerified: true },
+  { key: 'reports', path: '/office/reports', labelKey: 'nav.reports', icon: 'report', phase: '10', built: false },
   {
-    key: 'admin', path: '/office/admin', labelKey: 'nav.admin', icon: '⚙️', phase: '1', built: true,
+    key: 'admin', path: '/office/admin', labelKey: 'nav.admin', icon: 'settings', phase: '1', built: true,
     children: [
       { key: 'departments', path: '/office/admin/departments', labelKey: 'nav.departments', phase: '1', built: true },
       { key: 'locations', path: '/office/admin/locations', labelKey: 'nav.locations', phase: '1', built: true },

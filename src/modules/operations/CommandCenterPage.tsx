@@ -1,3 +1,4 @@
+import { Icon } from '@/modules/ops/icons';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -37,17 +38,17 @@ export default function CommandCenterPage() {
           <input type="date" dir="ltr" className="min-h-touch rounded border px-2" value={date} onChange={(e) => setDate(e.target.value)} /></label>
       </div>
       <QueryState isLoading={board.isLoading} error={board.error} isEmpty={false} onRetry={() => void board.refetch()}>
-        <div className="flex gap-2 overflow-x-auto pb-1 sm:grid sm:grid-cols-3 sm:overflow-visible lg:grid-cols-7">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
           {BUCKETS.map((b) => (
             <Link key={b} to={`/office/operations?date=${date}&bucket=${b}`}
-              className={`w-36 shrink-0 rounded-lg border bg-white p-3 sm:w-auto ${b === 'blocked' || b === 'overdue' ? 'border-red-300' : ''}`}>
+              className={`ops-card min-w-0 p-3 md:p-4 ${b === 'blocked' || b === 'overdue' ? 'border-red-300' : ''}`}>
               <div className="text-sm text-stone-600">{t(`board.${b}`)}</div>
-              <div className="text-2xl font-bold"><bdi>{count(b)}</bdi></div>
+              <div className="mt-3 flex items-end justify-between"><bdi className="text-3xl font-bold">{count(b)}</bdi><Icon name="arrow" className="h-4 w-4 text-ops-muted rtl:-scale-x-100" /></div>
             </Link>
           ))}
-          <Link to="/office/operations/exceptions" className="w-36 shrink-0 rounded-lg border border-amber-300 bg-white p-3 sm:w-auto">
+          <Link to="/office/operations/exceptions" className="ops-card min-w-0 border-amber-300 p-3 md:p-4">
             <div className="text-sm text-stone-600">{t('board.openProblems')}</div>
-            <div className="text-2xl font-bold"><bdi>{problems.data ?? '…'}</bdi></div>
+            <div className="mt-3 text-3xl font-bold"><bdi>{problems.data ?? '…'}</bdi></div>
           </Link>
         </div>
         <h2 className="text-lg font-semibold">{t('board.byDepartment')}</h2>

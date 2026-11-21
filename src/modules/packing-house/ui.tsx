@@ -1,3 +1,4 @@
+import { btn, btnPrimary, field } from '@/modules/ops/ui';
 import { useEffect, useState, type ReactNode } from 'react';
 import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
@@ -6,9 +7,9 @@ import { STATUS_STYLE, TONE_CLASS } from './stages';
 import { rpc, type Evidence } from './api';
 import { reasonText, type PhReason } from './phErrors';
 
-export const inputCls = 'min-h-touch w-full min-w-0 rounded border border-stone-300 bg-white px-3';
-export const btnCls = 'inline-flex min-h-touch items-center gap-1.5 rounded border border-stone-300 bg-white px-3 text-sm font-medium text-stone-800 hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-50';
-export const primaryBtnCls = 'inline-flex min-h-touch items-center gap-1.5 rounded bg-brand px-4 text-sm font-semibold text-white hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-50';
+export const inputCls = field;
+export const btnCls = btn;
+export const primaryBtnCls = btnPrimary;
 
 /** Workflow status as icon + text + colour; labels come from the workflow data via i18n keys. */
 export function StatusPill({ status, workflow }: { status: string; workflow: string }) {

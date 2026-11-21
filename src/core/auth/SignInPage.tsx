@@ -14,14 +14,22 @@ export function SignInPage() {
   // Which control started the attempt ('form' or a demo email), so progress and errors show where the user is looking.
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<{ key: string; from: string } | null>(null);
-  const [activating, setActivating] = useState(false);
+  const [activating, setActivating] = useState(() => new URLSearchParams(window.location.search).get('setup') === '1');
+  function showActivation(open: boolean) {
+    const url = new URL(window.location.href);
+    if (open) url.searchParams.set('setup', '1'); else url.searchParams.delete('setup');
+    window.history.replaceState(window.history.state, '', url);
+    setActivating(open);
+  }
 
   async function signIn(credentials: { email: string; password: string }, from: string) {
     setBusy(from);
     setError(null);
-    const { error: failure } = await requireSupabase().auth.signInWithPassword(credentials);
-    setBusy(null);
-    if (failure) setError({ key: signInErrorKey(failure), from });
+    try {
+      const {error: failure} = await requireSupabase().auth.signInWithPassword(credentials);
+      if (failure) setError({key: signInErrorKey(failure), from});
+    } catch { setError({key:'auth.unreachable', from}); }
+    finally { setBusy(null); }
   }
 
   function onSubmit(e: FormEvent) {
@@ -57,7 +65,7 @@ export function SignInPage() {
           </div>
         </section>
       )}
-      {__PACKHOUSE_SERVER__ && activating ? <ActivateForm onDone={() => setActivating(false)} /> : (
+      {__PACKHOUSE_SERVER__ && activating ? <ActivateForm onDone={() => showActivation(false)} /> : (
       <form onSubmit={onSubmit} className={authCard}>
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-ops-ink">{t('auth.signInTitle')}</h1>
@@ -80,7 +88,7 @@ export function SignInPage() {
       </form>
       )}
       {__PACKHOUSE_SERVER__ && (
-        <button type="button" onClick={() => setActivating(!activating)}
+        <button type="button" onClick={() => showActivation(!activating)}
           className="ops-press min-h-[48px] rounded-ops-sm border border-dashed border-ops-linestrong px-4 text-sm font-semibold text-ops-accent hover:border-ops-accent">
           {activating ? t('auth.server.backToSignIn') : t('auth.server.firstSignIn')}
         </button>

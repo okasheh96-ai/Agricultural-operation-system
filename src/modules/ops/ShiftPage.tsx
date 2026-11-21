@@ -30,7 +30,7 @@ export default function ShiftPage() {
     <div className="mx-auto max-w-3xl">
       <QueryState isLoading={mine.isLoading} error={mine.error} isEmpty={false} onRetry={() => void mine.refetch()}>
         {!chosen ? (
-          <EmptyState>{t('ops.shift.noLine')}</EmptyState>
+          <><h1 className="mb-4 text-2xl font-bold">{t('ops.nav.shift')}</h1><EmptyState>{t('ops.shift.noLine')}</EmptyState></>
         ) : (
           <>
             <Card highlight className="mb-3">

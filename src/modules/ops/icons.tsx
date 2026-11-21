@@ -1,5 +1,12 @@
 /** Stroke icons (24 × 24, 1.75 stroke, currentColor), drawn for this product. Decorative: always paired with a text label. */
 const P: Record<string, string> = {
+  leaf: 'M20 3c-8 0-16 3-16 10a6 6 0 0 0 6 6c7 0 10-8 10-16zM3 21l11-11',
+  bell: 'M18 8a6 6 0 0 0-12 0c0 7-3 8-3 10h18c0-2-3-3-3-10zM10 21h4',
+  water: 'M12 2s-7 8-7 13a7 7 0 0 0 14 0c0-5-7-13-7-13z',
+  tool: 'M20 4a6 6 0 0 1-7 8L6 20a2 2 0 0 1-3-3l8-7a6 6 0 0 1 7-8l-4 4 3 3z',
+  package: 'M3 7l9-5 9 5v10l-9 5-9-5zM3 7l9 5 9-5M12 12v10M8 4l9 5',
+  scan: 'M3 9V4h5M16 4h5v5M21 15v5h-5M8 20H3v-5M6 12h12',
+  sync: 'M4 11a8 8 0 0 1 14-5l2 2M20 3v5h-5M20 13a8 8 0 0 1-14 5l-2-2M4 21v-5h5',
   overview: 'M4 4h7v7H4zM13 4h7v4h-7zM13 10h7v10h-7zM4 13h7v7H4z',
   shift: 'M9 4h6a1 1 0 0 1 1 1v1H8V5a1 1 0 0 1 1-1zM8 6H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-2M8 12h8M8 16h5',
   downtime: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM10 9v6M14 9v6',

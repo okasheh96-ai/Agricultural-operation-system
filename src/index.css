@@ -183,3 +183,31 @@ a.ops-card:hover, .ops-card-hover:hover { box-shadow: var(--ops-shadow-hover); b
   .ops-card { box-shadow: none !important; border-color: #999 !important; }
   .ops-noprint { display: none !important; }
 }
+
+/* Shared surfaces for the office, field and packing-house workspaces. */
+.farm-workspace :is(main, nav, section, form) { min-inline-size: 0; }
+.farm-workspace :is(h1, h2, h3) { text-wrap: balance; }
+.farm-workspace main h1 { font-size: clamp(1.5rem, 3vw, 2rem); line-height: 1.22; }
+.farm-workspace .bg-white { background-color: var(--ops-surface); }
+.farm-workspace :is(.bg-stone-50, .bg-stone-100) { background-color: var(--ops-surface-2); }
+.farm-workspace :is(.text-stone-400,.text-stone-500,.text-stone-600,.text-stone-700) { color: var(--ops-muted); }
+.farm-workspace :is(.text-stone-800,.text-stone-900) { color: var(--ops-ink); }
+.farm-workspace :is(.border-stone-100,.border-stone-200,.border-stone-300) { border-color: var(--ops-line); }
+.farm-workspace main :is(section,li,div,a).bg-white.border { border-radius: var(--ops-radius); box-shadow: var(--ops-shadow); }
+.farm-workspace .farm-actions :is(a,button) { border-radius: var(--ops-radius-sm); text-decoration: none; }
+.farm-workspace .farm-actions :is(a,button):hover { background: var(--ops-accent-soft); }
+.farm-workspace main :is(input:not([type=checkbox],[type=radio],[type=file]),select,textarea) {
+  max-inline-size: 100%; border-color: var(--ops-line-strong); background-color: var(--ops-surface);
+  color: var(--ops-ink); border-radius: var(--ops-radius-sm);
+}
+.farm-workspace main a.bg-white:hover { border-color: var(--ops-accent-line); box-shadow: var(--ops-shadow-hover); }
+.farm-workspace :is(.bg-brand-light,.bg-qa-light) { background-color: var(--ops-accent-soft); }
+.farm-workspace :is(.text-brand,.text-brand-dark,.text-qa) { color: var(--ops-accent); }
+.farm-workspace main thead, .ops-card thead { background-color: var(--ops-surface-2); color: var(--ops-muted); }
+.farm-workspace main :is(th,td), .ops-card :is(th,td) { padding-inline: .65rem; padding-block: .6rem; }
+.farm-workspace tbody tr:hover, .ops-card tbody tr:hover { background-color: var(--ops-surface-2); }
+.ops-root select, .ops-root input { max-inline-size: 100%; }
+.ops-root :is(button,a) { touch-action: manipulation; }
+@media (max-width: 639px) {
+  .ops-card { overflow-wrap: anywhere; }
+}

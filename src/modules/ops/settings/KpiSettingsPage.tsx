@@ -82,7 +82,8 @@ function Builder({ initialCode, def, setDef, catalog, canEdit, canPublish, onSav
   const [state, setState] = useState<SaveState>({ kind: 'idle' });
   const [note, setNote] = useState('');
   const ds = catalog.datasets.find((d) => d.dataset === def.dataset) ?? catalog.datasets[0] ?? { dataset: '', time_column: '', columns: [], numeric_columns: [], label_en: '', label_ar: '' };
-  const set = (patch: Partial<KpiDef>) => setDef({ ...def, ...patch });
+  const [touched, setTouched] = useState(false);
+  const set = (patch: Partial<KpiDef>) => { setTouched(true); setDef({ ...def, ...patch }); };
   const filterFields = [...ds.columns, ...ds.numeric_columns];
 
   useEffect(() => {
@@ -92,7 +93,8 @@ function Builder({ initialCode, def, setDef, catalog, canEdit, canPublish, onSav
         const errs = await rpc<{ key: string; field?: string }[]>('ph_kpi_validate', { p_def: def });
         if (!live) return;
         setProblems(errs);
-        setPreview(errs.length ? undefined : await rpc<KpiResult>('ph_kpi_eval', { p_def: def }));
+        const value = errs.length ? undefined : await rpc<KpiResult>('ph_kpi_eval', { p_def: def });
+        if (live) setPreview(value);
       } catch (e) { if (live) setPreview({ error: opsErrorMessage(t, e) }); }
     }, 400);
     return () => { live = false; window.clearTimeout(h); };
@@ -204,7 +206,7 @@ function Builder({ initialCode, def, setDef, catalog, canEdit, canPublish, onSav
           </fieldset>
           <label className="text-sm">{t('ops.opset.changeNote')}<input className={field} value={note} onChange={(e) => setNote(e.target.value)} /></label>
         </fieldset>
-        {problems.length > 0 && (
+        {(touched || initialCode || state.kind === 'failed') && problems.length > 0 && (
           <ul className="mt-3 list-disc ps-5 text-sm text-ops-red" role="alert">{problems.map((p, i) => <li key={i}>{t(`ops.kpiErrors.${p.key}`, { field: p.field ?? '', defaultValue: p.key })}</li>)}</ul>
         )}
         {canEdit && (

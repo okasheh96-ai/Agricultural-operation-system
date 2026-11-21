@@ -149,6 +149,7 @@ export function App() {
             <Route path="dispatch" element={<OpsDispatchPage />} />
             <Route path="trace" element={<OpsTracePage />} />
             <Route path="complaints" element={<OpsComplaintsPage />} />
+            <Route path="settings/departments" element={<DepartmentsPage />} />
             <Route path="settings/people" element={<OpsPeoplePage />} />
             <Route path="settings" element={<OpsSettingsHome />} />
             <Route path="settings/operations" element={<OpsOperationsSettings />} />
