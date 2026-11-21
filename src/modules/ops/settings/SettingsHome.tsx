@@ -1,9 +1,10 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { requireSupabase } from '@/core/supabase';
 import { localName, useMyPermissions } from '../api';
-import { Card, PageTitle, Pill } from '../ui';
+import { btnPrimary, Card, PageTitle, Pill } from '../ui';
 
 interface OpenItem { code: string; priority: string; title_ar: string; title_en: string; blocks_ar: string; blocks_en: string; decision_state: string }
 
@@ -42,6 +43,7 @@ export default function SettingsHome() {
           </Link>
         ))}
       </div>
+      {has('backup.download') && <BackupCard />}
       <Card title={t('ops.settings.openItems')} className="mt-4" highlight={(open.data?.decisions.length ?? 0) > 0}>
         <p className="mb-2 text-sm text-ops-muted">{t('ops.settings.openHelp')}</p>
         {open.data && open.data.cells !== null && <p className="mb-2 text-sm">{t('ops.settings.cellsWaiting', { n: open.data.cells })}</p>}
@@ -58,5 +60,32 @@ export default function SettingsHome() {
         <Link to="/office/packing-house/decisions" className="mt-3 inline-block text-sm font-semibold text-ops-accent underline">{t('ops.settings.decide')}</Link>
       </Card>
     </div>
+  );
+}
+
+/** Full backup (database: records, photos, settings, accounts) downloaded by the Owner; the server checks and records it. */
+function BackupCard() {
+  const { t } = useTranslation();
+  const [state, setState] = useState<'idle' | 'busy' | 'done' | 'failed'>('idle');
+  const download = async () => {
+    setState('busy');
+    try {
+      const { data } = await requireSupabase().auth.getSession();
+      const res = await fetch('/api/backup', { headers: { authorization: `Bearer ${data.session?.access_token ?? ''}` } });
+      if (!res.ok) throw new Error(String(res.status));
+      const url = URL.createObjectURL(await res.blob());
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = /filename="([^"]+)"/.exec(res.headers.get('content-disposition') ?? '')?.[1] ?? 'packhouse-backup.dump';
+      document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+      setState('done');
+    } catch { setState('failed'); }
+  };
+  return (
+    <Card title={t('ops.settings.backup.title')} className="mt-4">
+      <p className="mb-2 text-sm text-ops-muted">{t('ops.settings.backup.help')}</p>
+      <button type="button" className={btnPrimary} disabled={state === 'busy'} onClick={download}>{t('ops.settings.backup.download')}</button>
+      <p role="status" className="mt-2 text-sm">{state === 'busy' ? t('ops.save.pending') : state === 'done' ? t('ops.settings.backup.done') : state === 'failed' ? t('ops.settings.backup.failed') : ''}</p>
+    </Card>
   );
 }

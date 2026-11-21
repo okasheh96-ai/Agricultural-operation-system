@@ -86,6 +86,8 @@ const SECURITY_HEADERS = {
   'content-security-policy': "default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; " +
     "connect-src 'self'; script-src 'self'; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
 };
+// Hosted behind HTTPS (PH_BEHIND_TLS=1): browsers must always use HTTPS for this address.
+if (env('PH_BEHIND_TLS', '') === '1') SECURITY_HEADERS['strict-transport-security'] = 'max-age=31536000';
 function send(res, status, body, extra = {}) {
   const text = typeof body === 'string' ? body : JSON.stringify(body);
   res.writeHead(status, { 'content-type': typeof body === 'string' ? 'text/plain; charset=utf-8' : 'application/json', 'cache-control': 'no-store', ...SECURITY_HEADERS, ...extra });
@@ -98,7 +100,15 @@ async function readJson(req, limit = 64 * 1024) {
   const text = Buffer.concat(chunks).toString('utf8');
   return text ? JSON.parse(text) : {};
 }
-const clientIp = (req) => req.socket.remoteAddress ?? '';
+// Behind a hosting proxy (PH_TRUST_PROXY=1) the client address is the last X-Forwarded-For entry, which the proxy appends.
+const TRUST_PROXY = env('PH_TRUST_PROXY', '') === '1';
+const clientIp = (req) => {
+  if (TRUST_PROXY) {
+    const xff = String(req.headers['x-forwarded-for'] ?? '').split(',').map((s) => s.trim()).filter(Boolean);
+    if (xff.length) return xff[xff.length - 1];
+  }
+  return req.socket.remoteAddress ?? '';
+};
 async function db(sql, args) {
   const r = await pool.query(sql, args);
   return r.rows[0];
@@ -176,7 +186,32 @@ async function handleApi(req, res, url) {
       return send(res, 400, { ok: false, error: e.code === 'P0422' ? 'weak_password' : 'failed', detail: e.detail ?? null });
     }
   }
+  if (url.pathname === '/api/backup' && req.method === 'GET') return backupDownload(req, res);
   return send(res, 404, { error: 'not found' });
+}
+
+// Full backup, streamed to the Owner (pg_dump custom format: records, photos, settings, accounts). The database decides
+// whether this session may download it and records the download.
+async function backupDownload(req, res) {
+  const claims = verifyJwt((req.headers.authorization ?? '').replace(/^Bearer\s+/i, ''));
+  if (!claims?.session_id) return send(res, 401, { error: 'sign in first' });
+  const ok = (await db('select public.po_backup_allowed($1) as ok', [claims.session_id])).ok;
+  if (!ok) return send(res, 403, { error: 'not permitted' });
+  const dumpUrl = env('PH_DUMP_URL', '');
+  if (!dumpUrl) return send(res, 503, { error: 'backup not configured' });
+  const stamp = new Date().toISOString().replace(/[:T]/g, '-').slice(0, 16);
+  const p = spawn(PGBIN ? join(PGBIN, 'pg_dump') : 'pg_dump', ['-Fc', '--no-owner', dumpUrl], { stdio: ['ignore', 'pipe', 'pipe'] });
+  let started = false; let err = '';
+  p.stderr.on('data', (d) => { err += d; });
+  p.stdout.once('data', () => {
+    started = true;
+    res.writeHead(200, { 'content-type': 'application/octet-stream', 'content-disposition': `attachment; filename="packhouse-${stamp}.dump"`, 'cache-control': 'no-store', ...SECURITY_HEADERS });
+  });
+  p.stdout.on('data', (d) => res.write(d));
+  p.on('close', (code) => {
+    if (code !== 0) { console.error('backup download failed', err.trim()); if (!started) return send(res, 500, { error: 'backup failed' }); }
+    res.end();
+  });
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -213,6 +248,7 @@ function serveStatic(req, res, url) {
 
 async function handler(req, res) {
   const url = new URL(req.url ?? '/', 'http://local');
+  maybeTick();
   try {
     if (url.pathname.startsWith('/auth/v1')) return await handleAuth(req, res, url);
     if (url.pathname.startsWith('/rest/v1')) return proxyRest(req, res, url);
@@ -254,7 +290,11 @@ async function tick() {
     console.error(new Date().toISOString(), 'scheduler failed', e.code ?? '', e.message);
   }
 }
-if (TICK_MINUTES > 0) { setTimeout(tick, 15_000).unref(); setInterval(tick, TICK_MINUTES * 60_000).unref(); }
+let lastTick = 0;
+async function runTick() { lastTick = Date.now(); await tick(); }
+// A hosted free instance sleeps when idle: the first request after waking also runs the overdue tick.
+function maybeTick() { if (TICK_MINUTES > 0 && Date.now() - lastTick > TICK_MINUTES * 60_000) void runTick(); }
+if (TICK_MINUTES > 0) { lastTick = Date.now(); setTimeout(runTick, 15_000).unref(); setInterval(runTick, TICK_MINUTES * 60_000).unref(); }
 
 http.createServer(handler).listen(HTTP_PORT, HTTP_HOST, () => console.log(`packhouse server: http://${HTTP_HOST}:${HTTP_PORT}`));
 if (TLS_CERT && TLS_KEY && existsSync(TLS_CERT) && existsSync(TLS_KEY)) {

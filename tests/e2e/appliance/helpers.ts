@@ -7,10 +7,13 @@ const PG_PORT = process.env.PH_PG_PORT ?? '54340';
 
 /** SQL as the instance's database owner — only for reading back what the screens did (never to perform the step under test). */
 export function sql(statement: string): string {
-  return execFileSync('psql', ['-X', '-q', '-tA', '-h', `${PH_HOME}/run`, '-p', PG_PORT, '-U', 'postgres', '-d', 'packhouse', '-c', statement], { encoding: 'utf8' }).trim();
+  return execFileSync('psql', ['-X', '-q', '-tA', '-h', process.env.PH_SQL_HOST ?? `${PH_HOME}/run`, '-p', PG_PORT, '-U', 'postgres',
+    '-d', process.env.PH_SQL_DB ?? 'packhouse', '-c', statement], { encoding: 'utf8' }).trim();
 }
 
-export async function signIn(page: Page, username: string, password = 'demo-password-123') {
+export const DEMO_PW = process.env.PH_DEMO_PASSWORD ?? 'demo-password-123';
+
+export async function signIn(page: Page, username: string, password = DEMO_PW) {
   await page.goto('/');
   await page.getByLabel(/اسم المستخدم أو البريد|Username or e-mail/).fill(username);
   await page.getByLabel(/كلمة المرور|Password/).first().fill(password);
@@ -28,7 +31,7 @@ export async function api<T>(token: string, fn: string, args: Record<string, unk
   return { status: res.status, body: (await res.json().catch(() => null)) as T };
 }
 
-export async function token(username: string, password = 'demo-password-123'): Promise<string> {
+export async function token(username: string, password = DEMO_PW): Promise<string> {
   const res = await fetch(`${BASE}/auth/v1/token?grant_type=password`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email: username, password }) });
   const j = (await res.json()) as { access_token: string };
   return j.access_token;

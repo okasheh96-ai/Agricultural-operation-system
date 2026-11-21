@@ -2561,6 +2561,13 @@
         "high": "High",
         "medium": "Medium",
         "low": "Low"
+      },
+      "backup": {
+        "title": "Backup",
+        "help": "Download a complete copy of the database (records, photos, settings, accounts). Keep it somewhere private, e.g. an encrypted drive. The download is recorded in the access log.",
+        "download": "Download full backup",
+        "done": "Backup downloaded.",
+        "failed": "The backup could not be downloaded."
       }
     },
     "opset": {
