@@ -31,6 +31,10 @@ Legend: **A** UI · **B** Database · **C** Business logic · **D** Permissions 
 | Packing house M2.3: order lines (ST-00), daily plan, Job Card for an order (V-10), FG split / merge (V-22) with PHM approval, trace through them | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | Customer is free text (no master, OD-06; source OD-37); amend / cancel and split / merge cells are proposals; merge within one Job Card only |
 | Packing house M2 not built: rework Job Card (FR-PR-07), customer deviation (FR-PR-08), relabel / void label (FR-FG-06), packaging waste (FR-WS-06), weight loss (FR-WS-05) | — | — | — | — | — | — | — | Rework needs a hold disposition rule; deviation needs customer specs (OD-06); weight loss OD-28 |
 | Packing house M3–M4: dispatch, complaints, recall, KPIs | — | ◐ | — | ◐ | — | ◐ | — | Later FG states declared and refused; permission cells loaded and tested |
+| Packhouse ops (2026-11): grading spec S-07, advisory grade check | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | Shown as supplied with page refs; QA approval OD-43 pending on a real farm; boundary rule OD-45, tolerance override OD-47 open |
+| Packhouse ops: AWETA PM (S-08) and cleaning (S-09) schedules, hour meter, task generation | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | Tasks only after approval (OD-44); 30/120/500 h are a site proposal, not OEM intervals (OD-48) |
+| Packhouse ops: spreadsheet import (CSV/XLSX) + exception queue | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | Same maker-checker as typed rows; master-data tables only |
+| Packhouse ops: accountability policy (warnings → HR) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | Draft until Owner decides scope (C-02/OD-42); no one may record HR decisions until that authority is assigned |
 | QC / QA modules outside the packing house | — | — | — | — | — | — | — | Phase 9; QA is flagged independent |
 | Cost records | — | ◐ | — | — | — | — | — | Quantities are stored; rates table not built (Phase 10) |
 | Attachments / photos / documents | ◐ | ◐ | ◐ | ✅ | ✅ | ◐ | — | Packing house: photos in the database (≤ 5 MB, SHA-256) until Storage; elsewhere table only |
