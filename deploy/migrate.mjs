@@ -71,6 +71,23 @@ if (process.argv.includes('--roles-only')) { log('roles ready'); await client.en
 // 2. Auth schema.
 await q(readFileSync(join(ROOT, 'supabase/appliance/auth.sql'), 'utf8'));
 
+// Host compatibility (migration files are never edited once applied anywhere): managed PostgreSQL that lists pg_cron but only
+// allows it in the "postgres" database (Neon) takes the documented "no pg_cron here" path; the packhouse server's scheduler
+// tick runs the periodic work instead. Each rewrite is logged.
+const HOST_COMPAT = [{
+  version: '20261005000710_work_exception_engines',
+  find: "if exists (select 1 from pg_available_extensions where name = 'pg_cron') then",
+  replace: "if exists (select 1 from pg_available_extensions where name = 'pg_cron') and current_database() = coalesce(nullif(current_setting('cron.database_name', true), ''), 'postgres') then",
+}];
+function hostCompatible(version, sql) {
+  for (const c of HOST_COMPAT.filter((x) => x.version === version)) {
+    if (!sql.includes(c.find)) throw new Error(`host-compat rule for ${version} no longer matches the file`);
+    sql = sql.replace(c.find, c.replace);
+    log(`${version}: pg_cron only where this database may create it (host compatibility)`);
+  }
+  return sql;
+}
+
 // 3. Migrations.
 await q('create schema if not exists supabase_migrations');
 await q('create table if not exists supabase_migrations.schema_migrations (version text primary key, applied_at timestamptz default now())');
@@ -83,7 +100,7 @@ for (const f of files) {
   log(`apply ${v}`);
   try {
     await q('begin');
-    await q(readFileSync(join(ROOT, 'supabase/migrations', f), 'utf8'));
+    await q(hostCompatible(v, readFileSync(join(ROOT, 'supabase/migrations', f), 'utf8')));
     await q('insert into supabase_migrations.schema_migrations (version) values ($1)', [v]);
     await q('commit');
     n += 1;

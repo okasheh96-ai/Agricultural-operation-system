@@ -315,6 +315,7 @@ const TICK_MINUTES = Number(env('PH_TICK_MINUTES', 5));
 async function tick() {
   try {
     const r = (await db('select public.po_scheduler_tick() as r')).r;
+    await db('select public.po_run_escalations() as n').catch((e) => console.error('escalations failed', e.code ?? '', e.message));
     if (r && (r.created || r.escalated)) console.log(new Date().toISOString(), 'scheduler', JSON.stringify(r));
   } catch (e) {
     console.error(new Date().toISOString(), 'scheduler failed', e.code ?? '', e.message);
