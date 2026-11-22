@@ -1,0 +1,31 @@
+{
+  // Production config. Local `wrangler dev` uses local D1/R2 simulations and .dev.vars (never committed).
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "shift-ops",
+  "main": "src/worker/index.ts",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+  "d1_databases": [
+    { "binding": "DB", "database_name": "shift-ops", "database_id": "00000000-0000-0000-0000-000000000000", "migrations_dir": "migrations" },
+    { "binding": "RESTORE_DB", "database_name": "shift-ops-restore-test", "database_id": "00000000-0000-0000-0000-000000000001", "migrations_dir": "migrations" }
+  ],
+  "r2_buckets": [
+    { "binding": "ORIGINALS", "bucket_name": "shift-ops-originals" },
+    { "binding": "BACKUPS", "bucket_name": "shift-ops-backups" }
+  ],
+  "triggers": { "crons": ["17 23 * * *"] },
+  "vars": {
+    "AUTH_MODE": "access",
+    "ACCESS_TEAM_DOMAIN": "",
+    "ACCESS_AUD": "",
+    "OWNER_EMAIL": "",
+    "TIMEZONE": "Asia/Amman"
+  },
+  "observability": { "enabled": true }
+}
